@@ -1,4 +1,7 @@
-﻿using Newtonsoft.Json;
+﻿using EdgeTtsSharp;
+using EdgeTtsSharp.NAudio;
+using EdgeTtsSharp.Structures;
+using Newtonsoft.Json;
 using RestSharp;
 using System.Text;
 using uPLibrary.Networking.M2Mqtt;
@@ -14,6 +17,7 @@ namespace XiaoZhiCSharp_ConsoleApp
         #endregion
         static dynamic? mqttInfo;
         static MqttClient? mqttClient;
+        static Voice? voice;
 
         static string? sessionId;
         static string? state;
@@ -52,6 +56,7 @@ namespace XiaoZhiCSharp_ConsoleApp
                     );
 
             mqttClient.Subscribe(new string[] { (string)mqttInfo.subscribe_topic }, new byte[] { MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE });
+
             Console.WriteLine("小智AI--开始聊天吧！");
             Console.WriteLine("====================================");
             while (true) {
@@ -77,25 +82,28 @@ namespace XiaoZhiCSharp_ConsoleApp
             }
         }
 
-        private static void Mqttc_MqttMsgSubscribed(object sender, uPLibrary.Networking.M2Mqtt.Messages.MqttMsgSubscribedEventArgs e)
+        private static async void Mqttc_MqttMsgSubscribed(object sender, uPLibrary.Networking.M2Mqtt.Messages.MqttMsgSubscribedEventArgs e)
         {
             
         }
 
-        private static void Mqttc_MqttMsgPublishReceived(object sender, uPLibrary.Networking.M2Mqtt.Messages.MqttMsgPublishEventArgs e)
+        private static async void Mqttc_MqttMsgPublishReceived(object sender, uPLibrary.Networking.M2Mqtt.Messages.MqttMsgPublishEventArgs e)
         {
             try
             {
                 string message = Encoding.UTF8.GetString(e.Message);
-                dynamic msg = JsonConvert.DeserializeObject<dynamic>(message);
+                dynamic? msg = JsonConvert.DeserializeObject<dynamic>(message);
                 //Console.WriteLine(msg);
                 if (msg.type == "hello") {
+                    voice = await EdgeTts.GetVoice("zh-CN-XiaoxiaoNeural");
                     sessionId = msg.session_id;
                     //Console.WriteLine(sessionId);
                 }
                 if (msg.type == "tts" && msg.state == "sentence_start") {
                     state = (string)msg.state;
-                    Console.WriteLine($"小智AI:{(string)msg.text}");
+                    string voiceStr = (string)msg.text;
+                    voice.PlayText(voiceStr);
+                    Console.WriteLine($"小智AI:{voiceStr}");
                 }
                 if (msg.type == "tts" && msg.state == "sentence_end")
                 {
