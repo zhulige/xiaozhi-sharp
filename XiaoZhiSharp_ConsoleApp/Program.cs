@@ -12,11 +12,11 @@ namespace XiaoZhiCSharp_ConsoleApp
         static string OTA_VERSION_URL = "https://api.tenclass.net/xiaozhi/ota/";
         static string MAC_ADDR = "c8:b2:9b:3a:52:c3";
         #endregion
-        static dynamic? mqtt_info;
-        static MqttClient? mqttc;
+        static dynamic? mqttInfo;
+        static MqttClient? mqttClient;
 
-        static string sessionId;
-        static string state;
+        static string? sessionId;
+        static string? state;
 
         static void Main(string[] args)
         {
@@ -25,14 +25,14 @@ namespace XiaoZhiCSharp_ConsoleApp
             //初始化小智
             GetConfig();
 
-            if (mqtt_info != null)
+            if (mqttInfo != null)
             {
-                string endpoint = mqtt_info.endpoint;
-                string clientId = mqtt_info.client_id;
-                string username = mqtt_info.username;
-                string password = mqtt_info.password;
-                string publishTopic = mqtt_info.publish_topic;
-                string subscribeTopic = mqtt_info.subscribe_topic;
+                string endpoint = mqttInfo.endpoint;
+                string clientId = mqttInfo.client_id;
+                string username = mqttInfo.username;
+                string password = mqttInfo.password;
+                string publishTopic = mqttInfo.publish_topic;
+                string subscribeTopic = mqttInfo.subscribe_topic;
                 Console.WriteLine("小智AI--初始化成功！");
             }
             else {
@@ -41,17 +41,17 @@ namespace XiaoZhiCSharp_ConsoleApp
             }
 
             // 创建MQTT客户端实例
-            mqttc = new MqttClient(System.Convert.ToString(mqtt_info.endpoint), 8883, true, null, null, MqttSslProtocols.TLSv1_2);
-            mqttc.MqttMsgPublishReceived += Mqttc_MqttMsgPublishReceived;
-            mqttc.MqttMsgSubscribed += Mqttc_MqttMsgSubscribed;
+            mqttClient = new MqttClient(System.Convert.ToString(mqttInfo.endpoint), 8883, true, null, null, MqttSslProtocols.TLSv1_2);
+            mqttClient.MqttMsgPublishReceived += Mqttc_MqttMsgPublishReceived;
+            mqttClient.MqttMsgSubscribed += Mqttc_MqttMsgSubscribed;
 
-            mqttc.Connect(
-                    System.Convert.ToString(mqtt_info.client_id),
-                    System.Convert.ToString(mqtt_info.username),
-                    System.Convert.ToString(mqtt_info.password)
+            mqttClient.Connect(
+                    System.Convert.ToString(mqttInfo.client_id),
+                    System.Convert.ToString(mqttInfo.username),
+                    System.Convert.ToString(mqttInfo.password)
                     );
 
-            mqttc.Subscribe(new string[] { (string)mqtt_info.subscribe_topic }, new byte[] { MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE });
+            mqttClient.Subscribe(new string[] { (string)mqttInfo.subscribe_topic }, new byte[] { MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE });
             Console.WriteLine("小智AI--开始聊天吧！");
             Console.WriteLine("====================================");
             while (true) {
@@ -139,7 +139,7 @@ namespace XiaoZhiCSharp_ConsoleApp
             try
             {
                 string jsonMessage = Newtonsoft.Json.JsonConvert.SerializeObject(message);
-                mqttc.Publish(System.Convert.ToString(mqtt_info.publish_topic), Encoding.UTF8.GetBytes(jsonMessage));
+                mqttClient.Publish(System.Convert.ToString(mqttInfo.publish_topic), Encoding.UTF8.GetBytes(jsonMessage));
             }
             catch (Exception ex)
             {
@@ -183,7 +183,7 @@ namespace XiaoZhiCSharp_ConsoleApp
                     Console.WriteLine($"请先登录xiaozhi.me,绑定Code：{(string)content.activation.code}");
                 }
                 //Console.WriteLine(response.Content);
-                mqtt_info = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(response.Content).mqtt;
+                mqttInfo = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(response.Content).mqtt;
             }
             catch (Exception ex)
             {
