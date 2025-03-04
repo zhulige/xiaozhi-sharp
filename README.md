@@ -1,8 +1,14 @@
 # xiaozhi-sharp 小智 AI 聊天机器人 （XiaoZhi AI Chatbot）
+[![SVG Banners](https://svg-banners.vercel.app/api?type=origin&text1=你好😃，小智📟&text2=小智服务器的调整利器&width=830&height=210)](https://github.com/xinnan-tech/xiaozhi-esp32-server)
 
 ## 项目简介
 xiaozhi-sharp 是一个用 C# 精心打造的小智客户端，它不仅可以作为代码学习的优质示例，还能让你在没有相关硬件条件的情况下，轻松体验到小智 AI 带来的智能交互乐趣。
 本客户端默认接入 [xiaozhi.me](https://xiaozhi.me/) 官方服务器，为你提供稳定可靠的服务。需要注意的是，为了区分不同的客户端，你需要手动修改全局变量 MAC_ADDR。
+
+## 小智服务器调试利器
+输出全部指令、让你了解小智的工作原理。拿来就能用还等什么！
+<a href="publish/xiaozhiSharp_Test_v0.0.1-win-x64.zip">xiaozhiSharp_Test_v0.0.1-win-x64.zip</a>
+
 
 ## 运行指南
 要运行本项目，你需要按照以下步骤操作：
