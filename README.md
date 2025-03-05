@@ -7,7 +7,9 @@ xiaozhi-sharp 是一个用 C# 精心打造的小智客户端，它不仅可以�
 
 ## 小智服务器调试利器
 输出全部指令、让你了解小智的工作原理。拿来就能用还等什么！<br>
-<a href="publish/xiaozhiSharp_Test_v0.0.1-win-x64.zip">xiaozhiSharp_Test_v0.0.1-win-x64.zip</a>
+<br>
+<a href="publish/xiaozhiSharp_Test_v0.0.1-win-x64.zip">Win-x64</a><br>
+<br>
 <img src="doc/202503051510.png" width="480" />
 
 
