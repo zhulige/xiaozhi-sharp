@@ -19,9 +19,9 @@ namespace XiaoZhiSharp
         public event MessageEventHandler? OnMessageEvent = null;
         public event AudioEventHandler? OnAudioEvent = null;
 
-        private WebSocketService _webSocketService;
-        private OtaService _xiaoZhiOtaClient;
-        private AudioService _audioService;
+        private OtaService? _xiaoZhiOtaClient = null;
+        private WebSocketService? _webSocketService = null;
+        private AudioService? _audioService = null;
 
         public XiaoZhiAgent(string otaUrl, string wsUrl, string mac = "")
         {
@@ -29,6 +29,12 @@ namespace XiaoZhiSharp
             WEB_SOCKET_URL = wsUrl;
             if (!string.IsNullOrEmpty(mac))
                 MAC_ADDR = mac;
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                //Console.WriteLine("当前操作系统是 Windows，执行 Windows 相关代码。");
+                _audioService = new AudioService();
+            }
 
             _xiaoZhiOtaClient = new OtaService(OTA_VERSION_URL, MAC_ADDR);
             // 小智 WebSocket 客户端
@@ -39,11 +45,7 @@ namespace XiaoZhiSharp
             _ = Send_Hello();
             _ = Send_Listen_Detect("你好");
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                //Console.WriteLine("当前操作系统是 Windows，执行 Windows 相关代码。");
-                _audioService = new AudioService();
-            }
+
 
             Task.Run(async () =>
             {
@@ -52,13 +54,10 @@ namespace XiaoZhiSharp
                     if (_audioService == null)
                         return;
 
-                    var packet = await _audioService._opusPackets.GetPacketAsync();
-                    if (packet.HasValue)
-                    {
-                        //Console.WriteLine($"发送语音: {packet.Value.SequenceNumber} - {packet.Value.Packet.Length}");
-                        await _webSocketService.SendOpusAsync(packet.Value.Packet);
-                        //_opusAudioService.ReceiveOpusData(packet.Value.Packet);
-                    }
+                    byte[] opusData;
+                    if (_audioService._opusRecordPackets.TryDequeue(out opusData))
+                        await _webSocketService.SendOpusAsync(opusData);
+
                     await Task.Delay(60);
                 }
             });
@@ -67,7 +66,9 @@ namespace XiaoZhiSharp
 
         private void XiaoZhiWSClient_OnAudioEvent(byte[] opus)
         {
-            _audioService.ReceiveOpusData(opus);
+            if (_audioService != null)
+                _audioService.OpusPlayEnqueue(opus);
+
             if (OnAudioEvent != null)
                 OnAudioEvent(opus);
         }
@@ -84,21 +85,30 @@ namespace XiaoZhiSharp
         /// </summary>
         public async Task Send_Hello()
         {
-            await _webSocketService.SendMessageAsync(Protocols.WebSocketProtocol.Hello());
+            if(_webSocketService!=null)
+                await _webSocketService.SendMessageAsync(Protocols.WebSocketProtocol.Hello());
         }
         public async Task Send_Listen_Detect(string text)
         {
-            await _webSocketService.SendMessageAsync(Protocols.WebSocketProtocol.Listen_Detect(text));
+            if (_webSocketService != null)
+                await _webSocketService.SendMessageAsync(Protocols.WebSocketProtocol.Listen_Detect(text));
         }
         public async Task Send_Listen_Start(string mode)
         {
-            await _webSocketService.SendMessageAsync(Protocols.WebSocketProtocol.Listen_Start(_webSocketService.SessionId, mode));
-            _audioService.StartRecording();
+            if (_webSocketService != null && _audioService!=null)
+            {
+                await _webSocketService.SendMessageAsync(Protocols.WebSocketProtocol.Listen_Start(_webSocketService.SessionId, mode));
+                _audioService.StartRecording();
+            }
         }
         public async Task Send_Listen_Stop()
         {
-            await _webSocketService.SendMessageAsync(Protocols.WebSocketProtocol.Listen_Stop(_webSocketService.SessionId));
-            _audioService.StopRecording();
+
+            if (_webSocketService != null && _audioService != null)
+            {
+                await _webSocketService.SendMessageAsync(Protocols.WebSocketProtocol.Listen_Stop(_webSocketService.SessionId));
+                _audioService.StopRecording();
+            }
         }
 
         #endregion

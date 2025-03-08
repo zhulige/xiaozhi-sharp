@@ -2,6 +2,8 @@
 using System;
 using System.Net.WebSockets;
 using System.Text;
+using XiaoZhiSharp.Services;
+using XiaoZhiSharp.Utils;
 
 namespace XiaoZhiSharp
 {
@@ -18,8 +20,7 @@ namespace XiaoZhiSharp
         public string? SessionId { get; set; }
         public string DeviceId { get; set; }
         public List<string>? MessageList { get; set; } = new List<string>();
-        public bool IsDebug { get; set; } = true;
-
+        
         // 私有资源
         private ClientWebSocket _webSocket;
         private Uri _serverUri;
@@ -40,21 +41,16 @@ namespace XiaoZhiSharp
             _webSocket.Options.SetRequestHeader("Device-Id", DeviceId);
             _webSocket.Options.SetRequestHeader("Client-Id", Guid.NewGuid().ToString());
             _webSocket.ConnectAsync(_serverUri, CancellationToken.None);
-            if (IsDebug)
-            {
-                Console.WriteLine(WEB_SOCKET_URL);
-                Console.WriteLine("WebSocket 初始化完成");
-            }
-            Console.Write("WebSocket 连接中...");
+
+            LogConsole.WriteLine($"WebSocketUrl：{WEB_SOCKET_URL}");
+            LogConsole.WriteLine("WebSocket 初始化完成");
+            LogConsole.Write("WebSocket 连接中...");
             while (_webSocket.State != WebSocketState.Open){
-                if (IsDebug)
-                    Console.Write(".");
+                Console.Write(".");
                 Thread.Sleep(100);
             }
-            if (IsDebug)
-                Console.WriteLine("");
-            if (IsDebug)
-                Console.WriteLine("WebSocket 连接成功 WebSocket.State:" + _webSocket.State.ToString());
+            Console.WriteLine("");
+            LogConsole.WriteLine("WebSocket 连接成功 WebSocket.State:" + _webSocket.State.ToString());
 
             // WebSocket 接收消息
             Task.Run(async () =>
@@ -89,16 +85,7 @@ namespace XiaoZhiSharp
                         var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
                         if (!string.IsNullOrEmpty(message))
                         {
-                            if (MessageList == null)
-                                MessageList = new List<string>();
-
-                            MessageList.Add(message);
-
-                            if (IsDebug)
-                            {
-                                Console.ForegroundColor = ConsoleColor.Blue;
-                                Console.WriteLine($"WebSocket 接收到消息: {message}");
-                            }
+                            LogConsole.ReceiveLine($"WebSocket 接收到消息: {message}");
 
                             // 触发事件
                             if (OnMessageEvent != null)
@@ -116,6 +103,7 @@ namespace XiaoZhiSharp
                     }
                     if (result.MessageType == WebSocketMessageType.Binary)
                     {
+                        //await _audioService.OpusPlayEnqueue(buffer);
                         //if (IsDebug)
                         //    Console.WriteLine($"WebSocket 接收到语音: {buffer.Length}");
 
@@ -123,15 +111,14 @@ namespace XiaoZhiSharp
                         if (OnAudioEvent != null)
                         {
                             OnAudioEvent(buffer);
-                        }                        
+                        }
                     }
                     await Task.Delay(60);
                 }
             }
             catch (Exception ex)
             {
-                if (IsDebug)
-                    Console.WriteLine($"WebSocket 接收消息时出错: {ex.Message}");
+                LogConsole.ErrorLine($"WebSocket 接收消息时出错: {ex.Message}");
             }
         }
 
@@ -146,11 +133,9 @@ namespace XiaoZhiSharp
             {
                 var buffer = Encoding.UTF8.GetBytes(message);
                 await _webSocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
-                if (IsDebug)
-                {
-                    Console.ForegroundColor = ConsoleColor.Green;
-                    Console.WriteLine($"WebSocket 发送的消息: {message}");
-                }
+                    
+                LogConsole.SendLine($"WebSocket 发送的消息: {message}");
+                
             }
         }
 
