@@ -30,7 +30,7 @@ namespace XiaoZhiSharp.Services
         private const int FrameSize = SampleRate * FrameDuration / 1000; // 帧大小
 
         // Opus 数据包缓存池
-        public readonly Queue<byte[]> _opusRecordPackets = new Queue<byte[]>();
+        private readonly Queue<byte[]> _opusRecordPackets = new Queue<byte[]>();
         private readonly Queue<byte[]> _opusPlayPackets = new Queue<byte[]>();
         public bool IsRecording { get; private set; }
         public bool IsPlaying { get; private set; }
@@ -76,7 +76,7 @@ namespace XiaoZhiSharp.Services
             {
                 while (true)
                 {
-                    byte[] opusData;
+                    byte[]? opusData;
                     if (_opusPlayPackets.TryDequeue(out opusData))
                         ReceiveOpusData(opusData);
 
@@ -113,7 +113,7 @@ namespace XiaoZhiSharp.Services
         /// </summary>
         /// <param name="buffer"></param>
         /// <param name="bytesRecorded"></param>
-        private async void ProcessAudioData(byte[] buffer, int bytesRecorded)
+        private void ProcessAudioData(byte[] buffer, int bytesRecorded)
         {
             int frameCount = bytesRecorded / (FrameSize * 2); // 每个样本 2 字节
 
@@ -237,7 +237,7 @@ namespace XiaoZhiSharp.Services
             _opusPlayPackets.Enqueue(opusData);
         }
 
-        public bool OpusRecordEnqueue(out byte[] opusData)
+        public bool OpusRecordEnqueue(out byte[]? opusData)
         {
             return _opusRecordPackets.TryDequeue(out opusData);
         }

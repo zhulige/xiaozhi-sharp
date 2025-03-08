@@ -12,6 +12,7 @@ namespace XiaoZhiSharp
     {
         public string OTA_VERSION_URL { get; set; } = "https://api.tenclass.net/xiaozhi/ota/";
         public string WEB_SOCKET_URL { get; set; } = "wss://api.tenclass.net/xiaozhi/v1/";
+        public string TOKEN { get; set; } = "test-token";
         public string? MAC_ADDR { get; set; } = Utils.SystemInfo.GetMacAddress();
 
         public delegate void MessageEventHandler(string message);
@@ -38,13 +39,12 @@ namespace XiaoZhiSharp
 
             _xiaoZhiOtaClient = new OtaService(OTA_VERSION_URL, MAC_ADDR);
             // 小智 WebSocket 客户端
-            _webSocketService = new WebSocketService(WEB_SOCKET_URL);
+            _webSocketService = new WebSocketService(WEB_SOCKET_URL, TOKEN);
             _webSocketService.OnMessageEvent += XiaoZhiWSClient_OnMessageEvent;
             _webSocketService.OnAudioEvent += XiaoZhiWSClient_OnAudioEvent;
 
             _ = Send_Hello();
             _ = Send_Listen_Detect("你好");
-
 
 
             Task.Run(async () =>
@@ -54,8 +54,8 @@ namespace XiaoZhiSharp
                     if (_audioService == null)
                         return;
 
-                    byte[] opusData;
-                    if (_audioService._opusRecordPackets.TryDequeue(out opusData))
+                    byte[]? opusData;
+                    if (_audioService.OpusRecordEnqueue(out opusData))
                         await _webSocketService.SendOpusAsync(opusData);
 
                     await Task.Delay(60);

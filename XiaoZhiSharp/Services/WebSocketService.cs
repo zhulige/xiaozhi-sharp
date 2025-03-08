@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Net.WebSockets;
 using System.Text;
@@ -17,6 +18,7 @@ namespace XiaoZhiSharp
 
         // 属性
         public string WEB_SOCKET_URL { get; set; } = "wss://api.tenclass.net/xiaozhi/v1/";
+        public string TOKEN { get; set; } = "test-token";
         public string? SessionId { get; set; }
         public string DeviceId { get; set; }
         public List<string>? MessageList { get; set; } = new List<string>();
@@ -26,9 +28,10 @@ namespace XiaoZhiSharp
         private Uri _serverUri;
 
         // 构造函数
-        public WebSocketService(string url)
+        public WebSocketService(string url,string token)
         {
             WEB_SOCKET_URL = url;
+            TOKEN = token;
 
             // 获取 MAC 地址
             DeviceId = Utils.SystemInfo.GetMacAddress();
@@ -36,7 +39,7 @@ namespace XiaoZhiSharp
             // 初始化 WebSocket
             _serverUri = new Uri(WEB_SOCKET_URL);
             _webSocket = new ClientWebSocket();
-            _webSocket.Options.SetRequestHeader("Authorization", "Bearer test-token");
+            _webSocket.Options.SetRequestHeader("Authorization", "Bearer " + TOKEN);
             _webSocket.Options.SetRequestHeader("Protocol-Version", "1");
             _webSocket.Options.SetRequestHeader("Device-Id", DeviceId);
             _webSocket.Options.SetRequestHeader("Client-Id", Guid.NewGuid().ToString());
