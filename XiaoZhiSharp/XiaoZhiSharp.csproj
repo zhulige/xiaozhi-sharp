@@ -6,4 +6,11 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="NAudio" Version="2.2.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="OpusSharp" Version="1.5.5" />
+    <PackageReference Include="RestSharp" Version="112.1.0" />
+  </ItemGroup>
+
 </Project>

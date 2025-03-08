@@ -11,3 +11,5 @@
 /XiaoZhiSharp_ConsoleApp/Properties/PublishProfiles
 /.vs
 /XiaoZhiSharp_Test/obj
+/XiaoZhiSharp/bin/Debug/net8.0
+/XiaoZhiSharp_Test/bin/Debug/net8.0
