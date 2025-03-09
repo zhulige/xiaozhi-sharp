@@ -54,7 +54,7 @@ class Program
         Console.ForegroundColor = ConsoleColor.Green;
         Console.WriteLine("========================================================================");
         _xiaoZhiAgent.Start();
-
+        await _xiaoZhiAgent.Send_Listen_Detect("你好");
         while (true)
         {
             //bool isCapsLockOn = Console.CapsLock;
