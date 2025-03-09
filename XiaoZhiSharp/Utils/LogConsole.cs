@@ -11,10 +11,10 @@ namespace XiaoZhiSharp.Utils
     public enum MessageType
     {
         Send,
-        Received,
+        Recv,
         Info,
-        Warning,
-        Error
+        Warn,
+        Erro
     }
 
     // 日志控制台类
@@ -79,16 +79,16 @@ namespace XiaoZhiSharp.Utils
                 case MessageType.Send:
                     Console.ForegroundColor = ConsoleColor.Green;
                     break;
-                case MessageType.Received:
+                case MessageType.Recv:
                     Console.ForegroundColor = ConsoleColor.Blue;
                     break;
                 case MessageType.Info:
                     Console.ForegroundColor = ConsoleColor.White;
                     break;
-                case MessageType.Warning:
+                case MessageType.Warn:
                     Console.ForegroundColor = ConsoleColor.Yellow;
                     break;
-                case MessageType.Error:
+                case MessageType.Erro:
                     Console.ForegroundColor = ConsoleColor.Red;
                     break;
                 default:
@@ -119,13 +119,13 @@ namespace XiaoZhiSharp.Utils
         // 快捷方法：接收消息并换行
         public static void ReceiveLine(string message)
         {
-            WriteLine(MessageType.Received, message);
+            WriteLine(MessageType.Recv, message);
         }
 
         // 快捷方法：接收消息不换行
         public static void Receive(string message)
         {
-            Write(MessageType.Received, message);
+            Write(MessageType.Recv, message);
         }
 
         // 快捷方法：记录信息并换行
@@ -143,25 +143,25 @@ namespace XiaoZhiSharp.Utils
         // 快捷方法：记录警告并换行
         public static void WarningLine(string message)
         {
-            WriteLine(MessageType.Warning, message);
+            WriteLine(MessageType.Warn, message);
         }
 
         // 快捷方法：记录警告不换行
         public static void Warning(string message)
         {
-            Write(MessageType.Warning, message);
+            Write(MessageType.Warn, message);
         }
 
         // 快捷方法：记录错误并换行
         public static void ErrorLine(string message)
         {
-            WriteLine(MessageType.Error, message);
+            WriteLine(MessageType.Erro, message);
         }
 
         // 快捷方法：记录错误不换行
         public static void Error(string message)
         {
-            Write(MessageType.Error, message);
+            Write(MessageType.Erro, message);
         }
     }
 }

@@ -24,8 +24,8 @@ namespace XiaoZhiSharp.Services
         private string? _deviceId { get; set; }
         
         // 私有资源
-        private ClientWebSocket _webSocket;
-        private Uri _serverUri;
+        private ClientWebSocket _webSocket = null;
+        private Uri _serverUri = null;
 
         // 构造函数
         public WebSocketService(string url,string token)
@@ -38,6 +38,15 @@ namespace XiaoZhiSharp.Services
             // 获取 MAC 地址
             _deviceId = Utils.SystemInfo.GetMacAddress();
 
+            ConnectAsync();
+        }
+
+        /// <summary>
+        /// WebSocket 连接打开
+        /// </summary>
+        /// <returns></returns>
+        public void ConnectAsync()
+        {
             // 初始化 WebSocket
             _serverUri = new Uri(_webSocketUrl);
             _webSocket = new ClientWebSocket();
@@ -50,7 +59,8 @@ namespace XiaoZhiSharp.Services
             LogConsole.WriteLine($"小智_WebSocketUrl：{_webSocketUrl}");
             LogConsole.WriteLine("小智_WebSocket 初始化完成");
             LogConsole.Write("小智_WebSocket 连接中...");
-            while (_webSocket.State != WebSocketState.Open){
+            while (_webSocket.State != WebSocketState.Open)
+            {
                 Console.Write(".");
                 Thread.Sleep(100);
             }
@@ -66,11 +76,19 @@ namespace XiaoZhiSharp.Services
             // WebSocket 重连
             Task.Run(async () =>
             {
-                if (_webSocket.State != WebSocketState.Open) {
-                    await _webSocket.ConnectAsync(_serverUri, CancellationToken.None);
+                while (true)
+                {
+                    if (_webSocket.State == WebSocketState.Closed || _webSocket.State == WebSocketState.Aborted)
+                    {
+                        ConnectAsync();
+                        return;
+                    }
+                    await Task.Delay(1000);
                 }
-                await Task.Delay(1000);
             });
+
+            SendMessageAsync(Protocols.WebSocketProtocol.Hello());
+            //SendMessageAsync(Protocols.WebSocketProtocol.Listen_Detect("你好"));
         }
 
         /// <summary>
@@ -80,9 +98,10 @@ namespace XiaoZhiSharp.Services
         private async Task ReceiveMessagesAsync()
         {
             var buffer = new byte[1024];
-            try
+
+            while (_webSocket.State == WebSocketState.Open)
             {
-                while (_webSocket.State == WebSocketState.Open)
+                try
                 {
                     var result = await _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
                     if (result.MessageType == WebSocketMessageType.Text)
@@ -120,10 +139,10 @@ namespace XiaoZhiSharp.Services
                     }
                     await Task.Delay(60);
                 }
-            }
-            catch (Exception ex)
-            {
-                LogConsole.ErrorLine($"小智:接收消息时出错{ex.Message}");
+                catch (Exception ex)
+                {
+                    LogConsole.ErrorLine($"小智：接收消息时出错 {ex.Message}");
+                }
             }
         }
 
@@ -139,7 +158,7 @@ namespace XiaoZhiSharp.Services
                 var buffer = Encoding.UTF8.GetBytes(message);
                 await _webSocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
                     
-                LogConsole.SendLine($"小智: {message}");
+                LogConsole.SendLine($"小智：{message}");
                 
             }
         }
@@ -155,16 +174,6 @@ namespace XiaoZhiSharp.Services
             {
                 await _webSocket.SendAsync(new ArraySegment<byte>(opus), WebSocketMessageType.Binary, true, CancellationToken.None);
             }
-        }
-
-        /// <summary>
-        /// WebSocket 连接打开
-        /// </summary>
-        /// <returns></returns>
-        public async Task ConnectAsync()
-        {
-            if(_webSocket.State!=WebSocketState.Open)
-                await _webSocket.ConnectAsync(_serverUri, CancellationToken.None);
         }
 
         /// <summary>

@@ -107,7 +107,14 @@ class Program
             else
             {
                 if (_status == false)
+                {
+                    if (input == "restart")
+                    {
+                        _xiaoZhiAgent.Restart();
+                        continue;
+                    }    
                     await _xiaoZhiAgent.Send_Listen_Detect(input);
+                }
             }
         }
     }

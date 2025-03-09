@@ -46,8 +46,8 @@ namespace XiaoZhiSharp
             _webSocketService.OnMessageEvent += WebSocketService_OnMessageEvent;
             _webSocketService.OnAudioEvent += WebSocketService_OnAudioEvent;
 
-            _ = Send_Hello();
-            _ = Send_Listen_Detect("你好");
+            //_ = Send_Hello();
+            //_ = Send_Listen_Detect("你好");
 
             _sendOpusthread = new Thread(async () =>
             {
@@ -58,13 +58,27 @@ namespace XiaoZhiSharp
 
                     byte[]? opusData;
                     if (_audioService.OpusRecordEnqueue(out opusData))
+                    {
+                        if (opusData == null)
+                            continue;
                         await _webSocketService.SendOpusAsync(opusData);
+                    }
 
                     await Task.Delay(60);
                 }
             });
+            _sendOpusthread.Start();
         }
 
+        public void Stop() {
+            _audioService = null;
+            _otaService = null;
+            _webSocketService = null;
+        }
+        public void Restart() {
+            Stop();
+            Start();
+        }
         private void WebSocketService_OnAudioEvent(byte[] opus)
         {
             if (_audioService != null)
