@@ -92,7 +92,7 @@ namespace XiaoZhiSharp.Services
             bool isMute = IsAudioMute(e.Buffer, e.BytesRecorded);
             if (isMute)
             {
-                Console.WriteLine("音频处于静音状态");
+                //Console.WriteLine("音频处于静音状态");
             }
             else
             {

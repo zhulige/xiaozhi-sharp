@@ -6,7 +6,7 @@ using System.Text;
 using XiaoZhiSharp.Services;
 using XiaoZhiSharp.Utils;
 
-namespace XiaoZhiSharp
+namespace XiaoZhiSharp.Services
 {
     public class WebSocketService
     {
@@ -17,11 +17,11 @@ namespace XiaoZhiSharp
         public event AudioEventHandler? OnAudioEvent = null;
 
         // 属性
-        public string WEB_SOCKET_URL { get; set; } = "wss://api.tenclass.net/xiaozhi/v1/";
-        public string TOKEN { get; set; } = "test-token";
-        public string? SessionId { get; set; }
-        public string DeviceId { get; set; }
-        public List<string>? MessageList { get; set; } = new List<string>();
+        private string? _webSocketUrl { get; set; } = "wss://api.tenclass.net/xiaozhi/v1/";
+        private string? _token { get; set; } = "test-token";
+        private string? _sessionId { get; set; }
+        public string? SessionId { get { return _sessionId; } }
+        private string? _deviceId { get; set; }
         
         // 私有资源
         private ClientWebSocket _webSocket;
@@ -30,30 +30,32 @@ namespace XiaoZhiSharp
         // 构造函数
         public WebSocketService(string url,string token)
         {
-            WEB_SOCKET_URL = url;
-            TOKEN = token;
+            if(!string.IsNullOrEmpty(url))
+                _webSocketUrl = url;
+            if (!string.IsNullOrEmpty(token))
+                _token = token;
 
             // 获取 MAC 地址
-            DeviceId = Utils.SystemInfo.GetMacAddress();
+            _deviceId = Utils.SystemInfo.GetMacAddress();
 
             // 初始化 WebSocket
-            _serverUri = new Uri(WEB_SOCKET_URL);
+            _serverUri = new Uri(_webSocketUrl);
             _webSocket = new ClientWebSocket();
-            _webSocket.Options.SetRequestHeader("Authorization", "Bearer " + TOKEN);
+            _webSocket.Options.SetRequestHeader("Authorization", "Bearer " + _token);
             _webSocket.Options.SetRequestHeader("Protocol-Version", "1");
-            _webSocket.Options.SetRequestHeader("Device-Id", DeviceId);
+            _webSocket.Options.SetRequestHeader("Device-Id", _deviceId);
             _webSocket.Options.SetRequestHeader("Client-Id", Guid.NewGuid().ToString());
             _webSocket.ConnectAsync(_serverUri, CancellationToken.None);
 
-            LogConsole.WriteLine($"WebSocketUrl：{WEB_SOCKET_URL}");
-            LogConsole.WriteLine("WebSocket 初始化完成");
-            LogConsole.Write("WebSocket 连接中...");
+            LogConsole.WriteLine($"小智_WebSocketUrl：{_webSocketUrl}");
+            LogConsole.WriteLine("小智_WebSocket 初始化完成");
+            LogConsole.Write("小智_WebSocket 连接中...");
             while (_webSocket.State != WebSocketState.Open){
                 Console.Write(".");
                 Thread.Sleep(100);
             }
             Console.WriteLine("");
-            LogConsole.WriteLine("WebSocket 连接成功 WebSocket.State:" + _webSocket.State.ToString());
+            LogConsole.WriteLine("小智_WebSocket 连接成功 WebSocket.State:" + _webSocket.State.ToString());
 
             // WebSocket 接收消息
             Task.Run(async () =>
@@ -88,7 +90,7 @@ namespace XiaoZhiSharp
                         var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
                         if (!string.IsNullOrEmpty(message))
                         {
-                            LogConsole.ReceiveLine($"WebSocket 接收到消息: {message}");
+                            LogConsole.ReceiveLine($"小智: {message}");
 
                             // 触发事件
                             if (OnMessageEvent != null)
@@ -100,7 +102,7 @@ namespace XiaoZhiSharp
                             if (message.Contains("session_id"))
                             {
                                 dynamic? json = JsonConvert.DeserializeObject<dynamic>(message);
-                                SessionId = (string)json.session_id;
+                                _sessionId = (string)json.session_id;
                             }
                         }
                     }
@@ -121,7 +123,7 @@ namespace XiaoZhiSharp
             }
             catch (Exception ex)
             {
-                LogConsole.ErrorLine($"WebSocket 接收消息时出错: {ex.Message}");
+                LogConsole.ErrorLine($"小智:接收消息时出错{ex.Message}");
             }
         }
 
@@ -137,7 +139,7 @@ namespace XiaoZhiSharp
                 var buffer = Encoding.UTF8.GetBytes(message);
                 await _webSocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
                     
-                LogConsole.SendLine($"WebSocket 发送的消息: {message}");
+                LogConsole.SendLine($"小智: {message}");
                 
             }
         }

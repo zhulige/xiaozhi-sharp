@@ -7,14 +7,13 @@ using System.Text;
 using System.Threading.Tasks;
 using XiaoZhiSharp.Utils;
 
-namespace XiaoZhiSharp
+namespace XiaoZhiSharp.Services
 {
     public class OtaService
     {
         public string? OTA_VERSION_URL { get; set; } = "https://api.tenclass.net/xiaozhi/ota/";
         public dynamic? OTA_INFO { get; set; }
         public string? MAC_ADDR { get; set; }
-        public bool IsDebug { get; set; } = true;
 
         public OtaService(string url,string mac)
         {
@@ -23,12 +22,6 @@ namespace XiaoZhiSharp
             if(string.IsNullOrEmpty(MAC_ADDR))
                 MAC_ADDR = SystemInfo.GetMacAddress();
 
-            if (IsDebug)
-            {
-                Console.WriteLine(OTA_VERSION_URL);
-                Console.WriteLine(MAC_ADDR);
-                Console.WriteLine("OTA 初始化完成");
-            }
             Thread _otaThread = new Thread(() =>
             {
                 while (true)
@@ -67,11 +60,7 @@ namespace XiaoZhiSharp
                 {
                     application = new
                     {
-                        name = "xiaozhi",
-                        version = "0.9.9",
-                        compile_time = formattedTime,
-                        idf_version = "v5.3.2-dirty",
-                        elf_sha256 = "22986216df095587c42f8aeb06b239781c68ad8df80321e260556da7fcf5f522"
+                        name = "xiaozhi"
                     }
                 };
 

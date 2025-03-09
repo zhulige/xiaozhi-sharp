@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace XiaoZhiSharp.Utils
@@ -51,7 +52,7 @@ namespace XiaoZhiSharp.Utils
                 SetConsoleColor(type);
 
                 // 格式化消息
-                string formattedMessage = FormatMessage(type, message);
+                string formattedMessage = FormatMessage(type, Regex.Unescape(message));
 
                 // 根据是否换行选择输出方式
                 if (isNewLine)

@@ -20,9 +20,10 @@ namespace XiaoZhiSharp
         public event MessageEventHandler? OnMessageEvent = null;
         public event AudioEventHandler? OnAudioEvent = null;
 
-        private OtaService? _xiaoZhiOtaClient = null;
+        private OtaService? _otaService = null;
         private WebSocketService? _webSocketService = null;
         private AudioService? _audioService = null;
+        private Thread? _sendOpusthread = null;
 
         public XiaoZhiAgent(string otaUrl, string wsUrl, string mac = "")
         {
@@ -30,24 +31,25 @@ namespace XiaoZhiSharp
             WEB_SOCKET_URL = wsUrl;
             if (!string.IsNullOrEmpty(mac))
                 MAC_ADDR = mac;
+        }
 
+        public void Start()
+        {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                //Console.WriteLine("当前操作系统是 Windows，执行 Windows 相关代码。");
                 _audioService = new AudioService();
             }
 
-            _xiaoZhiOtaClient = new OtaService(OTA_VERSION_URL, MAC_ADDR);
+            _otaService = new OtaService(OTA_VERSION_URL, MAC_ADDR);
             // 小智 WebSocket 客户端
             _webSocketService = new WebSocketService(WEB_SOCKET_URL, TOKEN);
-            _webSocketService.OnMessageEvent += XiaoZhiWSClient_OnMessageEvent;
-            _webSocketService.OnAudioEvent += XiaoZhiWSClient_OnAudioEvent;
+            _webSocketService.OnMessageEvent += WebSocketService_OnMessageEvent;
+            _webSocketService.OnAudioEvent += WebSocketService_OnAudioEvent;
 
             _ = Send_Hello();
             _ = Send_Listen_Detect("你好");
 
-
-            Task.Run(async () =>
+            _sendOpusthread = new Thread(async () =>
             {
                 while (true)
                 {
@@ -61,10 +63,9 @@ namespace XiaoZhiSharp
                     await Task.Delay(60);
                 }
             });
-
         }
 
-        private void XiaoZhiWSClient_OnAudioEvent(byte[] opus)
+        private void WebSocketService_OnAudioEvent(byte[] opus)
         {
             if (_audioService != null)
                 _audioService.OpusPlayEnqueue(opus);
@@ -73,7 +74,7 @@ namespace XiaoZhiSharp
                 OnAudioEvent(opus);
         }
 
-        private void XiaoZhiWSClient_OnMessageEvent(string message)
+        private void WebSocketService_OnMessageEvent(string message)
         {
             if (OnMessageEvent != null)
                 OnMessageEvent(message);

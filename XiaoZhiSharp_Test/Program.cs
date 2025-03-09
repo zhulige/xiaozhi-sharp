@@ -13,7 +13,7 @@ class Program
         // 定义默认值
         string OTA_VERSION_URL = "https://api.tenclass.net/xiaozhi/ota/";
         string WEB_SOCKET_URL = "wss://api.tenclass.net/xiaozhi/v1/";
-        string MAC_ADDR = "c8:b2:9b:3a:52:c2";
+        string MAC_ADDR = "";
         string logoAndCopyright = @"
 ========================================================================
 欢迎使用“小智AI 服务器调试控制台” ！版本 v1.0.1
@@ -28,7 +28,7 @@ class Program
 有任何动态请大家关注 https://github.com/zhulige/xiaozhi-sharp
 ========================================================================";
         Console.WriteLine(logoAndCopyright);
-        Console.WriteLine("启动：XinZhiSharp_Test.exe <OTA_VERSION_URL> <WEB_SOCKET_URL>");
+        Console.WriteLine("启动：XinZhiSharp_Test.exe <OTA_VERSION_URL> <WEB_SOCKET_URL> <MAC_ADDR>");
         Console.WriteLine("默认OTA_VERSION_URL：" + OTA_VERSION_URL);
         Console.WriteLine("默认WEB_SOCKET_URL：" + WEB_SOCKET_URL);
         Console.WriteLine("========================================================================");
@@ -46,12 +46,14 @@ class Program
         {
             MAC_ADDR = args[2];
         }
+        _xiaoZhiAgent = new XiaoZhiAgent(OTA_VERSION_URL, WEB_SOCKET_URL, MAC_ADDR);
         Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine("当前OTA_VERSION_URL：" + OTA_VERSION_URL);
-        Console.WriteLine("当前WEB_SOCKET_URL：" + WEB_SOCKET_URL);
+        Console.WriteLine("当前 OTA_VERSION_URL：" + _xiaoZhiAgent.OTA_VERSION_URL);
+        Console.WriteLine("当前 WEB_SOCKET_URL：" + _xiaoZhiAgent.WEB_SOCKET_URL);
+        Console.WriteLine("当前 MAC_ADDR：" + _xiaoZhiAgent.MAC_ADDR);
         Console.ForegroundColor = ConsoleColor.Green;
         Console.WriteLine("========================================================================");
-        _xiaoZhiAgent = new XiaoZhiAgent(OTA_VERSION_URL, WEB_SOCKET_URL, MAC_ADDR);
+        _xiaoZhiAgent.Start();
 
         while (true)
         {
@@ -85,7 +87,7 @@ class Program
                     _status = true;
                     await _xiaoZhiAgent.Send_Listen_Start("manual");
                     Console.Title = "小智AI 开始录音...";
-                    Console.WriteLine("开始录音... 再次回车结束录音");
+                    Console.WriteLine("小智：开始录音... 再次回车结束录音");
                     continue;
                 }
                 else
@@ -95,7 +97,7 @@ class Program
                         _status = false;
                         await _xiaoZhiAgent.Send_Listen_Stop();
                         Console.Title = "小智AI 调试助手";
-                        Console.WriteLine("结束录音");
+                        Console.WriteLine("小智：结束录音");
                         continue;
                     }
                 }
@@ -107,7 +109,6 @@ class Program
                 if (_status == false)
                     await _xiaoZhiAgent.Send_Listen_Detect(input);
             }
-
         }
     }
 }
