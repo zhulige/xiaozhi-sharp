@@ -11,7 +11,7 @@ xiaozhi-sharp 是一个用 C# 精心打造的小智客户端，它不仅可以�
 <img src="doc/202503101011.png" width="480" />
 
 ## 小智AI 控制台客户端
-<img src="doc/202503101011.png" width="480" />
+<img src="doc/202503101010.png" width="480" />
 
 ## 运行指南
 要运行本项目，你需要按照以下步骤操作：
