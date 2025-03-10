@@ -20,6 +20,7 @@ namespace XiaoZhiSharp.Utils
     // 日志控制台类
     public class LogConsole
     {
+        public static bool IsWrite {get;set;} = true;
         // 记录消息并换行的方法
         public static void WriteLine(MessageType type, string message)
         {
@@ -44,6 +45,9 @@ namespace XiaoZhiSharp.Utils
         // 私有方法，用于处理消息的输出，封装公共逻辑
         private static void WriteMessage(MessageType type, string message, bool isNewLine)
         {
+            if (!IsWrite)
+                return;
+
             ConsoleColor originalColor = Console.ForegroundColor;
 
             try

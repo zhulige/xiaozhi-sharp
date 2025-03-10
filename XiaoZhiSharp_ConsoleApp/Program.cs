@@ -1,4 +1,5 @@
-﻿using System.Net.NetworkInformation;
+﻿using Newtonsoft.Json;
+using System.Net.NetworkInformation;
 using XiaoZhiSharp;
 using XiaoZhiSharp.Protocols;
 
@@ -9,14 +10,14 @@ class Program
     static async Task Main(string[] args)
     {
         Console.ForegroundColor = ConsoleColor.Green;
-        Console.Title = "小智AI 调试助手";
+        Console.Title = "小智AI 控制台客户端";
         // 定义默认值
         string OTA_VERSION_URL = "https://api.tenclass.net/xiaozhi/ota/";
         string WEB_SOCKET_URL = "wss://api.tenclass.net/xiaozhi/v1/";
         string MAC_ADDR = "";
         string logoAndCopyright = @"
 ========================================================================
-欢迎使用“小智AI 服务器调试控制台” ！版本 v1.0.1
+欢迎使用“小智AI 控制台客户端” ！版本 v1.0.1
 
 当前功能：
 1. 语音消息 输入回车：开始录音；再次输入回车：结束录音
@@ -53,7 +54,9 @@ class Program
         Console.WriteLine("当前 MAC_ADDR：" + _xiaoZhiAgent.MAC_ADDR);
         Console.ForegroundColor = ConsoleColor.Green;
         Console.WriteLine("========================================================================");
+        _xiaoZhiAgent.IsLogWrite = false;
         _xiaoZhiAgent.Start();
+        _xiaoZhiAgent.OnMessageEvent += _xiaoZhiAgent_OnMessageEvent;
         await _xiaoZhiAgent.Send_Listen_Detect("你好");
         while (true)
         {
@@ -87,7 +90,7 @@ class Program
                     _status = true;
                     await _xiaoZhiAgent.Send_Listen_Start("manual");
                     Console.Title = "小智AI 开始录音...";
-                    Console.WriteLine("小智：开始录音... 再次回车结束录音");
+                    Console.WriteLine("开始录音... 再次回车结束录音");
                     continue;
                 }
                 else
@@ -96,8 +99,8 @@ class Program
                     {
                         _status = false;
                         await _xiaoZhiAgent.Send_Listen_Stop();
-                        Console.Title = "小智AI 调试助手";
-                        Console.WriteLine("小智：结束录音");
+                        Console.Title = "小智AI 控制台客户端";
+                        Console.WriteLine("结束录音");
                         continue;
                     }
                 }
@@ -112,10 +115,31 @@ class Program
                     {
                         _xiaoZhiAgent.Restart();
                         continue;
-                    }    
+                    }
                     await _xiaoZhiAgent.Send_Listen_Detect(input);
                 }
             }
+        }
+    }
+
+    private static void _xiaoZhiAgent_OnMessageEvent(string message)
+    {
+        dynamic? msg = JsonConvert.DeserializeObject<dynamic>(message);
+        if (msg != null)
+        {
+            if (msg.type == "tts") {
+                if (msg.state == "sentence_start") {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine($"小智：{msg.text}");
+                    Console.ForegroundColor = ConsoleColor.Blue;
+                }
+            }
+
+            if (msg.type == "stt") {
+                Console.ForegroundColor = ConsoleColor.Blue;
+                Console.WriteLine($"{msg.text}");
+            }
+            
         }
     }
 }

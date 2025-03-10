@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using XiaoZhiSharp.Services;
+using XiaoZhiSharp.Utils;
 
 namespace XiaoZhiSharp
 {
@@ -14,6 +15,7 @@ namespace XiaoZhiSharp
         public string WEB_SOCKET_URL { get; set; } = "wss://api.tenclass.net/xiaozhi/v1/";
         public string TOKEN { get; set; } = "test-token";
         public string? MAC_ADDR { get; set; } = Utils.SystemInfo.GetMacAddress();
+        public bool IsLogWrite { get { return LogConsole.IsWrite; } set { LogConsole.IsWrite = value; } }
 
         public delegate void MessageEventHandler(string message);
         public delegate void AudioEventHandler(byte[] opus);
