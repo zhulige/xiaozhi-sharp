@@ -18,7 +18,7 @@ namespace XiaoZhiSharp.Protocols
         // Client-Id: <设备UUID>
 
         // 2. 连接成功后,客户端发送hello消息:
-        public static string Hello()
+        public static string Hello(string sessionId="")
         {
             string message = @"{
                 ""type"": ""hello"",
@@ -29,9 +29,14 @@ namespace XiaoZhiSharp.Protocols
                     ""sample_rate"": 24000,
                     ""channels"": 1,
                     ""frame_duration"": 60
-                    }
-                }";
+                    },
+                ""session_id"":""<会话ID>""
+            }";
             message = message.Replace("\n", "").Replace("\r", "").Replace("\r\n", "").Replace(" ","");
+            if(string.IsNullOrEmpty(sessionId))
+                message = message.Replace(",\"session_id\":\"<会话ID>\"", "");
+            else
+                message = message.Replace("<会话ID>", sessionId);
             //Console.WriteLine($"发送的消息: {message}");
             return message;
         }
@@ -117,26 +122,41 @@ namespace XiaoZhiSharp.Protocols
         // "start": 开始播放
         // "stop": 停止播放  
         // "sentence_start": 新句子开始
-        public static string TTS_Sentence_Start(string text)
+        public static string TTS_Sentence_Start(string text,string? sessionId="")
         {
             string message = @"{
                     ""type"": ""tts"",
                     ""state"": ""sentence_start"",
-                    ""text"": ""<文本内容>"" 
+                    ""text"": ""<文本内容>"",
+                    ""session_id"": ""<会话ID>""
                 }";
             message = message.Replace("\n", "").Replace("\r", "").Replace("\r\n", "").Replace(" ", "");
             message = message.Replace("<文本内容>", text);
+            if (string.IsNullOrEmpty(sessionId))
+                message = message.Replace(",\"session_id\":\"<会话ID>\"", "");
+            else
+                message = message.Replace("<会话ID>", sessionId);
             //Console.WriteLine($"发送的消息: {message}");
             return message;
         }
 
-        public static string TTS_Sentence_End()
+        public static string TTS_Sentence_End(string text="", string? sessionId = "")
         {
             string message = @"{
                     ""type"": ""tts"",
-                    ""state"": ""sentence_end""
+                    ""state"": ""sentence_end"",
+                    ""text"": ""<文本内容>"",
+                    ""session_id"": ""<会话ID>""
                 }";
             message = message.Replace("\n", "").Replace("\r", "").Replace("\r\n", "").Replace(" ", "");
+            if (string.IsNullOrEmpty(text))
+                message = message.Replace(",\"text\":\"<文本内容>\"", "");
+            else
+                message = message.Replace("<文本内容>", text);
+            if (string.IsNullOrEmpty(sessionId))
+                message = message.Replace(",\"session_id\":\"<会话ID>\"", "");
+            else
+                message = message.Replace("<会话ID>", sessionId);
             //Console.WriteLine($"发送的消息: {message}");
             return message;
         }
