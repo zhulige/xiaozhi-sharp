@@ -30,7 +30,7 @@ namespace XiaoZhiSharp.Services
                 {
                     try
                     {
-
+                        GetOtaInfo();
                     }
                     catch (Exception e)
                     {
@@ -60,29 +60,11 @@ namespace XiaoZhiSharp.Services
 
                 var postData = new
                 {
-                    flash_size = 16777216,
-                    minimum_free_heap_size = 8318916,
-                    mac_address = MAC_ADDR,
-                    chip_model_name = "esp32s3",
-                    chip_info = new { 
-                        model = 9,
-                        cores = 2,
-                        revision = 2,
-                        features = 18
-                    },
+
                     application = new
                     {
-                        name = "xiaozhi",
-                        version = "1.1.2",
-                        idf_version = "v5.3.2 - dirty"
-                    },
-                    partition_table = new List<string>(),
-                    ota = new { 
-                        label = "factory"
-                    },
-                    board = new { 
-                        type = "",
-                        mac = MAC_ADDR
+                        name = "XiaoZhiSharp",
+                        version = "1.0.1"
                     }
                 };
 
