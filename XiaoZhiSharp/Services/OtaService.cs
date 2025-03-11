@@ -59,11 +59,21 @@ namespace XiaoZhiSharp.Services
 
                 var postData = new
                 {
+                    mac_address = MAC_ADDR,
+                    chip_model_name = "esp32s3",
                     application = new
                     {
-                        name = "XiaoZhiSharp",
+                        name = "xiaozhi",
                         version = "1.1.2",
                         idf_version = "v5.3.2 - dirty"
+                    },
+                    partition_table = new List<string>(),
+                    ota = new { 
+                        label = "factory"
+                    },
+                    board = new { 
+                        type = "",
+                        mac = MAC_ADDR
                     }
                 };
 
