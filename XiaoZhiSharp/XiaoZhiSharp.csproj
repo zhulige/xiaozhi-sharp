@@ -4,6 +4,10 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Title>xiaozhi-sharp</Title>
+    <PackageProjectUrl>https://github.com/zhulige/xiaozhi-sharp</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/zhulige/xiaozhi-sharp</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using NAudio.SoundFont;
+using Newtonsoft.Json;
 using RestSharp;
 using System;
 using System.Collections.Generic;
@@ -60,7 +61,9 @@ namespace XiaoZhiSharp.Services
                 {
                     application = new
                     {
-                        name = "xiaozhi"
+                        name = "XiaoZhiSharp",
+                        version = "1.1.2",
+                        idf_version = "v5.3.2 - dirty"
                     }
                 };
 
