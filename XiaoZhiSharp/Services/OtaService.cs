@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Schema;
 using XiaoZhiSharp.Utils;
 
 namespace XiaoZhiSharp.Services
@@ -59,8 +60,16 @@ namespace XiaoZhiSharp.Services
 
                 var postData = new
                 {
+                    flash_size = 16777216,
+                    minimum_free_heap_size = 8318916,
                     mac_address = MAC_ADDR,
                     chip_model_name = "esp32s3",
+                    chip_info = new { 
+                        model = 9,
+                        cores = 2,
+                        revision = 2,
+                        features = 18
+                    },
                     application = new
                     {
                         name = "xiaozhi",
