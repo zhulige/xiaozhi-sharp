@@ -12,7 +12,7 @@ class Program
         Console.Title = "小智AI 调试助手";
         // 定义默认值
         string OTA_VERSION_URL = "https://api.tenclass.net/xiaozhi/ota/";
-        string WEB_SOCKET_URL = "wss://api.tenclass.net/xiaozhi/v1/";
+        string WEB_SOCKET_URL = "ws://192.168.31.113:8888/xiaozhi/v1/";
         string MAC_ADDR = "";
         string logoAndCopyright = @"
 ========================================================================
