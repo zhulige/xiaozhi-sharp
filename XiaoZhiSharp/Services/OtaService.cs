@@ -30,7 +30,7 @@ namespace XiaoZhiSharp.Services
                 {
                     try
                     {
-
+                        GetOtaInfo();
                     }
                     catch (Exception e)
                     {

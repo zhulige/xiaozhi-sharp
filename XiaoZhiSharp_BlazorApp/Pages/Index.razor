@@ -1,0 +1,44 @@
+﻿@page "/"
+@implements IDisposable
+
+<input @bind="newMessage" @onkeydown="HandleKeyDown" placeholder="输入消息" />
+<button @onclick="SendMessage">发送</button>
+<button @onclick="SendAudio">语音</button>
+<h3>@MyMessage</h3>
+<h1>@EmotionText</h1>
+<h2>@Message</h2>
+<br>
+@foreach (var msg in MessageList) { 
+    @msg <br>
+}
+
+@code {
+    private System.Timers.Timer _timer = new System.Timers.Timer(1000) { Enabled = true };
+    private string newMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _timer.Elapsed += Timer_Elapsed;
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await SendMessage();
+        }
+    }
+
+    private async void Timer_Elapsed(object sender, EventArgs args)
+    {
+        await Task.Factory.StartNew(() =>
+        {
+            InvokeAsync(() => { StateHasChanged(); return Task.CompletedTask; });
+        });
+    }
+
+    void IDisposable.Dispose()
+    {
+        _timer.Close();
+    }
+}

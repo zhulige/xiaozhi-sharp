@@ -16,6 +16,8 @@ namespace XiaoZhiSharp
         public string TOKEN { get; set; } = "test-token";
         public string? MAC_ADDR { get; set; } = Utils.SystemInfo.GetMacAddress();
         public bool IsLogWrite { get { return LogConsole.IsWrite; } set { LogConsole.IsWrite = value; } }
+        public bool IsAudio { get; set; } = true;
+        public bool IsOTA { get; set; } = true;
 
         public delegate void MessageEventHandler(string message);
         public delegate void AudioEventHandler(byte[] opus);
@@ -37,14 +39,15 @@ namespace XiaoZhiSharp
 
         public void Start()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
+            //if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            //{
+            if(IsAudio)
                 _audioService = new AudioService();
-            }
-
-            _otaService = new OtaService(OTA_VERSION_URL, MAC_ADDR);
+            //}
+            if (IsOTA)
+                _otaService = new OtaService(OTA_VERSION_URL, MAC_ADDR);
             // 小智 WebSocket 客户端
-            _webSocketService = new WebSocketService(WEB_SOCKET_URL, TOKEN);
+            _webSocketService = new WebSocketService(WEB_SOCKET_URL, TOKEN, MAC_ADDR);
             _webSocketService.OnMessageEvent += WebSocketService_OnMessageEvent;
             _webSocketService.OnAudioEvent += WebSocketService_OnAudioEvent;
 
@@ -94,6 +97,20 @@ namespace XiaoZhiSharp
         {
             if (OnMessageEvent != null)
                 OnMessageEvent(message);
+        }
+
+        public async Task SendMessage(string message) {
+            await Send_Listen_Detect(message);
+        }
+
+        public async Task StartRecording(string mode)
+        {
+            await Send_Listen_Start(mode);
+        }
+
+        public async Task StopRecording()
+        {
+            await Send_Listen_Stop();
         }
 
         #region 协议

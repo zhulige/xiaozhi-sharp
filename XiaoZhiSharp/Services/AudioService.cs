@@ -1,11 +1,9 @@
-﻿using NAudio.Wave;
-using Newtonsoft.Json;
-using OpusSharp.Core;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Runtime.InteropServices;
+using System.Threading;
+using PortAudioSharp;
+using OpusSharp.Core;
 using XiaoZhiSharp.Utils;
 
 namespace XiaoZhiSharp.Services
@@ -15,16 +13,14 @@ namespace XiaoZhiSharp.Services
         // Opus 相关组件
         private readonly OpusDecoder opusDecoder;   // 解码器
         private readonly OpusEncoder opusEncoder;   // 编码器
-        // NAudio 音频输出相关组件
-        private readonly IWavePlayer? _waveOut;
-        private readonly BufferedWaveProvider? _waveOutProvider = null;
-        // NAudio 音频输入相关组件
-        private readonly WaveInEvent? _waveIn;
-        private readonly BufferedWaveProvider? _waveInProvider = null;
+        // 音频输出相关组件
+        private readonly PortAudioSharp.Stream? _waveOut;
+        private readonly Queue<float[]> _waveOutStream = new Queue<float[]>();
+        // 音频输入相关组件
+        private readonly PortAudioSharp.Stream? _waveIn;
 
         // 音频参数
         private const int SampleRate = 24000;
-        private const int Bitrate = 16;
         private const int Channels = 1;
         private const int FrameDuration = 60;
         private const int FrameSize = SampleRate * FrameDuration / 1000; // 帧大小
@@ -32,88 +28,150 @@ namespace XiaoZhiSharp.Services
         // Opus 数据包缓存池
         private readonly Queue<byte[]> _opusRecordPackets = new Queue<byte[]>();
         private readonly Queue<byte[]> _opusPlayPackets = new Queue<byte[]>();
+
         public bool IsRecording { get; private set; }
         public bool IsPlaying { get; private set; }
 
         public AudioService()
         {
-            // 初始化 Opus 解码器
+            // 初始化 Opus 解码器和编码器
             opusDecoder = new OpusDecoder(SampleRate, Channels);
-            // 初始化 Opus 编码器
             opusEncoder = new OpusEncoder(SampleRate, Channels, OpusPredefinedValues.OPUS_APPLICATION_VOIP);
-            // 初始化音频输出相关组件
-            var waveFormat = new WaveFormat(SampleRate, Bitrate, Channels);
-            _waveOut = new WaveOutEvent();
-            _waveOutProvider = new BufferedWaveProvider(waveFormat);
-            _waveOut.Init(_waveOutProvider);
 
-            // 初始化音频输入相关组件
-            _waveIn = new WaveInEvent();
-            _waveIn.WaveFormat = new WaveFormat(48000, Bitrate, Channels);
-            _waveIn.BufferMilliseconds = FrameDuration;
-            _waveIn.DataAvailable += WaveIn_DataAvailable;
-
-            // 启动音频播放线程
-            Thread threadWave = new Thread(() =>
+            // 初始化音频输出组件
+            PortAudio.Initialize();
+            int outputDeviceIndex = PortAudio.DefaultOutputDevice;
+            if (outputDeviceIndex == PortAudio.NoDevice)
             {
-                while (true)
-                {
-                    //if (_waveOutProvider.BufferDuration > TimeSpan.FromSeconds(5))
-                    //{
-                        StartPlaying();
-                        while (IsPlaying)
-                        {
-                            // 可以添加更多逻辑，如缓冲区检查等
-                            Thread.Sleep(10);
-                        }
-                        StopPlaying();
-                    //}
-                }
-            });
-            threadWave.Start();
+                Console.WriteLine("No default output device found");
+                Environment.Exit(1);
+            }
+            var outputInfo = PortAudio.GetDeviceInfo(outputDeviceIndex);
+            var outparam = new StreamParameters
+            {
+                device = outputDeviceIndex,
+                channelCount = Channels,
+                sampleFormat = SampleFormat.Float32,
+                suggestedLatency = outputInfo.defaultLowOutputLatency,
+                hostApiSpecificStreamInfo = IntPtr.Zero
+            };
 
+            _waveOut = new PortAudioSharp.Stream(
+                inParams: null, outParams: outparam, sampleRate: SampleRate, framesPerBuffer: 1440,
+                streamFlags: StreamFlags.ClipOff, callback: PlayCallback, userData: IntPtr.Zero
+            );
+
+            // 初始化音频输入组件
+            int inputDeviceIndex = PortAudio.DefaultInputDevice;
+            if (inputDeviceIndex == PortAudio.NoDevice)
+            {
+                Console.WriteLine("No default input device found");
+                Environment.Exit(1);
+            }
+            var inputInfo = PortAudio.GetDeviceInfo(inputDeviceIndex);
+            var inparam = new StreamParameters
+            {
+                device = inputDeviceIndex,
+                channelCount = Channels,
+                sampleFormat = SampleFormat.Float32,
+                suggestedLatency = inputInfo.defaultLowInputLatency,
+                hostApiSpecificStreamInfo = IntPtr.Zero
+            };
+
+            _waveIn = new PortAudioSharp.Stream(
+                inParams: inparam, outParams: null, sampleRate: SampleRate, framesPerBuffer: 1440,
+                streamFlags: StreamFlags.ClipOff, callback: InCallback, userData: IntPtr.Zero
+            );
+
+            // 启动音频播放
+            StartPlaying();
+
+            // 启动 Opus 数据解码线程
             Thread threadOpus = new Thread(() =>
             {
                 while (true)
                 {
-                    byte[]? opusData;
-                    if (_opusPlayPackets.TryDequeue(out opusData))
-                        ReceiveOpusData(opusData);
-
+                    if (_opusPlayPackets.TryDequeue(out var opusData))
+                    {
+                        AddOutStreamSamples(opusData);
+                    }
                     Thread.Sleep(10);
                 }
             });
             threadOpus.Start();
 
+            LogConsole.InfoLine($"当前默认音频输入设备： {inputDeviceIndex} ({inputInfo.name})");
+            LogConsole.InfoLine($"当前默认音频输出设备 {outputDeviceIndex} ({outputInfo.name})");
         }
 
-        private void WaveIn_DataAvailable(object? sender, WaveInEventArgs e)
+        private StreamCallbackResult PlayCallback(
+            IntPtr input, IntPtr output, uint frameCount, ref StreamCallbackTimeInfo timeInfo,
+            StreamCallbackFlags statusFlags, IntPtr userData)
         {
-            bool isMute = IsAudioMute(e.Buffer, e.BytesRecorded);
-            if (isMute)
+            try
             {
-                //Console.WriteLine("音频处于静音状态");
+                float[]? buffer;
+                lock (_waveOutStream)
+                {
+                    if (_waveOutStream.TryDequeue(out buffer))
+                    {
+                        if (buffer.Length < frameCount)
+                        {
+                            float[] paddedBuffer = new float[frameCount];
+                            Array.Copy(buffer, paddedBuffer, buffer.Length);
+                            Marshal.Copy(paddedBuffer, 0, output, (int)frameCount);
+                        }
+                        else
+                        {
+                            Marshal.Copy(buffer, 0, output, (int)frameCount);
+                        }
+                        return StreamCallbackResult.Continue;
+                    }
+                    else
+                    {
+                        return StreamCallbackResult.Continue;
+                    }
+                }
             }
-            else
+            catch (Exception ex)
             {
-                //Console.WriteLine("音频有声音");
-                //录音 PCM 48000 16 1
-                byte[] pcmBytes48000 = e.Buffer;
-                //int frameSize = 48000 * FrameDuration / 1000;
-                //Console.WriteLine($"PCM Data Length: {pcmBytes.Length}");
-                byte[] pcmBytes16000 = ConvertPcmSampleRate(pcmBytes48000, 48000, SampleRate, Channels, Bitrate);
-
-                //测试播放录音
-                //waveOutProvider.AddSamples(pcmBytes16000, 0, pcmBytes16000.Length);
-                ProcessAudioData(pcmBytes16000, pcmBytes16000.Length);
+                Console.WriteLine(ex.Message);
+                return StreamCallbackResult.Continue;
             }
         }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="buffer"></param>
-        /// <param name="bytesRecorded"></param>
-        private void ProcessAudioData(byte[] buffer, int bytesRecorded)
+
+        private StreamCallbackResult InCallback(
+            IntPtr input, IntPtr output, uint frameCount, ref StreamCallbackTimeInfo timeInfo,
+            StreamCallbackFlags statusFlags, IntPtr userData)
+        {
+            try
+            {
+                if (!IsRecording)
+                {
+                    return StreamCallbackResult.Complete;
+                }
+
+                // 创建一个数组来存储输入的音频数据
+                float[] samples = new float[frameCount];
+                // 将输入的音频数据从非托管内存复制到托管数组
+                Marshal.Copy(input, samples, 0, (int)frameCount);
+
+                // 将音频数据转换为字节数组
+                byte[] buffer = FloatArrayToByteArray(samples);
+
+                // 处理音频数据
+                AddRecordSamples(buffer, buffer.Length);
+
+                return StreamCallbackResult.Continue;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return StreamCallbackResult.Complete;
+            }
+        }
+
+        private void AddRecordSamples(byte[] buffer, int bytesRecorded)
         {
             int frameCount = bytesRecorded / (FrameSize * 2); // 每个样本 2 字节
 
@@ -129,71 +187,40 @@ namespace XiaoZhiSharp.Services
                 byte[] opusPacket = new byte[encodedLength];
                 Array.Copy(opusBytes, 0, opusPacket, 0, encodedLength);
                 _opusRecordPackets.Enqueue(opusPacket);
+                //_opusPlayPackets.Enqueue(opusPacket);
             }
         }
 
-        /// <summary>
-        /// 静音检测
-        /// </summary>
-        private bool IsAudioMute(byte[] buffer, int bytesRecorded)
+        public void AddOutStreamSamples(byte[] opusData)
         {
-            double rms = 0;
-            int sampleCount = bytesRecorded / 2; // 每个样本 2 字节
+            if (opusData == null || opusData.Length == 0)
+                return;
 
-            for (int i = 0; i < sampleCount; i++)
+            try
             {
-                short sample = BitConverter.ToInt16(buffer, i * 2);
-                rms += sample * sample;
-            }
+                // 解码 Opus 数据
+                short[] pcmData = new short[FrameSize * Channels];
+                int decodedSamples = opusDecoder.Decode(opusData, opusData.Length, pcmData, FrameSize, false);
 
-            rms = Math.Sqrt(rms / sampleCount);
-            rms /= short.MaxValue; // 归一化到 0 - 1 范围
-
-            double MuteThreshold = 0.01; // 静音阈值
-            return rms < MuteThreshold;
-        }
-
-        /// <summary>
-        /// Pcm 重采样
-        /// </summary>
-        private byte[] ConvertPcmSampleRate(byte[] pcmData, int originalSampleRate, int targetSampleRate, int channels, int bitsPerSample)
-        {
-            // 创建原始音频格式
-            WaveFormat originalFormat = new WaveFormat(originalSampleRate, bitsPerSample, channels);
-
-            // 将 byte[] 数据包装成 MemoryStream
-            using (MemoryStream memoryStream = new MemoryStream(pcmData))
-            {
-                // 创建原始音频流
-                using (RawSourceWaveStream originalStream = new RawSourceWaveStream(memoryStream, originalFormat))
+                if (decodedSamples > 0)
                 {
-                    // 创建目标音频格式
-                    WaveFormat targetFormat = new WaveFormat(targetSampleRate, bitsPerSample, channels);
-
-                    // 进行重采样
-                    using (MediaFoundationResampler resampler = new MediaFoundationResampler(originalStream, targetFormat))
+                    // 将解码后的 PCM 数据转换为 float 数组
+                    float[] floatData = new float[decodedSamples];
+                    for (int i = 0; i < decodedSamples; i++)
                     {
-                        resampler.ResamplerQuality = 60; // 设置重采样质量
+                        floatData[i] = pcmData[i] / (float)short.MaxValue;
+                    }
 
-                        // 计算重采样后数据的大致长度
-                        long estimatedLength = (long)(pcmData.Length * (double)targetSampleRate / originalSampleRate);
-                        byte[] resampledData = new byte[estimatedLength];
-
-                        int totalBytesRead = 0;
-                        int bytesRead;
-                        byte[] buffer = new byte[resampler.WaveFormat.AverageBytesPerSecond];
-                        while ((bytesRead = resampler.Read(buffer, 0, buffer.Length)) > 0)
-                        {
-                            Array.Copy(buffer, 0, resampledData, totalBytesRead, bytesRead);
-                            totalBytesRead += bytesRead;
-                        }
-
-                        // 调整数组长度到实际读取的字节数
-                        Array.Resize(ref resampledData, totalBytesRead);
-
-                        return resampledData;
+                    // 将 PCM 数据添加到缓冲区
+                    lock (_waveOutStream)
+                    {
+                        _waveOutStream.Enqueue(floatData);
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                //Console.WriteLine($"Error decoding Opus data: {ex.Message}");
             }
         }
 
@@ -201,7 +228,7 @@ namespace XiaoZhiSharp.Services
         {
             if (!IsRecording)
             {
-                _waveIn?.StartRecording();
+                _waveIn?.Start();
                 IsRecording = true;
             }
         }
@@ -210,7 +237,7 @@ namespace XiaoZhiSharp.Services
         {
             if (IsRecording)
             {
-                _waveIn?.StopRecording();
+                _waveIn?.Stop();
                 IsRecording = false;
             }
         }
@@ -219,7 +246,7 @@ namespace XiaoZhiSharp.Services
         {
             if (!IsPlaying)
             {
-                _waveOut?.Play();
+                _waveOut?.Start();
                 IsPlaying = true;
             }
         }
@@ -233,7 +260,8 @@ namespace XiaoZhiSharp.Services
             }
         }
 
-        public void OpusPlayEnqueue(byte[] opusData) {
+        public void OpusPlayEnqueue(byte[] opusData)
+        {
             _opusPlayPackets.Enqueue(opusData);
         }
 
@@ -242,60 +270,35 @@ namespace XiaoZhiSharp.Services
             return _opusRecordPackets.TryDequeue(out opusData);
         }
 
-        public void ReceiveOpusData(byte[] opusData)
+        public static byte[] FloatArrayToByteArray(float[] floatArray)
         {
-            if (opusData == null || opusData.Length == 0)
-                return;
+            // 初始化一个与 float 数组长度两倍的 byte 数组，因为每个 short 占 2 个字节
+            byte[] byteArray = new byte[floatArray.Length * 2];
 
-            //Utils.RtpHeader rh = OpusPacketHandler.ReadRtpHeader(opusData);
-            //LogConsole.ReceiveLine(JsonConvert.SerializeObject(rh));
-
-            try
+            for (int i = 0; i < floatArray.Length; i++)
             {
-                // 解码 Opus 数据
-                short[] pcmData = new short[FrameSize * 2];
-                int decodedSamples = opusDecoder.Decode(opusData, opusData.Length, pcmData, FrameSize, false);
+                // 将 float 类型的值映射到 short 类型的范围
+                short sample = (short)(floatArray[i] * short.MaxValue);
 
-                if (decodedSamples > 0)
-                {
-                    // 将解码后的 PCM 数据转换为字节数组
-                    byte[] pcmBytes = new byte[decodedSamples * 2];
-                    Buffer.BlockCopy(pcmData, 0, pcmBytes, 0, pcmBytes.Length);
-
-                    // 将 PCM 数据添加到缓冲区
-                    if (_waveOutProvider != null)
-                        _waveOutProvider.AddSamples(pcmBytes, 0, pcmBytes.Length);
-
-                    //LogConsole.ReceiveLine($"decoding Opus data: {BitConverter.ToString(opusData)}");
-                    //LogConsole.ErrorLine($"decoding Opus data: {opusData.Length}");
-                }
-
+                // 将 short 类型的值拆分为两个字节
+                byteArray[i * 2] = (byte)(sample & 0xFF);
+                byteArray[i * 2 + 1] = (byte)(sample >> 8);
             }
-            catch (Exception ex)
-            {
-                //LogConsole.ErrorLine($"Error decoding Opus data: {ex.Message}");
-                //Utils.RtpHeader rtpHeader = OpusPacketHandler.ReadRtpHeader(opusData);
-                //LogConsole.ErrorLine(JsonConvert.SerializeObject(rtpHeader));
-                //LogConsole.ErrorLine($"Error decoding Opus data: {BitConverter.ToString(opusData)}");
-            }
+
+            return byteArray;
         }
 
-        public byte[] ConvertOpusToPcm(byte[] opusData, int sampleRate, int channels)
+        public static float[] ByteArrayToFloatArray(byte[] byteArray)
         {
+            int floatArrayLength = byteArray.Length / 2;
+            float[] floatArray = new float[floatArrayLength];
 
-            // 计算最大可能的 PCM 数据长度
-            int maxPcmLength = 1024;
-            short[] pcmData = new short[maxPcmLength];
+            for (int i = 0; i < floatArrayLength; i++)
+            {
+                floatArray[i] = BitConverter.ToInt16(byteArray, i * 2) / 32768f;
+            }
 
-            // 解码 Opus 数据为 PCM 数据
-            int decodedSamples = opusDecoder.Decode(opusData, opusData.Length, pcmData, maxPcmLength, false);
-
-            // 将 short 数组转换为 byte 数组
-            byte[] pcmBytes = new byte[decodedSamples * channels * sizeof(short)];
-            Buffer.BlockCopy(pcmData, 0, pcmBytes, 0, pcmBytes.Length);
-
-            return pcmBytes;
-
+            return floatArray;
         }
 
         public void Dispose()
