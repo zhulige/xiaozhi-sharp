@@ -1,12 +1,19 @@
-﻿using System.Threading.Tasks;
+﻿using Android.DeviceLock;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.WebSockets;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace XiaoZhiSharp_BlazorApp.Pages
+namespace XiaoZhiSharp_MauiApp.Components.Pages
 {
-    public partial class Index : IDisposable
+    public partial class Home
     {
         private static XiaoZhiSharp.XiaoZhiAgent _agent;
         private static string OTA_VERSION_URL = "https://api.tenclass.net/xiaozhi/ota/";
         private static string WEB_SOCKET_URL = "wss://api.tenclass.net/xiaozhi/v1/";
+        //private static string WEB_SOCKET_URL = "ws://192.168.31.113:8888/xiaozhi/v1/";
         public static List<string> MessageList = new List<string>();
         public static string MyMessage = " ";
         public static string Message = "我叫小智";
@@ -22,15 +29,19 @@ namespace XiaoZhiSharp_BlazorApp.Pages
                 // 这是第一次启动
                 _isFirstTime = false;
                 // 在这里添加第一次启动时的逻辑
-                _agent = new XiaoZhiSharp.XiaoZhiAgent(OTA_VERSION_URL, WEB_SOCKET_URL, "");
+                _agent = new XiaoZhiSharp.XiaoZhiAgent(OTA_VERSION_URL, WEB_SOCKET_URL, "ca:ff:95:de:57:d7");
+                _agent.IsOTA = false;
+                _agent.IsAudio = false;
                 _agent.OnMessageEvent += _agent_OnMessageEvent;
                 _agent.Start();
+
             }
+
         }
 
-        public Index()
+        public Home()
         {
-            
+
         }
 
         private void _agent_OnMessageEvent(string message)
@@ -38,11 +49,13 @@ namespace XiaoZhiSharp_BlazorApp.Pages
             dynamic msg = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(message);
             if (msg != null)
             {
-                if (msg.type == "stt") {
+                if (msg.type == "stt")
+                {
                     MyMessage = msg.text;
-                    _ = _agent.StopRecording();
+                    //_ = _agent.StopRecording();
                 }
-                if (msg.type == "llm") {
+                if (msg.type == "llm")
+                {
                     Emotion = msg.emotion;
                     EmotionText = msg.text;
                 }
@@ -56,7 +69,7 @@ namespace XiaoZhiSharp_BlazorApp.Pages
                     if (msg.state == "stop")
                     {
                         //_ = _agent.StopRecording();
-                        _ = _agent.StartRecording("auto");
+                        //_ = _agent.StartRecording("auto");
                     }
                 }
             }
@@ -71,14 +84,17 @@ namespace XiaoZhiSharp_BlazorApp.Pages
         public async Task SendMessage()
         {
             if (_agent != null)
-                await _agent.Send_Listen_Detect(this.newMessage);
+            {
+                await _agent.SendMessage(this.newMessage);
+                this.newMessage = string.Empty;
+
+            }
         }
 
         public async Task SendAudio()
         {
-            if (_agent != null)
-                await _agent.StartRecording("auto");
+            //if (_agent != null)
+            //    await _agent.StartRecording("auto");
         }
-
     }
 }

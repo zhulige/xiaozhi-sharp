@@ -46,9 +46,9 @@
 <br>
 <br>
 
-@* @foreach (var msg in MessageList) {  *@
-@*     @msg <br> *@
-@* } *@
+@foreach (var msg in MessageList) {  
+    @msg <br> 
+ }
 
 @code {
     private System.Timers.Timer _timer = new System.Timers.Timer(1000) { Enabled = true };

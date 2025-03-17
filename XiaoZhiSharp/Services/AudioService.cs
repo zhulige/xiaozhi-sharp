@@ -44,7 +44,17 @@ namespace XiaoZhiSharp.Services
             if (outputDeviceIndex == PortAudio.NoDevice)
             {
                 Console.WriteLine("No default output device found");
-                Environment.Exit(1);
+                LogConsole.InfoLine(PortAudio.VersionInfo.versionText);
+                LogConsole.WriteLine($"Number of devices: {PortAudio.DeviceCount}");
+                for (int i = 0; i != PortAudio.DeviceCount; ++i)
+                {
+                    LogConsole.WriteLine($" Device {i}");
+                    DeviceInfo deviceInfo = PortAudio.GetDeviceInfo(i);
+                    LogConsole.WriteLine($"   Name: {deviceInfo.name}");
+                    LogConsole.WriteLine($"   Max input channels: {deviceInfo.maxInputChannels}");
+                    LogConsole.WriteLine($"   Default sample rate: {deviceInfo.defaultSampleRate}");
+                }
+                //Environment.Exit(1);
             }
             var outputInfo = PortAudio.GetDeviceInfo(outputDeviceIndex);
             var outparam = new StreamParameters
@@ -66,7 +76,7 @@ namespace XiaoZhiSharp.Services
             if (inputDeviceIndex == PortAudio.NoDevice)
             {
                 Console.WriteLine("No default input device found");
-                Environment.Exit(1);
+                //Environment.Exit(1);
             }
             var inputInfo = PortAudio.GetDeviceInfo(inputDeviceIndex);
             var inparam = new StreamParameters
