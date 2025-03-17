@@ -62,13 +62,13 @@ namespace XiaoZhiSharp.Services
 
             LogConsole.WriteLine($"WebSocketUrl：{_webSocketUrl}");
             LogConsole.WriteLine("WebSocket 初始化完成");
-            LogConsole.WriteLine("WebSocket 连接中...");
-            //while (_webSocket.State != WebSocketState.Open)
-            //{
-            //    Console.Write(".");
-            //    Thread.Sleep(100);
-            //}
-            //Console.WriteLine("");
+            LogConsole.Write("WebSocket 连接中...");
+            while (_webSocket.State != WebSocketState.Open)
+            {
+                Console.Write(".");
+                Thread.Sleep(100);
+            }
+            Console.WriteLine("");
             LogConsole.WriteLine("WebSocket 连接成功 WebSocket.State:" + _webSocket.State.ToString());
 
             // WebSocket 接收消息
