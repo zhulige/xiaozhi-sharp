@@ -9,7 +9,7 @@
 
 ## English Version
 
-[![SVG Banners](https://svg-banners.vercel.app/api?type=origin&text1=Hi😃，XiaoZhi&text2=XiaoZhi AI Chatbot Client written in CSharp&width=830&height=210)](https://github.com/xinnan-tech/xiaozhi-esp32-server)
+[![SVG Banners](https://svg-banners.vercel.app/api?type=origin&text1=Hi😃，XiaoZhi&text2=XiaoZhi_AI_Chatbot_Client_written_in_CSharp&width=830&height=210)](https://github.com/xinnan-tech/xiaozhi-esp32-server)
 
 ## Project Introduction
 xiaozhi-sharp is a meticulously crafted XiaoZhi client in C#, which not only serves as an excellent code learning example but also allows you to easily experience the intelligent interaction brought by XiaoZhi AI without the need for related hardware.  
