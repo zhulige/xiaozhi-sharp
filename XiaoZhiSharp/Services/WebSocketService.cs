@@ -60,16 +60,16 @@ namespace XiaoZhiSharp.Services
             _webSocket.Options.SetRequestHeader("Client-Id", Guid.NewGuid().ToString());
             _ = _webSocket.ConnectAsync(_serverUri, CancellationToken.None);
 
-            LogConsole.WriteLine($"小智_WebSocketUrl：{_webSocketUrl}");
-            LogConsole.WriteLine("小智_WebSocket 初始化完成");
-            LogConsole.Write("小智_WebSocket 连接中...");
-            while (_webSocket.State != WebSocketState.Open)
-            {
-                Console.Write(".");
-                Thread.Sleep(100);
-            }
-            Console.WriteLine("");
-            LogConsole.WriteLine("小智_WebSocket 连接成功 WebSocket.State:" + _webSocket.State.ToString());
+            LogConsole.WriteLine($"WebSocketUrl：{_webSocketUrl}");
+            LogConsole.WriteLine("WebSocket 初始化完成");
+            LogConsole.WriteLine("WebSocket 连接中...");
+            //while (_webSocket.State != WebSocketState.Open)
+            //{
+            //    Console.Write(".");
+            //    Thread.Sleep(100);
+            //}
+            //Console.WriteLine("");
+            LogConsole.WriteLine("WebSocket 连接成功 WebSocket.State:" + _webSocket.State.ToString());
 
             // WebSocket 接收消息
             _ = Task.Run(async () =>
@@ -85,7 +85,7 @@ namespace XiaoZhiSharp.Services
                     await Task.Delay(5000);
                     if (_webSocket.State != WebSocketState.Open)
                     {
-                        LogConsole.WarningLine("小智_WebSocket 重连中...");
+                        LogConsole.WarningLine("WebSocket 重连中...");
                         //await CloseAsync();
                         await ConnectAsync();
                         return;

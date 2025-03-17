@@ -14,13 +14,11 @@
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
-    <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="OpusSharp" Version="1.5.5" />
     <PackageReference Include="org.portaudio.runtime.linux-arm64" Version="19.7.5.1" />
     <PackageReference Include="PortAudioSharp2" Version="1.0.4" />
     <PackageReference Include="RestSharp" Version="112.1.0" />
-    <PackageReference Include="WebRtcVadSharp" Version="1.3.2" />
   </ItemGroup>
 
 </Project>
