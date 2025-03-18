@@ -88,6 +88,7 @@ namespace XiaoZhiSharp.Services
                         LogConsole.WarningLine("WebSocket 重连中...");
                         //await CloseAsync();
                         await ConnectAsync();
+                        await SendMessageAsync(Protocols.WebSocketProtocol.Hello());
                         return;
                     }
                 }
