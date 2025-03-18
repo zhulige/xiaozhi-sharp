@@ -24,11 +24,11 @@ namespace XiaoZhiSharp.Services
         private string? _deviceId { get; set; }
 
         // 私有资源
-        private readonly ClientWebSocket _webSocket;
+        private ClientWebSocket _webSocket;
         private readonly Uri _serverUri;
 
         // 构造函数
-        public WebSocketService(string url, string token,string deviceId)
+        public WebSocketService(string url, string token, string deviceId)
         {
             if (!string.IsNullOrEmpty(url))
                 _webSocketUrl = url;
@@ -36,7 +36,7 @@ namespace XiaoZhiSharp.Services
                 _token = token;
 
             // 获取 MAC 地址
-            if(!string.IsNullOrEmpty(deviceId))
+            if (!string.IsNullOrEmpty(deviceId))
                 _deviceId = deviceId;
             else
                 _deviceId = Utils.SystemInfo.GetMacAddress();
@@ -86,9 +86,9 @@ namespace XiaoZhiSharp.Services
                     if (_webSocket.State != WebSocketState.Open)
                     {
                         LogConsole.WarningLine("WebSocket 重连中...");
-                        //await CloseAsync();
+                        await CloseAsync();
+                        _webSocket = new ClientWebSocket();
                         await ConnectAsync();
-                        await SendMessageAsync(Protocols.WebSocketProtocol.Hello());
                         return;
                     }
                 }

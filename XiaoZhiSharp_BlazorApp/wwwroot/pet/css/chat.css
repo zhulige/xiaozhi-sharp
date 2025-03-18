@@ -1,0 +1,84 @@
+body {
+    background-color: #F5F8FF;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.mqtt {
+    display: none;
+}
+.chatHistoryList {
+    flex: 1;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    padding: 40px;
+}
+.chatItem {
+    display: flex;
+    flex-direction: row;
+    margin-top: 24px;
+}
+.chatItem .avatar {
+    width: 39px;
+    height: 39px;
+    border-radius: 100%;
+}
+.chatInfo {
+    margin-left: 8px;
+    flex: 1;
+}
+.chatTxt {
+    background-color: #FFFFFF;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0px 4px 16.5px rgba(0, 0, 0, 0.05); /* 阴影效果 */
+    size:12px;
+}
+.chatTime {
+    margin-top: 8px;
+    color: #B6ABAB;
+    size: 10px;
+}
+.me {
+    flex-direction: row-reverse;
+}
+.me .chatInfo {
+    margin-left: 0;
+    margin-right: 8px;
+}
+.me .chatTxt {
+    background-image: linear-gradient(to right, 
+    #28BAE5 0%, /* 红色，从0%开始，延伸到10% */
+    #8DBCFC 70%, /* 绿色，从10%开始，延伸到50% */
+    #8DC6FB 100%); /* 蓝色，从50%开始，延伸到90% */
+    color: #FFFFFF;
+}
+.me .chatTime {
+    text-align: right;
+}
+
+.textSend {
+    background-color: #FFFFFF;
+    height: 111px;
+    display: flex;
+}
+.iptMsg {
+    border: 0;
+    flex: 1;
+    height: 90%;
+}
+.btnSendContainer {
+    display:flex;
+    justify-items: center;
+    align-items: center;
+}
+.btnSend {
+    width: 72px;
+    height: 36px;
+    border-radius: 36px;
+    background-color: #28BAE5;
+    border: 0;
+    color: #FFFFFF;
+}
