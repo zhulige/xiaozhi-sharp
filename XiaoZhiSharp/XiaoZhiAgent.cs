@@ -97,14 +97,29 @@ namespace XiaoZhiSharp
         }
 
         #region 协议
-        /// <summary>
-        /// 
-        /// </summary>
         public async Task Send_Hello()
         {
             if(_webSocketService!=null)
                 await _webSocketService.SendMessageAsync(Protocols.WebSocketProtocol.Hello());
         }
+
+        public async Task IotInit(string iotjson) 
+        {
+            if (_webSocketService != null && _audioService != null) 
+            {
+                //Console.WriteLine("生成的设备描述JSON：\n" + iotjson);
+                await _webSocketService.SendMessageAsync(iotjson);
+            }
+        }
+
+        public async Task IotState(string statejson)
+        {
+            if (_webSocketService != null && _audioService != null)
+            {
+                await _webSocketService.SendMessageAsync(statejson);
+            }
+        }
+
         public async Task Send_Listen_Detect(string text)
         {
             if (_webSocketService != null)

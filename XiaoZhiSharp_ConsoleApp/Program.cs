@@ -2,6 +2,7 @@
 using System.Net.NetworkInformation;
 using XiaoZhiSharp;
 using XiaoZhiSharp.Protocols;
+using XiaoZhiSharp.Services;
 
 class Program
 {
@@ -14,6 +15,7 @@ class Program
         // 定义默认值
         string OTA_VERSION_URL = "https://api.tenclass.net/xiaozhi/ota/";
         string WEB_SOCKET_URL = "wss://api.tenclass.net/xiaozhi/v1/";
+        //string WEB_SOCKET_URL = "ws://192.168.10.29:8000";
         string MAC_ADDR = "";
         string logoAndCopyright = @"
 ========================================================================
@@ -54,34 +56,26 @@ class Program
         Console.WriteLine("当前 MAC_ADDR：" + _xiaoZhiAgent.MAC_ADDR);
         Console.ForegroundColor = ConsoleColor.Green;
         Console.WriteLine("========================================================================");
-        _xiaoZhiAgent.IsLogWrite = false;
+        _xiaoZhiAgent.IsLogWrite = true;
         _xiaoZhiAgent.Start();
         _xiaoZhiAgent.OnMessageEvent += _xiaoZhiAgent_OnMessageEvent;
-        await _xiaoZhiAgent.Send_Listen_Detect("你好");
+        await Task.Delay(1000);
+
+
+
+        // 1. 注册生成设备描述
+        var descriptor = new IoTDescriptor();
+        descriptor.AddDevice(new Lamp());
+        descriptor.AddDevice(new DuoJI());
+        descriptor.AddDevice(new Camre());
+        string descriptorJson = JsonConvert.SerializeObject(descriptor, Formatting.Indented);
+        await Task.Delay(1000);
+        await _xiaoZhiAgent.IotInit(descriptorJson);
+        await _xiaoZhiAgent.Send_Listen_Detect("你好啊,当前虚拟设备有啥");
+
+
         while (true)
         {
-            //bool isCapsLockOn = Console.CapsLock;
-            ////Console.WriteLine($"当前 Caps Lock 状态: {(isCapsLockOn ? "开启" : "关闭")}");
-            //if (isCapsLockOn)
-            //{
-            //    if (_status == false)
-            //    {
-            //        _status = true;
-            //        await _xiaoZhiAgent.Send_Listen_Start("auto");
-            //        Console.WriteLine("开始录音...");
-            //        continue;
-            //    }
-            //}
-            //if (!isCapsLockOn)
-            //{
-            //    if (_status==true)
-            //    {
-            //        _status = false;
-            //        await _xiaoZhiAgent.Send_Listen_Stop();
-            //        Console.WriteLine("结束录音");
-            //        continue;
-            //    }
-            //}
             string? input = Console.ReadLine();
             if (string.IsNullOrEmpty(input))
             {
@@ -138,6 +132,17 @@ class Program
             if (msg.type == "stt") {
                 Console.ForegroundColor = ConsoleColor.Blue;
                 Console.WriteLine($"{msg.text}");
+            }
+
+            if (msg.type=="iot")
+            {
+                Console.WriteLine(msg);
+               var handler = new IoTCommandHandler(new Lamp(), new DuoJI(), new Camre());
+               var data= handler.HandleCommand(message);
+                if (data.Success)
+                {
+                    Task.Run(async () => await _xiaoZhiAgent.IotState(data.StateJson));                    
+                }
             }
             
         }
