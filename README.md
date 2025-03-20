@@ -48,7 +48,7 @@ If you find any issues with the project or have suggestions for improvement, fee
 Welcome to join our community to share experiences, propose suggestions, or get help!
 
 <div style="text-align: center;">
-    <img src="https://fileserver.developer.huaweicloud.com/FileServer/getFile/communitytemp/20250313/community/289/905/458/0001739151289905458.20250313073406.31486313654171453082053141356629:20250313083407:2415:C95FFEB326ACBE48B1C059932241C563CF173A08599621E10AC7A527F8FADCA0.jpg" height="300" />
+    <img src="https://fileserver.developer.huaweicloud.com/FileServer/getFile/communitytemp/20250320/community/289/905/458/0001739151289905458.20250320010018.32864321130799519033275788702529:20250320020019:2415:1BF2B548196B8C212002694F96BAF79F8EB068E88A639E85BD05FCCFC574D788.jpg" height="300" />
 </div>
 
 ---
@@ -94,6 +94,6 @@ dotnet run
 欢迎加入我们的社区，分享经验、提出建议或获取帮助！
 
 <div style="text-align: center;">
-    <img src="https://fileserver.developer.huaweicloud.com/FileServer/getFile/communitytemp/20250313/community/289/905/458/0001739151289905458.20250313073406.31486313654171453082053141356629:20250313083407:2415:C95FFEB326ACBE48B1C059932241C563CF173A08599621E10AC7A527F8FADCA0.jpg" height="300" />
+    <img src="https://fileserver.developer.huaweicloud.com/FileServer/getFile/communitytemp/20250320/community/289/905/458/0001739151289905458.20250320010018.32864321130799519033275788702529:20250320020019:2415:1BF2B548196B8C212002694F96BAF79F8EB068E88A639E85BD05FCCFC574D788.jpg" height="300" />
 </div>
 
