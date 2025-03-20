@@ -17,77 +17,83 @@ namespace XiaoZhiSharp.Services
         public event AudioEventHandler? OnAudioEvent = null;
 
         // 属性
-        private string? _webSocketUrl { get; set; } = "wss://api.tenclass.net/xiaozhi/v1/";
+        private string _webSocketUrl { get; set; } = "wss://api.tenclass.net/xiaozhi/v1/";
         private string? _token { get; set; } = "test-token";
         private string? _sessionId { get; set; }
         public string? SessionId { get { return _sessionId; } }
         private string? _deviceId { get; set; }
-        
+
         // 私有资源
-        private ClientWebSocket _webSocket = null;
-        private Uri _serverUri = null;
+        private readonly ClientWebSocket _webSocket;
+        private readonly Uri _serverUri;
 
         // 构造函数
-        public WebSocketService(string url,string token)
+        public WebSocketService(string url, string token,string deviceId)
         {
-            if(!string.IsNullOrEmpty(url))
+            if (!string.IsNullOrEmpty(url))
                 _webSocketUrl = url;
             if (!string.IsNullOrEmpty(token))
                 _token = token;
 
             // 获取 MAC 地址
-            _deviceId = Utils.SystemInfo.GetMacAddress();
+            if(!string.IsNullOrEmpty(deviceId))
+                _deviceId = deviceId;
+            else
+                _deviceId = Utils.SystemInfo.GetMacAddress();
 
-            ConnectAsync();
+            _webSocket = new ClientWebSocket();
+            _serverUri = new Uri(_webSocketUrl);
+
+            _ = ConnectAsync();
         }
 
         /// <summary>
         /// WebSocket 连接打开
         /// </summary>
         /// <returns></returns>
-        public void ConnectAsync()
+        public async Task ConnectAsync()
         {
             // 初始化 WebSocket
-            _serverUri = new Uri(_webSocketUrl);
-            _webSocket = new ClientWebSocket();
             _webSocket.Options.SetRequestHeader("Authorization", "Bearer " + _token);
             _webSocket.Options.SetRequestHeader("Protocol-Version", "1");
             _webSocket.Options.SetRequestHeader("Device-Id", _deviceId);
             _webSocket.Options.SetRequestHeader("Client-Id", Guid.NewGuid().ToString());
-            _webSocket.ConnectAsync(_serverUri, CancellationToken.None);
+            _ = _webSocket.ConnectAsync(_serverUri, CancellationToken.None);
 
-            LogConsole.WriteLine($"小智_WebSocketUrl：{_webSocketUrl}");
-            LogConsole.WriteLine("小智_WebSocket 初始化完成");
-            LogConsole.Write("小智_WebSocket 连接中...");
-            while (_webSocket.State != WebSocketState.Open)
-            {
-                Console.Write(".");
-                Thread.Sleep(100);
-            }
-            Console.WriteLine("");
-            LogConsole.WriteLine("小智_WebSocket 连接成功 WebSocket.State:" + _webSocket.State.ToString());
+            LogConsole.WriteLine($"WebSocketUrl：{_webSocketUrl}");
+            LogConsole.WriteLine("WebSocket 初始化完成");
+            LogConsole.WriteLine("WebSocket 连接中...");
+            //while (_webSocket.State != WebSocketState.Open)
+            //{
+            //    Console.Write(".");
+            //    Thread.Sleep(100);
+            //}
+            //Console.WriteLine("");
+            LogConsole.WriteLine("WebSocket 连接成功 WebSocket.State:" + _webSocket.State.ToString());
 
             // WebSocket 接收消息
-            Task.Run(async () =>
+            _ = Task.Run(async () =>
             {
                 await ReceiveMessagesAsync();
             });
 
             // WebSocket 重连
-            Task.Run(async () =>
+            _ = Task.Run(async () =>
             {
                 while (true)
                 {
-                    if (_webSocket.State == WebSocketState.Closed || _webSocket.State == WebSocketState.Aborted)
+                    await Task.Delay(5000);
+                    if (_webSocket.State != WebSocketState.Open)
                     {
-                        ConnectAsync();
+                        LogConsole.WarningLine("WebSocket 重连中...");
+                        //await CloseAsync();
+                        await ConnectAsync();
                         return;
                     }
-                    await Task.Delay(1000);
                 }
             });
 
-            SendMessageAsync(Protocols.WebSocketProtocol.Hello());
+            _ = SendMessageAsync(Protocols.WebSocketProtocol.Hello());
             //SendMessageAsync(Protocols.WebSocketProtocol.Listen_Detect("你好"));
         }
 
@@ -157,9 +163,9 @@ namespace XiaoZhiSharp.Services
             {
                 var buffer = Encoding.UTF8.GetBytes(message);
                 await _webSocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
-                    
+
                 LogConsole.SendLine($"小智：{message}");
-                
+
             }
         }
 
@@ -182,8 +188,8 @@ namespace XiaoZhiSharp.Services
         /// <returns></returns>
         public async Task CloseAsync()
         {
-            if (_webSocket.State == WebSocketState.Open)
-                await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Close", CancellationToken.None);
+            //if (_webSocket.State == WebSocketState.Open)
+            await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Close", CancellationToken.None);
         }
     }
 }

@@ -1,0 +1,82 @@
+﻿@page "/"
+@implements IDisposable
+
+<table width="100%" style="text-align:center;">
+    <tr>
+        <td>XiaoZhiSharp</td>
+    </tr>
+    <tr>
+        <td><h3>@MyMessage</h3></td>
+    </tr>
+    <tr>
+        <td><span style="font-size:xx-large;zoom:2.0;">@EmotionText</span></td>
+    </tr>
+    <tr>
+        <td><h2>@Message</h2></td>
+    </tr>
+    <tr>
+        <td style="height:50px;"></td>
+    </tr>
+    <tr>
+        <td><button @onclick="SendAudio">开启自动语音</button></td>
+    </tr>
+    <tr>
+        <td style="height:100px;"></td>
+    </tr>
+    <tr>
+        <td>
+            <input @bind="newMessage" @onkeydown="HandleKeyDown" placeholder="输入消息" />
+            <button @onclick="SendMessage">发送文字消息</button>
+        </td>
+    </tr>
+    <tr>
+        <td style="height:20px;"></td>
+    </tr>
+    <tr>
+        <td>
+            @* <img src="images/wx.jpg" width="120px" /> *@
+        </td>
+    </tr>
+</table>
+
+
+
+<br>
+
+<br>
+<br>
+
+@foreach (var msg in MessageList) {  
+    @msg <br> 
+ }
+
+@code {
+    private System.Timers.Timer _timer = new System.Timers.Timer(1000) { Enabled = true };
+    private string newMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _timer.Elapsed += Timer_Elapsed;
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await SendMessage();
+        }
+    }
+
+    private async void Timer_Elapsed(object sender, EventArgs args)
+    {
+        await Task.Factory.StartNew(() =>
+        {
+            InvokeAsync(() => { StateHasChanged(); return Task.CompletedTask; });
+        });
+    }
+
+    void IDisposable.Dispose()
+    {
+        _timer.Close();
+    }
+}
