@@ -6,7 +6,7 @@ namespace XiaoZhiSharp_BlazorApp.Pages
     {
         private static XiaoZhiSharp.XiaoZhiAgent _agent;
         private static string OTA_VERSION_URL = "https://api.tenclass.net/xiaozhi/ota/";
-        private static string WEB_SOCKET_URL = "ws://192.168.31.113:8888/xiaozhi/v1/";
+        private static string WEB_SOCKET_URL = "wss://api.tenclass.net/xiaozhi/v1/";
         public static List<string> MessageList = new List<string>();
         public static string MyMessage = " ";
         public static string Message = "我叫小智";
