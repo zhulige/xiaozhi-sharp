@@ -11,6 +11,7 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddAntDesign();
 
 var app = builder.Build();
+Global.Configuration = app.Configuration;
 
 //¾²Ì¬ wwwroot
 //Ìí¼ÓMIME

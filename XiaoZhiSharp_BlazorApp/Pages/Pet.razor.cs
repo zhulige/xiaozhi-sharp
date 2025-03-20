@@ -22,6 +22,8 @@ namespace XiaoZhiSharp_BlazorApp.Pages
                 // 这是第一次启动
                 _isFirstTime = false;
                 // 在这里添加第一次启动时的逻辑
+                OTA_VERSION_URL = Global.Configuration.GetSection("ConnectionStrings").GetSection("XIAOZHI_OTA_VERSION_URL").Value;
+                WEB_SOCKET_URL = Global.Configuration.GetSection("ConnectionStrings").GetSection("XIAOZHI_WEB_SOCKET_URL").Value;
                 _agent = new XiaoZhiSharp.XiaoZhiAgent(OTA_VERSION_URL, WEB_SOCKET_URL, "");
                 _agent.OnMessageEvent += _agent_OnMessageEvent;
                 _agent.Start();
