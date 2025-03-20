@@ -24,7 +24,7 @@ namespace XiaoZhiSharp.Services
         private string? _deviceId { get; set; }
 
         // 私有资源
-        private readonly ClientWebSocket _webSocket;
+        private ClientWebSocket _webSocket;
         private readonly Uri _serverUri;
 
         // 构造函数
@@ -62,13 +62,13 @@ namespace XiaoZhiSharp.Services
 
             LogConsole.WriteLine($"WebSocketUrl：{_webSocketUrl}");
             LogConsole.WriteLine("WebSocket 初始化完成");
-            LogConsole.WriteLine("WebSocket 连接中...");
-            //while (_webSocket.State != WebSocketState.Open)
-            //{
-            //    Console.Write(".");
-            //    Thread.Sleep(100);
-            //}
-            //Console.WriteLine("");
+            LogConsole.Write("WebSocket 连接中...");
+            while (_webSocket.State != WebSocketState.Open)
+            {
+                Console.Write(".");
+                Thread.Sleep(100);
+            }
+            Console.WriteLine("");
             LogConsole.WriteLine("WebSocket 连接成功 WebSocket.State:" + _webSocket.State.ToString());
 
             // WebSocket 接收消息
@@ -86,7 +86,8 @@ namespace XiaoZhiSharp.Services
                     if (_webSocket.State != WebSocketState.Open)
                     {
                         LogConsole.WarningLine("WebSocket 重连中...");
-                        //await CloseAsync();
+                        await CloseAsync();
+                        _webSocket = new ClientWebSocket();
                         await ConnectAsync();
                         return;
                     }

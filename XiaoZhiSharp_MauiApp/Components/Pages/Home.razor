@@ -3,10 +3,10 @@
 
 <table width="100%" style="text-align:center;">
     <tr>
-        <td>XiaoZhiSharp</td>
+        <td style="height:50px;"></td>
     </tr>
     <tr>
-        <td><h3>@MyMessage</h3></td>
+        <td><h2>XiaoZhiSharp</h2></td>
     </tr>
     <tr>
         <td><span style="font-size:xx-large;zoom:2.0;">@EmotionText</span></td>
@@ -15,19 +15,26 @@
         <td><h2>@Message</h2></td>
     </tr>
     <tr>
-        <td style="height:50px;"></td>
-    </tr>
-    <tr>
-        <td><button @onclick="SendAudio">开启自动语音</button></td>
-    </tr>
-    <tr>
-        <td style="height:100px;"></td>
+        <td style="height:20px;"></td>
     </tr>
     <tr>
         <td>
-            <input @bind="newMessage" @onkeydown="HandleKeyDown" placeholder="输入消息" />
-            <button @onclick="SendMessage">发送文字消息</button>
+            语音
+            <Switch @bind-Checked="_isAudioSwitchValue" />
         </td>
+    </tr>
+    <tr>
+        <td style="height:20px;"></td>
+    </tr>
+    <tr>
+        <td style="padding:10px;">
+            @* <input @bind="newMessage" @onkeydown="HandleKeyDown" placeholder="输入消息" /> *@
+            @* <button @onclick="SendMessage">发送文字消息</button> *@
+            <Search Placeholder="" @bind-Value="@_newMessage" EnterButton="@("发送")" OnSearch="SendMessage" Size="InputSize.Large" Suffix="@_emotionIcon" />
+        </td>
+    </tr>
+    <tr>
+        <td style="padding:10px;text-align:left;">@MyMessage</td>
     </tr>
     <tr>
         <td style="height:20px;"></td>
@@ -37,22 +44,25 @@
             @* <img src="images/wx.jpg" width="120px" /> *@
         </td>
     </tr>
+    <tr>
+        <td style="padding:10px;text-align:left;font-size:small;zoom:0.8;">
+            @foreach (var msg in MessageList)
+            {
+                @msg <br>
+            }
+        </td>
+    </tr>
 </table>
 
 
 
-<br>
-
-<br>
-<br>
-
-@foreach (var msg in MessageList) {  
-    @msg <br> 
- }
 
 @code {
     private System.Timers.Timer _timer = new System.Timers.Timer(1000) { Enabled = true };
-    private string newMessage;
+    private string _newMessage;
+    private bool _isAudioSwitchValue { get; set; }
+    RenderFragment _emotionIcon = @<span>@EmotionText</span>;
+
 
     protected override async Task OnInitializedAsync()
     {

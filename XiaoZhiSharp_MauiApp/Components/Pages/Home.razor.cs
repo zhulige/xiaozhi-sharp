@@ -1,5 +1,4 @@
-﻿using Android.DeviceLock;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.WebSockets;
@@ -29,9 +28,9 @@ namespace XiaoZhiSharp_MauiApp.Components.Pages
                 // 这是第一次启动
                 _isFirstTime = false;
                 // 在这里添加第一次启动时的逻辑
-                _agent = new XiaoZhiSharp.XiaoZhiAgent(OTA_VERSION_URL, WEB_SOCKET_URL, "ca:ff:95:de:57:d7");
-                _agent.IsOTA = false;
-                _agent.IsAudio = false;
+                _agent = new XiaoZhiSharp.XiaoZhiAgent(OTA_VERSION_URL, WEB_SOCKET_URL);
+                _agent.IsOTA = true;
+                _agent.IsAudio = true;
                 _agent.OnMessageEvent += _agent_OnMessageEvent;
                 _agent.Start();
 
@@ -85,8 +84,8 @@ namespace XiaoZhiSharp_MauiApp.Components.Pages
         {
             if (_agent != null)
             {
-                await _agent.SendMessage(this.newMessage);
-                this.newMessage = string.Empty;
+                await _agent.SendMessage(this._newMessage);
+                this._newMessage = string.Empty;
 
             }
         }
