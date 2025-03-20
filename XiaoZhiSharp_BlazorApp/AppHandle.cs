@@ -8,7 +8,7 @@ namespace XiaoZhiSharp_BlazorApp
         public static Process WebProcess { get; set; }
         public static void OpenWebView()
         {
-            var url = "http://localhost:5050";
+            var url = "http://localhost:5050/Pet";
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 WebProcess = Process.Start("google-chrome", "--kiosk " + url + " --disable-background-networking");

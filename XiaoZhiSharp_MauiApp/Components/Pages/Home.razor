@@ -1,5 +1,6 @@
 ﻿@page "/"
 @implements IDisposable
+@inject IJSRuntime JsRuntime
 
 <table width="100%" style="text-align:center;">
     <tr>
@@ -9,7 +10,13 @@
         <td><h2>XiaoZhiSharp</h2></td>
     </tr>
     <tr>
-        <td><span style="font-size:xx-large;zoom:2.0;">@EmotionText</span></td>
+        <td>
+            <div class="pets">
+                <div class="message" style="opacity:0;"></div>
+                <audio id="my_audio"></audio>
+                    <canvas id="mycanvas" width="150" height="250" @ref="canvasRef"></canvas>
+            </div>
+        </td>
     </tr>
     <tr>
         <td><h2>@Message</h2></td>
@@ -28,8 +35,6 @@
     </tr>
     <tr>
         <td style="padding:10px;">
-            @* <input @bind="newMessage" @onkeydown="HandleKeyDown" placeholder="输入消息" /> *@
-            @* <button @onclick="SendMessage">发送文字消息</button> *@
             <Search Placeholder="" @bind-Value="@_newMessage" EnterButton="@("发送")" OnSearch="SendMessage" Size="InputSize.Large" Suffix="@_emotionIcon" />
         </td>
     </tr>
@@ -46,19 +51,22 @@
     </tr>
     <tr>
         <td style="padding:10px;text-align:left;font-size:small;zoom:0.8;">
-            @foreach (var msg in MessageList)
+@*             @foreach (var msg in MessageList)
             {
                 @msg <br>
-            }
+            } *@
         </td>
     </tr>
 </table>
 
-
-
+<script src="pet/js/lib/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+<!-- Live2D Library -->
+<script src="pet/js/lib/live2d.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="pet/js/xiaomai.js?time=2" type="text/javascript" charset="utf-8"></script>
 
 @code {
     private System.Timers.Timer _timer = new System.Timers.Timer(1000) { Enabled = true };
+    private ElementReference canvasRef;
     private string _newMessage;
     private bool _isAudioSwitchValue { get; set; }
     RenderFragment _emotionIcon = @<span>@EmotionText</span>;
@@ -67,6 +75,14 @@
     protected override async Task OnInitializedAsync()
     {
         _timer.Elapsed += Timer_Elapsed;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JsRuntime.InvokeVoidAsync("InitLive2D");
+        }
     }
 
     private async Task HandleKeyDown(KeyboardEventArgs e)
