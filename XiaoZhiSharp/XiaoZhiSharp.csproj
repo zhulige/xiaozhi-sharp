@@ -21,8 +21,4 @@
     <PackageReference Include="RestSharp" Version="112.1.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Include="..\XiaoZhiSharp_BlazorApp\Pages\Component.razor" Link="Component.razor" />
-  </ItemGroup>
-
 </Project>
