@@ -217,8 +217,9 @@ namespace XiaoZhiSharp.Services
             if (opusData == null || opusData.Length == 0)
                 return;
 
-            Utils.RtpHeader rh = OpusPacketHandler.ReadRtpHeader(opusData);
-            //if (rh.SequenceNumber == 1993 || rh.Marker == false)
+            //Utils.RtpHeader rh = OpusPacketHandler.ReadRtpHeader(opusData);
+            //LogConsole.ReceiveLine(JsonConvert.SerializeObject(rh));
+            //if (rh.SequenceNumber == 1993 || rh.Marker==false)
             //    return;
 
             try
@@ -240,10 +241,6 @@ namespace XiaoZhiSharp.Services
                     lock (_waveOutStream)
                     {
                         _waveOutStream.Enqueue(floatData);
-                        while (_waveOutStream.Count > 20)
-                        {
-                            _waveOutStream.Clear();
-                        }
                     }
 
                     if (_waveOutStream.Count > 5)
@@ -257,7 +254,7 @@ namespace XiaoZhiSharp.Services
             }
             catch (Exception ex)
             {
-                //Console.WriteLine($"Error decoding Opus data: {ex.Message}");
+                LogConsole.ErrorLine($"Error decoding Opus data: {ex.Message}");
                 //LogConsole.ReceiveLine(JsonConvert.SerializeObject(rh));
             }
         }

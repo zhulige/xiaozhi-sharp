@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Net.WebSockets;
 using System.Text;
+using System.Threading;
 using XiaoZhiSharp.Services;
 using XiaoZhiSharp.Utils;
 
@@ -26,9 +27,10 @@ namespace XiaoZhiSharp.Services
         // 私有资源
         private ClientWebSocket _webSocket;
         private readonly Uri _serverUri;
+        private CancellationTokenSource _cancellationTokenSource;
 
         // 构造函数
-        public WebSocketService(string url, string token,string deviceId)
+        public WebSocketService(string url, string token, string deviceId)
         {
             if (!string.IsNullOrEmpty(url))
                 _webSocketUrl = url;
@@ -36,7 +38,7 @@ namespace XiaoZhiSharp.Services
                 _token = token;
 
             // 获取 MAC 地址
-            if(!string.IsNullOrEmpty(deviceId))
+            if (!string.IsNullOrEmpty(deviceId))
                 _deviceId = deviceId;
             else
                 _deviceId = Utils.SystemInfo.GetMacAddress();
@@ -58,7 +60,8 @@ namespace XiaoZhiSharp.Services
             _webSocket.Options.SetRequestHeader("Protocol-Version", "1");
             _webSocket.Options.SetRequestHeader("Device-Id", _deviceId);
             _webSocket.Options.SetRequestHeader("Client-Id", Guid.NewGuid().ToString());
-            _ = _webSocket.ConnectAsync(_serverUri, CancellationToken.None);
+            _cancellationTokenSource = new CancellationTokenSource();
+            _ = _webSocket.ConnectAsync(_serverUri, _cancellationTokenSource.Token);
 
             LogConsole.WriteLine($"WebSocketUrl：{_webSocketUrl}");
             LogConsole.WriteLine("WebSocket 初始化完成");
@@ -104,16 +107,19 @@ namespace XiaoZhiSharp.Services
         /// <returns></returns>
         private async Task ReceiveMessagesAsync()
         {
-            var buffer = new byte[1024];
+            byte[] buffer = new byte[8192];
 
-            while (_webSocket.State == WebSocketState.Open)
+            while (_webSocket.State == WebSocketState.Open && !_cancellationTokenSource.Token.IsCancellationRequested)
             {
                 try
                 {
-                    var result = await _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                    var result = await _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), _cancellationTokenSource.Token);
+                    // 处理接收到的消息
+                    byte[] messageBytes = new byte[result.Count];
+                    Array.Copy(buffer, messageBytes, result.Count);
                     if (result.MessageType == WebSocketMessageType.Text)
                     {
-                        var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                        var message = Encoding.UTF8.GetString(messageBytes);
                         if (!string.IsNullOrEmpty(message))
                         {
                             LogConsole.ReceiveLine($"小智: {message}");
@@ -134,14 +140,10 @@ namespace XiaoZhiSharp.Services
                     }
                     if (result.MessageType == WebSocketMessageType.Binary)
                     {
-                        //await _audioService.OpusPlayEnqueue(buffer);
-                        //if (IsDebug)
-                        //    Console.WriteLine($"WebSocket 接收到语音: {buffer.Length}");
-
                         // 触发事件
                         if (OnAudioEvent != null)
                         {
-                            OnAudioEvent(buffer);
+                            OnAudioEvent(messageBytes);
                         }
                     }
                     await Task.Delay(60);
