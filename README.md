@@ -3,6 +3,17 @@
 
 # xiaozhi-sharp 小智 AI 聊天机器人 (XiaoZhi AI Chatbot)
 
+```
+using XiaoZhiSharp;
+using XiaoZhiSharp.Protocols;
+
+XiaoZhiAgent _xiaoZhiAgent = new XiaoZhiAgent(OTA_VERSION_URL, WEB_SOCKET_URL, MAC_ADDR);
+_xiaoZhiAgent.OnMessageEvent += _xiaoZhiAgent_OnMessageEvent;
+_xiaoZhiAgent.OnIotEvent += _xiaoZhiAgent_OnIotEvent;
+_xiaoZhiAgent.OnAudioEvent += _xiaoZhiAgent_OnAudioEvent;
+_xiaoZhiAgent.Start();
+```
+
 ##  [English](#english-version) | [中文](#中文版本)
 
 ---
