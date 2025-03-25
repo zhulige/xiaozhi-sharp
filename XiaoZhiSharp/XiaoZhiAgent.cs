@@ -18,11 +18,15 @@ namespace XiaoZhiSharp
         public bool IsLogWrite { get { return LogConsole.IsWrite; } set { LogConsole.IsWrite = value; } }
         public bool IsAudio { get; set; } = true;
         public bool IsOTA { get; set; } = true;
+        public Protocols.IotThingsProtocol? IotThings { get; set; } = null;
 
         public delegate void MessageEventHandler(string message);
         public delegate void AudioEventHandler(byte[] opus);
+        public delegate void IotEventHandler(string message);
         public event MessageEventHandler? OnMessageEvent = null;
         public event AudioEventHandler? OnAudioEvent = null;
+        public event IotEventHandler? OnIotEvent = null;
+
 
         private OtaService? _otaService = null;
         private WebSocketService? _webSocketService = null;
