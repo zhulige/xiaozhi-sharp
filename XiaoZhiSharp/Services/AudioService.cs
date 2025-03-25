@@ -5,6 +5,8 @@ using System.Threading;
 using PortAudioSharp;
 using OpusSharp.Core;
 using XiaoZhiSharp.Utils;
+using System.Collections.Concurrent;
+using Newtonsoft.Json;
 
 namespace XiaoZhiSharp.Services
 {
@@ -15,7 +17,9 @@ namespace XiaoZhiSharp.Services
         private readonly OpusEncoder opusEncoder;   // 编码器
         // 音频输出相关组件
         private readonly PortAudioSharp.Stream? _waveOut;
-        private readonly Queue<float[]> _waveOutStream = new Queue<float[]>();
+        //private readonly Queue<float[]> _waveOutStream = new Queue<float[]>();
+        private readonly ConcurrentQueue<float[]> _waveOutStream = new ConcurrentQueue<float[]>();
+
         // 音频输入相关组件
         private readonly PortAudioSharp.Stream? _waveIn;
 
@@ -37,6 +41,7 @@ namespace XiaoZhiSharp.Services
             // 初始化 Opus 解码器和编码器
             opusDecoder = new OpusDecoder(SampleRate, Channels);
             opusEncoder = new OpusEncoder(SampleRate, Channels, OpusPredefinedValues.OPUS_APPLICATION_VOIP);
+            //opusEncoder = new OpusEncoder(SampleRate, Channels,OpusSharp.Core.Enums.PreDefCtl.OPUS_APPLICATION_VOIP);
 
             // 初始化音频输出组件
             PortAudio.Initialize();
@@ -105,7 +110,7 @@ namespace XiaoZhiSharp.Services
                     {
                         AddOutStreamSamples(opusData);
                     }
-                    Thread.Sleep(10);
+                    Thread.Sleep(1);
                 }
             });
             threadOpus.Start();
@@ -118,35 +123,41 @@ namespace XiaoZhiSharp.Services
             IntPtr input, IntPtr output, uint frameCount, ref StreamCallbackTimeInfo timeInfo,
             StreamCallbackFlags statusFlags, IntPtr userData)
         {
+            if (_waveOutStream.Count <= 0)
+            {
+                //return StreamCallbackResult.Complete;
+            }
             try
             {
-                float[]? buffer;
-                lock (_waveOutStream)
+                while (_waveOutStream.Count > 0)
                 {
-                    if (_waveOutStream.TryDequeue(out buffer))
+                    float[]? buffer;
+                    lock (_waveOutStream)
                     {
-                        if (buffer.Length < frameCount)
+                        if (_waveOutStream.TryDequeue(out buffer))
                         {
-                            float[] paddedBuffer = new float[frameCount];
-                            Array.Copy(buffer, paddedBuffer, buffer.Length);
-                            Marshal.Copy(paddedBuffer, 0, output, (int)frameCount);
+                            if (buffer.Length < frameCount)
+                            {
+                                //float[] paddedBuffer = new float[frameCount];
+                                //Array.Copy(buffer, paddedBuffer, buffer.Length);
+                                //Marshal.Copy(paddedBuffer, 0, output, (int)frameCount);
+                                Thread.Sleep(10);
+                            }
+                            else
+                            {
+                                Marshal.Copy(buffer, 0, output, (int)frameCount);
+                            }
                         }
-                        else
-                        {
-                            Marshal.Copy(buffer, 0, output, (int)frameCount);
-                        }
-                        return StreamCallbackResult.Continue;
-                    }
-                    else
-                    {
                         return StreamCallbackResult.Continue;
                     }
                 }
+                return StreamCallbackResult.Continue;
+                //return StreamCallbackResult.Complete;
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                return StreamCallbackResult.Continue;
+                return StreamCallbackResult.Complete;
             }
         }
 
@@ -206,11 +217,15 @@ namespace XiaoZhiSharp.Services
             if (opusData == null || opusData.Length == 0)
                 return;
 
+            Utils.RtpHeader rh = OpusPacketHandler.ReadRtpHeader(opusData);
+            //if (rh.SequenceNumber == 1993 || rh.Marker == false)
+            //    return;
+
             try
             {
                 // 解码 Opus 数据
-                short[] pcmData = new short[FrameSize * Channels];
-                int decodedSamples = opusDecoder.Decode(opusData, opusData.Length, pcmData, FrameSize, false);
+                short[] pcmData = new short[FrameSize * 10];
+                int decodedSamples = opusDecoder.Decode(opusData, opusData.Length, pcmData, FrameSize * 10, false);
 
                 if (decodedSamples > 0)
                 {
@@ -225,12 +240,25 @@ namespace XiaoZhiSharp.Services
                     lock (_waveOutStream)
                     {
                         _waveOutStream.Enqueue(floatData);
+                        while (_waveOutStream.Count > 20)
+                        {
+                            _waveOutStream.Clear();
+                        }
+                    }
+
+                    if (_waveOutStream.Count > 5)
+                    {
+                        if (!IsPlaying)
+                        {
+                            StartPlaying();
+                        }
                     }
                 }
             }
             catch (Exception ex)
             {
                 //Console.WriteLine($"Error decoding Opus data: {ex.Message}");
+                //LogConsole.ReceiveLine(JsonConvert.SerializeObject(rh));
             }
         }
 
@@ -319,6 +347,47 @@ namespace XiaoZhiSharp.Services
             opusEncoder?.Dispose();
             _waveIn?.Dispose();
             _waveOut?.Dispose();
+            PortAudio.Terminate();
+        }
+    }
+
+    public class CircularBuffer<T>
+    {
+        private readonly T[] _buffer;
+        private int _head;
+        private int _tail;
+        private int _count;
+
+        public CircularBuffer(int capacity)
+        {
+            _buffer = new T[capacity];
+        }
+
+        public bool TryEnqueue(T item)
+        {
+            if (_count == _buffer.Length)
+            {
+                return false;
+            }
+
+            _buffer[_tail] = item;
+            _tail = (_tail + 1) % _buffer.Length;
+            _count++;
+            return true;
+        }
+
+        public bool TryDequeue(out T item)
+        {
+            if (_count == 0)
+            {
+                item = default(T);
+                return false;
+            }
+
+            item = _buffer[_head];
+            _head = (_head + 1) % _buffer.Length;
+            _count--;
+            return true;
         }
     }
 }
