@@ -29,10 +29,10 @@ namespace XiaoZhiSharp_MauiApp.Components.Pages
                 _isFirstTime = false;
                 // 在这里添加第一次启动时的逻辑
                 _agent = new XiaoZhiSharp.XiaoZhiAgent(OTA_VERSION_URL, WEB_SOCKET_URL);
-                _agent.IsOTA = true;
-                _agent.IsAudio = true;
+                _agent.IsOTA = false;
+                _agent.IsAudio = false;
                 _agent.OnMessageEvent += _agent_OnMessageEvent;
-                _agent.Start();
+                //_agent.Start();
 
             }
 
