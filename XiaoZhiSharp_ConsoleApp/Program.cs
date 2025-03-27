@@ -1,5 +1,8 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Net.NetworkInformation;
+using XiaozhiAI.Models.IoT;
+using XiaozhiAI.Models.IoT.Things;
 using XiaoZhiSharp;
 using XiaoZhiSharp.Protocols;
 using XiaoZhiSharp.Services;
@@ -64,15 +67,15 @@ class Program
 
 
         // 1. 注册生成设备描述
-        var descriptor = new IoTDescriptor();
-        descriptor.AddDevice(new Lamp());
-        descriptor.AddDevice(new DuoJI());
-        descriptor.AddDevice(new Camre());
-        string descriptorJson = JsonConvert.SerializeObject(descriptor, Formatting.Indented);
+        ThingManager.GetInstance().AddThing(new Lamp());
+        ThingManager.GetInstance().AddThing(new Camera());
+        ThingManager.GetInstance().AddThing(new Speaker());
+        string descriptorJson = ThingManager.GetInstance().GetDescriptorsJson();
         await Task.Delay(1000);
         await _xiaoZhiAgent.IotInit(descriptorJson);
         await _xiaoZhiAgent.Send_Listen_Detect("你好啊,当前虚拟设备有啥");
 
+         _xiaoZhiAgent.StartMqtt();
 
         while (true)
         {
@@ -136,15 +139,63 @@ class Program
 
             if (msg.type=="iot")
             {
-                Console.WriteLine(msg);
-               var handler = new IoTCommandHandler(new Lamp(), new DuoJI(), new Camre());
-               var data= handler.HandleCommand(message);
-                if (data.Success)
-                {
-                    Task.Run(async () => await _xiaoZhiAgent.IotState(data.StateJson));                    
-                }
+                var msgss = JObject.Parse(message);
+                HandleIotMessage(msgss);
             }
             
         }
     }
+    /// <summary>
+    /// 处理物联Iot网消息
+    /// </summary>
+    /// <param name="data">带有iot的json数据</param>
+    private static void HandleIotMessage(JObject data)
+    {
+        try
+        {
+            // 检查消息类型
+            var type = data["type"]?.ToString();
+            if (type != "iot")
+            {
+                Console.WriteLine($"非物联网消息类型: {type}", true);
+                return;
+            }
+
+            // 获取命令数组
+            var commands = data["commands"] as JArray;
+            if (commands == null || commands.Count == 0)
+            {
+                Console.WriteLine("物联网命令为空或格式不正确", true);
+                return;
+            }
+
+            foreach (JObject command in commands)
+            {
+                try
+                {
+                    // 记录接收到的命令
+                    var mes = command.ToString(Newtonsoft.Json.Formatting.None);
+                    //mqttService.PublishAsync(mes);
+
+                    Console.WriteLine($"收到物联网命令: {mes}");
+
+                    // 执行命令
+                    var result = ThingManager.GetInstance().Invoke(command);
+                    Console.WriteLine($"执行物联网命令结果: {result}");
+
+                    // 命令执行后更新设备状态
+                   _xiaoZhiAgent.IotState();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"执行物联网命令失败: {ex.Message}", true);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"处理物联网消息失败: {ex.Message}", true);
+        }
+    }
+
 }

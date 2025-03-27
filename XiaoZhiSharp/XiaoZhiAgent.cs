@@ -1,9 +1,16 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using XiaozhiAI.Models.IoT;
+using XiaozhiAI.Models.IoT.Things;
+using XiaozhiAI.Services.Mqtt;
 using XiaoZhiSharp.Services;
 using XiaoZhiSharp.Utils;
 
@@ -26,7 +33,8 @@ namespace XiaoZhiSharp
         public event MessageEventHandler? OnMessageEvent = null;
         public event AudioEventHandler? OnAudioEvent = null;
         public event IotEventHandler? OnIotEvent = null;
-
+        public ThingManager thingManager=ThingManager.GetInstance();
+        private MqttService mqttService;
 
         private OtaService? _otaService = null;
         private WebSocketService? _webSocketService = null;
@@ -79,6 +87,18 @@ namespace XiaoZhiSharp
             _sendOpusthread.Start();
         }
 
+        public async void StartMqtt() 
+        {
+            // 创建服务实例
+            mqttService = new MqttService();
+            var mqttHandlerManager = new MqttMessageHandlerManager(mqttService);
+            // 注册MQTT消息处理器
+            mqttHandlerManager.RegisterHandler(new DefaultMqttMessageHandler());
+            // 连接到MQTT服务器
+            await mqttService.ConnectAsync();
+        }
+
+
         public void Stop() {
             _audioService = null;
             _otaService = null;
@@ -124,23 +144,23 @@ namespace XiaoZhiSharp
                 await _webSocketService.SendMessageAsync(Protocols.WebSocketProtocol.Hello());
         }
 
-        public async Task IotInit(string iotjson) 
+        public async Task IotInit(string iot) 
         {
             if (_webSocketService != null && _audioService != null) 
             {
-                //Console.WriteLine("生成的设备描述JSON：\n" + iotjson);
-                await _webSocketService.SendMessageAsync(iotjson);
+                await _webSocketService.SendMessageAsync(iot);
             }
         }
 
-        public async Task IotState(string statejson)
+        public async Task IotState()
         {
             if (_webSocketService != null && _audioService != null)
             {
-                await _webSocketService.SendMessageAsync(statejson);
+                // 获取当前设备状态
+                string statesJson = thingManager.GetStatesJson();
+                await _webSocketService.SendMessageAsync(statesJson);
             }
         }
-
         public async Task Send_Listen_Detect(string text)
         {
             if (_webSocketService != null)

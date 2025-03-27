@@ -19,6 +19,7 @@
     <PackageReference Include="org.portaudio.runtime.linux-arm64" Version="19.7.5.1" />
     <PackageReference Include="PortAudioSharp2" Version="1.0.4" />
     <PackageReference Include="RestSharp" Version="112.1.0" />
+	  <PackageReference Include="MQTTnet" Version="4.3.3.952" />
   </ItemGroup>
 
   <ItemGroup>
