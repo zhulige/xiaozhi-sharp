@@ -138,10 +138,10 @@ namespace XiaoZhiSharp.Services
                         {
                             if (buffer.Length < frameCount)
                             {
-                                //float[] paddedBuffer = new float[frameCount];
-                                //Array.Copy(buffer, paddedBuffer, buffer.Length);
-                                //Marshal.Copy(paddedBuffer, 0, output, (int)frameCount);
-                                Thread.Sleep(10);
+                                float[] paddedBuffer = new float[frameCount];
+                                Array.Copy(buffer, paddedBuffer, buffer.Length);
+                                Marshal.Copy(paddedBuffer, 0, output, (int)frameCount);
+                                //Thread.Sleep(10);
                             }
                             else
                             {
@@ -345,46 +345,6 @@ namespace XiaoZhiSharp.Services
             _waveIn?.Dispose();
             _waveOut?.Dispose();
             PortAudio.Terminate();
-        }
-    }
-
-    public class CircularBuffer<T>
-    {
-        private readonly T[] _buffer;
-        private int _head;
-        private int _tail;
-        private int _count;
-
-        public CircularBuffer(int capacity)
-        {
-            _buffer = new T[capacity];
-        }
-
-        public bool TryEnqueue(T item)
-        {
-            if (_count == _buffer.Length)
-            {
-                return false;
-            }
-
-            _buffer[_tail] = item;
-            _tail = (_tail + 1) % _buffer.Length;
-            _count++;
-            return true;
-        }
-
-        public bool TryDequeue(out T item)
-        {
-            if (_count == 0)
-            {
-                item = default(T);
-                return false;
-            }
-
-            item = _buffer[_head];
-            _head = (_head + 1) % _buffer.Length;
-            _count--;
-            return true;
         }
     }
 }

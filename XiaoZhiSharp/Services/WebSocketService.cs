@@ -107,7 +107,7 @@ namespace XiaoZhiSharp.Services
         /// <returns></returns>
         private async Task ReceiveMessagesAsync()
         {
-            byte[] buffer = new byte[8192];
+            byte[] buffer = new byte[1024 * 10];
 
             while (_webSocket.State == WebSocketState.Open && !_cancellationTokenSource.Token.IsCancellationRequested)
             {
