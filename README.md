@@ -105,6 +105,6 @@ dotnet run
 欢迎加入我们的社区，分享经验、提出建议或获取帮助！
 
 <div style="text-align: center;">
-    <img src="https://fileserver.developer.huaweicloud.com/FileServer/getFile/communitytemp/20250320/community/289/905/458/0001739151289905458.20250320010018.32864321130799519033275788702529:20250320020019:2415:1BF2B548196B8C212002694F96BAF79F8EB068E88A639E85BD05FCCFC574D788.jpg" height="300" />
+    <img src="doc/wxq.jpg" height="300" />
 </div>
 

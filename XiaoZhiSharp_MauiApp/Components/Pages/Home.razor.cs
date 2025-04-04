@@ -32,7 +32,7 @@ namespace XiaoZhiSharp_MauiApp.Components.Pages
                 _agent.IsOTA = false;
                 _agent.IsAudio = false;
                 _agent.OnMessageEvent += _agent_OnMessageEvent;
-                //_agent.Start();
+                _agent.Start();
 
             }
 
