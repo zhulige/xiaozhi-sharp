@@ -4,13 +4,13 @@
 xiaozhi-sharp 是一个用 C# 精心打造的小智客户端，它不仅可以作为代码学习的优质示例，还能让你在没有相关硬件条件的情况下，轻松体验到小智 AI 带来的智能交互乐趣。
 本客户端默认接入 xiaozhi.me 官方服务器，为你提供稳定可靠的服务。
 
-如果你想自己创建属于自己专有的智能体，你也可以使用
-小智ESP32 ❤ 扣子Coze X 豆包
-http://xiaohi.nbee.net
+如果你想自己创建属于自己专有的智能体，你也可以使用:<br>
+小智ESP32 ❤ 扣子Coze X 豆包<br>
+http://xiaohi.nbee.net<br>
 
-如果你有自己的小智ESP32硬件设备，你也可以使用
-魔改可Web配置服务器地址的固件
-https://github.com/zhulige/xiaozhi-esp32
+如果你有自己的小智ESP32硬件设备，你也可以使用:<br>
+魔改可Web配置服务器地址的固件<br>
+https://github.com/zhulige/xiaozhi-esp32<br>
 
 ## XiaoZhiSharp 基础库
 你可以使用它很快的创建一个自己的小智客户端应用。
