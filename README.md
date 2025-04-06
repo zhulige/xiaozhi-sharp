@@ -1,9 +1,20 @@
-
-
-
 # xiaozhi-sharp 小智 AI 聊天机器人 (XiaoZhi AI Chatbot)
+[![SVG Banners](https://svg-banners.vercel.app/api?type=origin&text1=Hi😃，XiaoZhi&text2=CSharp&width=830&height=210)](http://xiaozhi.nbee.net)
 
-```
+xiaozhi-sharp 是一个用 C# 精心打造的小智客户端，它不仅可以作为代码学习的优质示例，还能让你在没有相关硬件条件的情况下，轻松体验到小智 AI 带来的智能交互乐趣。
+本客户端默认接入 xiaozhi.me 官方服务器，为你提供稳定可靠的服务。
+
+如果你想自己创建属于自己专有的智能体，你也可以使用
+小智ESP32 ❤ 扣子Coze X 豆包
+http://xiaohi.nbee.net
+
+如果你有自己的小智ESP32硬件设备，你也可以使用
+魔改可Web配置服务器地址的固件
+https://github.com/zhulige/xiaozhi-esp32
+
+## XiaoZhiSharp 基础库
+你可以使用它很快的创建一个自己的小智客户端应用。
+``` C#
 using XiaoZhiSharp;
 using XiaoZhiSharp.Protocols;
 
@@ -14,13 +25,57 @@ _xiaoZhiAgent.OnAudioEvent += _xiaoZhiAgent_OnAudioEvent;
 _xiaoZhiAgent.Start();
 ```
 
+## XiaoZhiSharp_BlazorApp 小智Web应用程序 live2d
+
+## XiaoZhiSharp_ConsoleApp 小智控制台程序
+<img src="doc/202503101010.png" width="480" />
+
+## XiaoZhiSharp_PerformanceTesting 小智AI 服务器压测工具
+
+## XiaoZhiSharp_Test 小智AI 服务器调试利器
+输出全部指令、让你了解小智的工作原理。拿来就能用还等什么！<br>
+<img src="doc/202503101011.png" width="480" />
+
+## XiaoZhiSharp_MauiApp
+一个跨平台的小智应用，欢迎有兴趣的朋友加入。项目开发中。。。
+
+## 运行指南
+要运行本项目，你需要按照以下步骤操作：
+
+### 1.前提条件
+确保你的系统已经安装了 .NET Core SDK。如果尚未安装，可以从 [官方网站](https://dotnet.microsoft.com/zh-cn/) 下载并安装适合你系统的版本。
+
+## 2.运行项目：
+编译成功后，使用以下命令运行项目：
+```bash
+dotnet run
+```
+
+项目启动后，你将看到控制台输出相关信息，按照提示进行操作，即可开始与小智 AI 进行畅快的聊天互动。
+
+## 注意事项
+请确保你的网络连接正常，这样才能顺利使用小智AI。  
+在运行过程中，如果遇到任何问题，可以先查看控制台输出的错误信息，或者检查项目的配置是否正确，例如全局变量 `MAC_ADDR` 是否已经按照要求进行修改。
+
+## 贡献与反馈
+如果你在使用过程中发现了项目中的问题，或者有任何改进的建议，欢迎随时提交 Issue 或者 Pull Request。你的反馈和贡献将对项目的发展和完善起到重要的作用。
+
+### 加入社群
+欢迎加入我们的社区，分享经验、提出建议或获取帮助！
+
+<div style="text-align: center;">
+    <img src="doc/wxq.jpg" height="300" />
+</div>
+
+
+
 ##  [English](#english-version) | [中文](#中文版本)
 
 ---
 
 ## English Version
 
-[![SVG Banners](https://svg-banners.vercel.app/api?type=origin&text1=Hi😃，XiaoZhi&text2=XiaoZhi_AI_Chatbot_Client_written_in_CSharp&width=830&height=210)](https://github.com/xinnan-tech/xiaozhi-esp32-server)
+
 
 ## Project Introduction
 xiaozhi-sharp is a meticulously crafted XiaoZhi client in C#, which not only serves as an excellent code learning example but also allows you to easily experience the intelligent interaction brought by XiaoZhi AI without the need for related hardware.  
