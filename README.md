@@ -3,6 +3,8 @@
 
 ## 前言
 
+本项目是一个AIoT（Artificial Intelligence of Things）项目。
+
 如果你有自己的小智ESP32硬件设备，你可以使用参考以下网址去魔改硬件，让硬件可以随意切换智能体
 https://a0qx3jmgsr.feishu.cn/docx/ISjIdiYifoWRZ7xZuU2cwgzynHh<br>
 魔改烧录代码开源地址如下：<br>
@@ -12,18 +14,40 @@ https://github.com/zhulige/xiaozhi-esp32<br>
 
 xiaozhi-sharp 是一个用 C# 精心打造的小智客户端，它不仅可以作为代码学习的优质示例，还能让你在没有相关硬件条件的情况下，轻松体验到小智 AI 
 
-本客户端默认接入 xiaozhi.me 官方服务器，为你提供稳定可靠的服务。
+本客户端默认接入 `xiaozhi.me` 官方服务器，为你提供稳定可靠的服务。
 
 如果你想自己创建属于自己专有的智能体，你也可以使用我们提供的:<br>
 
 《小智ESP32 ❤ 扣子Coze X 》中转服务<br>
 http://xiaohi.nbee.net<br>
 
+## 项目结构
+
+```bash
+xiaozhi-sharp
+├── XiaoZhiSharp (基础库)
+├── XiaoZhiSharp_BlazorApp (web应用)
+├── XiaoZhiSharp_ConsoleApp (控制台应用)
+├── XiaoZhiSharp_PerformanceTesting (服务器性能测试)
+├── XiaoZhiSharp_Test (测试)
+├── XiaoZhiSharp_MauiApp (跨平台应用)
+└── README.md
+```
+
+## 运行指南
+
+要运行本项目，你需要确保你的系统已经安装了 .NET Core SDK（推荐安装.net 8.0）。如果尚未安装，可以从 [官方网站](https://dotnet.microsoft.com/zh-cn/) 下载并安装适合你系统的版本。安装成功后，你可以按照以下步骤运行项目：
+```bash
+cd 到指定目录
+dotnet run
+```
 
 ## 项目组成
 
-### XiaoZhiSharp 基础库
+### 基础库
+
 你可以使用它很快的创建一个自己的小智客户端应用。
+
 ``` C#
 using XiaoZhiSharp;
 using XiaoZhiSharp.Protocols;
@@ -35,34 +59,67 @@ _xiaoZhiAgent.OnAudioEvent += _xiaoZhiAgent_OnAudioEvent;
 _xiaoZhiAgent.Start();
 ```
 
-### XiaoZhiSharp_BlazorApp 小智Web应用程序 live2d
+### 小智Web应用程序 live2d
 
-### XiaoZhiSharp_ConsoleApp 小智控制台程序
-<img src="doc/202503101010.png" width="480" />
+**功能**
+- 支持文字和语音输入
+- 支持动态live2d模型
 
-### XiaoZhiSharp_PerformanceTesting 小智AI 服务器压测工具
-
-### XiaoZhiSharp_Test 小智AI 服务器调试利器
-输出全部指令、让你了解小智的工作原理。拿来就能用还等什么！<br>
-<img src="doc/202503101011.png" width="480" />
-
-### XiaoZhiSharp_MauiApp
-一个跨平台的小智应用，欢迎有兴趣的朋友加入。项目开发中。。。
-
-## 运行指南
-
-要运行本项目，你需要按照以下步骤操作：
-
-### 1.前提条件
-确保你的系统已经安装了 .NET Core SDK。如果尚未安装，可以从 [官方网站](https://dotnet.microsoft.com/zh-cn/) 下载并安装适合你系统的版本。
-
-### 2.运行项目：
-编译成功后，使用以下命令运行项目：
+**运行**
 ```bash
+cd XiaoZhiSharp_BlazorApp
 dotnet run
 ```
+**效果**
 
-项目启动后，你将看到控制台输出相关信息，按照提示进行操作，即可开始与小智 AI 进行畅快的聊天互动。
+可以语音可以文字输入，还有动态live2d模型可以进行交互。<br>
+
+<img src="doc/live2d.png" width="480">
+
+### 小智控制台程序
+
+**功能**
+- 支持文字输入
+- 切换不同智能体调试信息
+
+**运行**
+```bash
+cd XiaoZhiSharp_ConsoleApp
+dotnet run
+```
+**效果**
+<img src="doc/202503101010.png" width="480" />
+
+### 小智AI 服务器压测工具
+
+**功能**
+- 通过压力测试确保服务器稳定性<br>
+
+**运行**
+```bash
+cd XiaoZhiSharp_PerformanceTesting
+dotnet run
+```
+**效果**
+
+<img src="doc/PerformanceTesting.png" width="480" />
+
+### XiaoZhiSharp_Test 小智AI 服务器调试利器
+**功能**
+- 输出全部指令、让你了解小智的工作原理。<br>
+
+**运行**
+```bash
+cd XiaoZhiSharp_Test
+dotnet run
+```
+**效果**
+
+<img src="doc/202503101011.png" width="480" />
+
+### XiaoZhiSharp_MauiApp 小智跨平台AI应用（开发中）
+
+一个跨平台的小智应用，欢迎有兴趣的朋友加入。项目开发中。。。
 
 ## 注意事项
 
