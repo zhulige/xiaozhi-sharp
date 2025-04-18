@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "dgSpecHash": "ssJzZwzGrW8=",
+  "success": true,
+  "projectFilePath": "E:\\godotproject\\ai小智\\AI小智.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Administrator\\.nuget\\packages\\concentus\\2.2.2\\concentus.2.2.2.nupkg.sha512",
+    "C:\\Users\\Administrator\\.nuget\\packages\\godot.sourcegenerators\\4.4.1\\godot.sourcegenerators.4.4.1.nupkg.sha512",
+    "C:\\Users\\Administrator\\.nuget\\packages\\godotsharp\\4.4.1\\godotsharp.4.4.1.nupkg.sha512",
+    "C:\\Users\\Administrator\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512",
+    "C:\\Users\\Administrator\\.nuget\\packages\\opussharp\\1.5.6\\opussharp.1.5.6.nupkg.sha512",
+    "C:\\Users\\Administrator\\.nuget\\packages\\opussharp.core\\1.5.2.1\\opussharp.core.1.5.2.1.nupkg.sha512",
+    "C:\\Users\\Administrator\\.nuget\\packages\\opussharp.natives\\1.5.2.1\\opussharp.natives.1.5.2.1.nupkg.sha512",
+    "C:\\Users\\Administrator\\.nuget\\packages\\system.memory\\4.5.4\\system.memory.4.5.4.nupkg.sha512",
+    "C:\\Users\\Administrator\\.nuget\\packages\\system.numerics.vectors\\4.5.0\\system.numerics.vectors.4.5.0.nupkg.sha512"
+  ],
+  "logs": []
+}

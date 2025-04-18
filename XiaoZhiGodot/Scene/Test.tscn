@@ -1,0 +1,98 @@
+[gd_scene load_steps=4 format=3 uid="uid://clk1pheftf0cr"]
+
+[ext_resource type="Script" uid="uid://ctrotqcm2lc00" path="res://scripts/Test.cs" id="1_fqvlb"]
+[ext_resource type="Texture2D" uid="uid://c0mqsrb7v2h2y" path="res://icon.svg" id="2_mypys"]
+
+[sub_resource type="AudioStreamMicrophone" id="AudioStreamMicrophone_myinc"]
+
+[node name="Node2D" type="Node2D" node_paths=PackedStringArray("PlayButton", "SaveButton", "RecordButton", "Status", "AudioStreamRecord", "AudioStreamPlayer", "RichTextLabeltext")]
+script = ExtResource("1_fqvlb")
+PlayButton = NodePath("Control/PlayButton")
+SaveButton = NodePath("Control/SaveButton")
+RecordButton = NodePath("Control/RecordButton")
+Status = NodePath("Control/Status")
+AudioStreamRecord = NodePath("Control/AudioStreamRecord")
+AudioStreamPlayer = NodePath("Control/AudioStreamPlayer")
+RichTextLabeltext = NodePath("Control/RichTextLabel")
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 1079.0
+offset_bottom = 1921.0
+
+[node name="RecordButton" type="Button" parent="Control"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -150.0
+offset_right = 300.0
+grow_vertical = 0
+theme_override_font_sizes/font_size = 64
+text = "语音"
+
+[node name="PlayButton" type="Button" parent="Control"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -300.0
+offset_top = -150.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_font_sizes/font_size = 64
+text = "待定"
+
+[node name="SaveButton" type="Button" parent="Control"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -150.0
+offset_top = -150.0
+offset_right = 150.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_font_sizes/font_size = 64
+text = "打断"
+
+[node name="Status" type="Label" parent="Control"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 100.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 64
+text = "LLM小智大模型控制"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RichTextLabel" type="RichTextLabel" parent="Control"]
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -860.5
+offset_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/normal_font_size = 64
+
+[node name="AudioStreamRecord" type="AudioStreamPlayer" parent="Control"]
+stream = SubResource("AudioStreamMicrophone_myinc")
+autoplay = true
+bus = &"Record"
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="Control"]
+autoplay = true
+
+[node name="Icon" type="Sprite2D" parent="."]
+position = Vector2(534, 1395)
+scale = Vector2(4.28125, 4.11719)
+texture = ExtResource("2_mypys")

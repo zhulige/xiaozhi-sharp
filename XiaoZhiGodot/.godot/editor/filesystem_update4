@@ -1,0 +1,5 @@
+res://default_bus_layout.tres
+res://scripts/AudioService.cs
+res://scripts/Test.cs
+res://scripts/MyAppEntry.cs
+res://Scene/Test.tscn
