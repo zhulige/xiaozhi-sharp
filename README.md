@@ -135,5 +135,5 @@ dotnet run
 欢迎加入我们的社区，分享经验、提出建议或获取帮助！
 
 <div style="text-align: center;">
-    <img src="doc/wxq.jpg" height="300" />
+    <img src="doc/wxq51.jpg" height="300" />
 </div>
