@@ -13,11 +13,9 @@ class Program
         Console.ForegroundColor = ConsoleColor.Green;
         Console.Title = "小智AI 控制台客户端";
         // 定义默认值
-        //string OTA_VERSION_URL = "https://api.tenclass.net/xiaozhi/ota/";
-        //string WEB_SOCKET_URL = "wss://api.tenclass.net/xiaozhi/v1/";
+        string OTA_VERSION_URL = "https://api.tenclass.net/xiaozhi/ota/";
+        string WEB_SOCKET_URL = "wss://api.tenclass.net/xiaozhi/v1/";
 
-        string OTA_VERSION_URL = "http://159.75.202.173:8002/xiaozhi/ota/";
-        string WEB_SOCKET_URL = "ws://159.75.202.173:8000/xiaozhi/v1/";
 
         //string WEB_SOCKET_URL = "ws://192.168.10.29:8000";
         string MAC_ADDR = "";
