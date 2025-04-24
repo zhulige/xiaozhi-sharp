@@ -29,6 +29,7 @@ namespace XiaoZhiSharp
 
 
         private OtaService? _otaService = null;
+        private OtaServiceXZ? _otaServiceXZ = null;
         private WebSocketService? _webSocketService = null;
         private AudioService? _audioService = null;
         private Thread? _sendOpusthread = null;
@@ -49,7 +50,18 @@ namespace XiaoZhiSharp
                 _audioService = new AudioService();
             //}
             if (IsOTA)
-                _otaService = new OtaService(OTA_VERSION_URL, MAC_ADDR);
+            {
+                LogConsole.WriteLine($"IsOTA{IsOTA}");
+                if (OTA_VERSION_URL.Contains("tenclass"))
+                {
+                    _otaServiceXZ = new OtaServiceXZ(OTA_VERSION_URL, MAC_ADDR);
+                }
+                else
+                {
+                    _otaService = new OtaService(OTA_VERSION_URL, MAC_ADDR, "web_test_client");
+                }
+
+            }
             // 小智 WebSocket 客户端
             _webSocketService = new WebSocketService(WEB_SOCKET_URL, TOKEN, MAC_ADDR);
             _webSocketService.OnMessageEvent += WebSocketService_OnMessageEvent;
@@ -82,6 +94,7 @@ namespace XiaoZhiSharp
         public void Stop() {
             _audioService = null;
             _otaService = null;
+            _otaServiceXZ = null;
             _webSocketService = null;
         }
         public void Restart() {

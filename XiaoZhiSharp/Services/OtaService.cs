@@ -12,15 +12,19 @@ namespace XiaoZhiSharp.Services
 {
     public class OtaService
     {
-        public string? OTA_VERSION_URL { get; set; } = "https://api.tenclass.net/xiaozhi/ota/";
+        public string? OTA_VERSION_URL { get; set; }
         public dynamic? OTA_INFO { get; set; }
         public string? MAC_ADDR { get; set; }
+        public string? CLIENT_ID { get; set; }
 
-        public OtaService(string url,string mac)
+        public OtaService(string url, string mac, string clientId)
         {
+            Console.WriteLine("开源服务器OTA访问");
             OTA_VERSION_URL = url;
             MAC_ADDR = mac;
-            if(string.IsNullOrEmpty(MAC_ADDR))
+            CLIENT_ID = clientId;
+
+            if (string.IsNullOrEmpty(MAC_ADDR))
                 MAC_ADDR = SystemInfo.GetMacAddress();
 
             Thread _otaThread = new Thread(() =>
@@ -29,7 +33,7 @@ namespace XiaoZhiSharp.Services
                 {
                     try
                     {
-                        GetOtaInfo();
+                        GetOtaInfo().Wait();
                     }
                     catch (Exception e)
                     {
@@ -44,44 +48,91 @@ namespace XiaoZhiSharp.Services
         /// <summary>
         /// 获取配置
         /// </summary>
-        private void GetOtaInfo()
+        private async Task GetOtaInfo()
         {
             try
             {
                 var client = new RestClient(OTA_VERSION_URL);
                 var request = new RestRequest();
                 request.AddHeader("Device-Id", MAC_ADDR);
+                request.AddHeader("Client-Id", CLIENT_ID);
                 request.AddHeader("Content-Type", "application/json");
-
-                DateTime currentUtcTime = DateTime.UtcNow;
-                string format = "MMM dd yyyyT HH:mm:ssZ";
-                string formattedTime = currentUtcTime.ToString(format, System.Globalization.CultureInfo.InvariantCulture);
 
                 var postData = new
                 {
-
+                    version = 0,
+                    uuid = "",
                     application = new
                     {
-                        name = "XiaoZhiSharp",
-                        version = "1.0.1"
+                        name = "xiaozhi",
+                        version = "1.6.1",
+                        compile_time = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                        idf_version = "4.4.3",
+                        elf_sha256 = "1234567890abcdef1234567890abcdef1234567890abcdef"
+                    },
+                    ota = new
+                    {
+                        label = "xiaozhi"
+                    },
+                    board = new
+                    {
+                        type = "xiaozhi",
+                        ssid = "xiaozhi",
+                        rssi = 0,
+                        channel = 0,
+                        ip = "192.168.1.1",
+                        mac = MAC_ADDR
+                    },
+                    flash_size = 0,
+                    minimum_free_heap_size = 0,
+                    mac_address = MAC_ADDR,
+                    chip_model_name = "",
+                    chip_info = new
+                    {
+                        model = 0,
+                        cores = 0,
+                        revision = 0,
+                        features = 0
+                    },
+                    partition_table = new[]
+                    {
+                        new
+                        {
+                            label = "",
+                            type = 0,
+                            subtype = 0,
+                            address = 0,
+                            size = 0
+                        }
                     }
                 };
 
                 request.AddJsonBody(postData);
-
-                var response = client.Post(request);
-                if (response.StatusCode != System.Net.HttpStatusCode.OK)
+                var response = await client.ExecutePostAsync(request);
+                Console.WriteLine(response.Content);
+                if (!response.IsSuccessful)
                 {
-                    Console.WriteLine("获取OTA版本信息失败!");
+                    Console.WriteLine("\n");
+                    Console.WriteLine($"OTA检查失败: {response.StatusCode} {response.ErrorMessage}");
+                    return;
                 }
-                if (response.Content != null && response.Content != "")
+
+                if (!string.IsNullOrEmpty(response.Content))
                 {
                     OTA_INFO = JsonConvert.DeserializeObject<dynamic>(response.Content);
-                    if (OTA_INFO != null && OTA_INFO.activation != null)
+
+                    // 处理激活码
+                    if (OTA_INFO?.activation?.code != null)
                     {
-                        Console.WriteLine($"请先登录xiaozhi.me,绑定Code：{(string)OTA_INFO.activation.code}");
+                        Console.WriteLine($"请先登录xiaozhi.me,绑定Code：{OTA_INFO.activation.code}");
                     }
-                    //Console.WriteLine(response.Content);
+
+                    // 检查是否有新版本
+                    if (OTA_INFO?.version != null)
+                    {
+                        // 实现版本比较和更新逻辑
+                        CompareAndUpdateVersion(OTA_INFO.version);
+                    }
                 }
             }
             catch (Exception ex)
@@ -89,5 +140,12 @@ namespace XiaoZhiSharp.Services
                 Console.WriteLine($"获取OTA版本信息时发生异常: {ex.Message}");
             }
         }
+
+        private void CompareAndUpdateVersion(string newVersion)
+        {
+            // 实现版本比较和更新逻辑
+            // ...
+        }
+
     }
 }
