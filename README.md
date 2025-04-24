@@ -19,7 +19,7 @@ xiaozhi-sharp 是一个用 C# 精心打造的小智客户端，它不仅可以�
 如果你想自己创建属于自己专有的智能体，你也可以使用我们提供的:<br>
 
 《小智ESP32 ❤ 扣子Coze X 》中转服务<br>
-http://xiaohi.nbee.net<br>
+http://xiaozhi.nbee.net<br>
 
 ## 项目结构
 
