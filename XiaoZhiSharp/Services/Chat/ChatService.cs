@@ -16,6 +16,7 @@ namespace XiaoZhiSharp.Services.Chat
         private string _wsUrl { get; set; } = "wss://api.tenclass.net/xiaozhi/v1/";
         private string? _token { get; set; } = "test-token";
         private string? _deviceId { get; set; }
+        private string? _sessionId = "";
         // 首次连接
         private bool _isFirst = true;
 
@@ -88,6 +89,24 @@ namespace XiaoZhiSharp.Services.Chat
                             var message = Encoding.UTF8.GetString(messageBytes);
                             LogConsole.ReceiveLine($"{TAG} {message}");
 
+                            if (!string.IsNullOrEmpty(message))
+                            {
+                                dynamic? msg = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(message);
+                                if (msg == null)
+                                {
+                                    LogConsole.ErrorLine($"{TAG} 接收到的消息格式错误: {message}");
+                                    continue;
+                                }
+                                _sessionId = msg.session_id;
+                                if (msg.type == "mcp") {
+                                    if (msg.payload.method == "initialize") {
+                                        //await SendMessageAsync(XiaoZhi_Protocol.Mcp_Initialize_Receive(_sessionId));
+                                    }
+                                    if (OnMessageEvent != null)
+                                        await OnMessageEvent("mcp", Newtonsoft.Json.JsonConvert.SerializeObject(msg.payload));
+                                }
+                            }
+
                         }
 
                         if (result.MessageType == WebSocketMessageType.Binary)
@@ -138,6 +157,11 @@ namespace XiaoZhiSharp.Services.Chat
         public async Task ChatMessage(string message)
         {
             await SendMessageAsync(XiaoZhi_Protocol.Listen_Detect(message));
+        }
+
+        public async Task McpMessage(string message)
+        {
+            await SendMessageAsync(XiaoZhi_Protocol.Mcp(message, _sessionId));
         }
 
     }

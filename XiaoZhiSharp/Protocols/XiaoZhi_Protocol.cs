@@ -1,4 +1,6 @@
-﻿namespace XiaoZhiSharp.Protocols
+﻿using Newtonsoft.Json.Linq;
+
+namespace XiaoZhiSharp.Protocols
 {
     public class XiaoZhi_Protocol
     {
@@ -14,6 +16,9 @@
             string message = @"{
                 ""type"": ""hello"",
                 ""version"": 1,
+                ""features"": {
+                    ""mcp"": true
+                  },
                 ""transport"": ""websocket"",
                 ""audio_params"": {
                     ""format"": ""opus"",
@@ -273,6 +278,46 @@
             random.NextBytes(bytes);
             return BitConverter.ToString(bytes).Replace("-", "").ToLower();
         }
+
+        public static string Mcp(string msg, string? sessionId = "") {
+            JObject jsonObj = new JObject
+            {
+                ["session_id"] = sessionId,
+                ["type"] = "mcp",
+                ["payload"] = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(msg)
+            };
+            string message = Newtonsoft.Json.JsonConvert.SerializeObject(jsonObj);
+            return message;
+        }
+
+        //public static string Mcp_Initialize_Receive(string sessionId = "")
+        //{
+        //    JObject jsonObj = new JObject
+        //    {
+        //        ["session_id"] = sessionId,
+        //        ["type"] = "mcp",
+        //        ["payload"] = new JObject
+        //        {
+        //            ["jsonrpc"] = "2.0",
+        //            ["id"] = 1,
+        //            ["result"] = new JObject
+        //            {
+        //                ["protocolVersion"] = "2024-11-05",
+        //                ["capabilities"] = new JObject
+        //                {
+        //                    ["tools"] = new JObject { }
+        //                },
+        //                ["serverInfo"] = new JObject {
+        //                  ["name"] = "RestSharp", // 设备名称 (BOARD_NAME)
+        //                  ["version"] = "112.1.0.0" // 设备固件版本
+        //                }
+
+        //}
+        //        }
+        //    };
+        //    string message = Newtonsoft.Json.JsonConvert.SerializeObject(jsonObj);
+        //    return message;
+        //}
 
         //二进制数据传输
 

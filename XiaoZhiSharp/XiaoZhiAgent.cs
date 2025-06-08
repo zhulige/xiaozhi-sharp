@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualBasic;
+using ModelContextProtocol.Server;
 using Newtonsoft.Json.Linq;
 using XiaoZhiSharp.Services;
 using XiaoZhiSharp.Utils;
@@ -70,6 +71,11 @@ namespace XiaoZhiSharp
         {
             if (_chatService != null)
                 await _chatService.ChatMessage(message);
+        }
+        public async Task McpMessage(string message)
+        {
+            if (_chatService != null)
+                await _chatService.McpMessage(message);
         }
     }
 }

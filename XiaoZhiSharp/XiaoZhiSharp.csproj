@@ -22,6 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="ModelContextProtocol" Version="0.2.0-preview.3" />
     <PackageReference Include="NAudio" Version="2.2.1" />
   </ItemGroup>
 
