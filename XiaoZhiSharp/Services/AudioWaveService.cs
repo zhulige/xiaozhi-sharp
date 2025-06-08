@@ -20,9 +20,9 @@ namespace XiaoZhiSharp.Services
         private WaveInEvent? _waveIn;
 
         public event IAudioService.PcmAudioEventHandler? OnPcmAudioEvent;
-        public bool IsWaveIn { get; set; } = false;
         // 音频参数
         public int SampleRate { get; set; } = 24000;
+        public int SampleRate_WaveIn { get; set; } = 16000;
         public int Bitrate { get; set; } = 16;
         public int Channels { get; set; } = 1;
         public int FrameDuration { get; set; } = 60;
@@ -33,23 +33,21 @@ namespace XiaoZhiSharp.Services
                 return SampleRate * FrameDuration / 1000; // 帧大小
             }
         }
-
         public bool IsPlaying { get; private set; }
         public bool IsRecording { get; private set; } = false;
         public AudioWaveService()
         {
             Initialize();
         }
-        public AudioWaveService(int sampleRate, bool isWaveIn, int bitrate = 16, int channels = 1, int frameDuration = 60)
-        {
-            SampleRate = sampleRate;
-            Bitrate = bitrate;
-            Channels = channels;
-            FrameDuration = frameDuration;
-            IsWaveIn = isWaveIn;
+        //public AudioWaveService(int sampleRate, bool isWaveIn, int bitrate = 16, int channels = 1, int frameDuration = 60)
+        //{
+        //    SampleRate = sampleRate;
+        //    Bitrate = bitrate;
+        //    Channels = channels;
+        //    FrameDuration = frameDuration;
 
-            Initialize();
-        }
+        //    Initialize();
+        //}
         public void Initialize()
         {
             // 初始化音频输出相关组件
@@ -60,14 +58,13 @@ namespace XiaoZhiSharp.Services
             // 增大缓冲区大小，例如设置为 10 秒的音频数据
             _waveOutProvider.BufferLength = SampleRate * Channels * 2 * 10;
 
-            if (IsWaveIn)
-            {
-                // 初始化音频输入相关组件
-                _waveIn = new WaveInEvent();
-                _waveIn.WaveFormat = new WaveFormat(48000, Bitrate, Channels);
-                _waveIn.DataAvailable += waveIn_DataAvailable;
-                _waveIn.RecordingStopped += waveIn_RecordingStopped;
-            }
+            // 初始化音频输入相关组件
+            _waveIn = new WaveInEvent();
+            _waveIn.WaveFormat = new WaveFormat(48000, Bitrate, Channels);
+            //_waveIn.WaveFormat = new WaveFormat(SampleRate, Bitrate, Channels);
+            _waveIn.DataAvailable += waveIn_DataAvailable;
+            _waveIn.RecordingStopped += waveIn_RecordingStopped;
+
 
             // 启动音频播放线程
             Thread threadWave = new Thread(() =>
@@ -159,7 +156,7 @@ namespace XiaoZhiSharp.Services
                 if (!IsAudioMute(pcmBytes48000, e.BytesRecorded))
                 {
                     Console.Title = "录音";
-                    byte[] pcmBytes = ConvertPcmSampleRate(pcmBytes48000, 48000, SampleRate, Channels, Bitrate);
+                    byte[] pcmBytes = ConvertPcmSampleRate(pcmBytes48000, 48000, SampleRate_WaveIn, Channels, Bitrate);
 
                     if (OnPcmAudioEvent != null)
                     {
@@ -169,7 +166,6 @@ namespace XiaoZhiSharp.Services
                 else
                 {
                     Console.Title = "静音";
-                    //LogConsole.WriteLine("静音");
                 }
             });
         }

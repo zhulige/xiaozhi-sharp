@@ -14,9 +14,7 @@ namespace XiaoZhiSharp
         private string _deviceId { get; set; } = SystemInfo.GetMacAddress();
         private Services.Chat.ChatService? _chatService = null;
         private Services.AudioWaveService? _audioService = null;
-        private Services.AudioWaveService? _audioService_In = null;
         private Services.AudioOpusService _audioOpusService = new Services.AudioOpusService();
-        private Services.AudioOpusService _audioOpusService_In = new Services.AudioOpusService(16000);
 
         #region 属性
         #endregion
@@ -43,30 +41,20 @@ namespace XiaoZhiSharp
             if (Global.IsAudio)
             {
                 _audioService = new AudioWaveService();
-                _audioService_In = new AudioWaveService(16000, true);
-                _audioService_In.OnPcmAudioEvent += AudioService_OnPcmAudioEvent;
+                _audioService.OnPcmAudioEvent += AudioService_OnPcmAudioEvent;
             }
         }
 
         private async Task AudioService_OnPcmAudioEvent(byte[] pcm)
         {
-            byte[] opus = _audioOpusService_In.ConvertPcmToOpus(pcm);
-            
+            byte[] opus = _audioOpusService.Encode(pcm);
             await _chatService.SendAudio(opus);
-
-            //List<byte[]> opusList = _audioOpusService_In.ConvertPcmToOpus(pcm);
-            //foreach (var opus in opusList)
-            //{
-            //    //await _chatService.SendAudio(opus);
-            //    //await _xiaoyiAgent.SendAudio(opus);
-            //    //await Task.Delay(10);
-            //}
         }
         private async Task ChatService_OnAudioEvent(byte[] opus)
         {
             if (_audioService != null)
             {
-                byte[] pcmData = _audioOpusService.ConvertOpusToPcm(opus);
+                byte[] pcmData = _audioOpusService.Decode(opus);
                 _audioService.AddOutSamples(pcmData);
             }
 
@@ -94,10 +82,10 @@ namespace XiaoZhiSharp
         /// </summary>
         public async Task StartRecording()
         {
-            if (_audioService_In != null)
+            if (_audioService != null)
             {
                 await _chatService.StartRecording();
-                _audioService_In.StartRecording();
+                _audioService.StartRecording();
             }
         }
         /// <summary>
@@ -105,9 +93,9 @@ namespace XiaoZhiSharp
         /// </summary>
         public async Task StopRecording()
         {
-            if (_audioService_In != null)
+            if (_audioService != null)
             {
-                _audioService_In.StopRecording();
+                _audioService.StopRecording();
                 await _chatService.StopRecording();
             }
         }

@@ -12,141 +12,123 @@ namespace XiaoZhiSharp.Services
     public class AudioOpusService
     {
         // Opus 相关组件
-        private readonly OpusDecoder opusDecoder;   // 解码器
-        private readonly OpusEncoder opusEncoder;   // 编码器
-
-        // 音频参数
-        public int SampleRate { get; set; } = 24000;
-        public int Bitrate { get; set; } = 16;
-        public int Channels { get; set; } = 1;
-        public int FrameDuration { get; set; } = 60;
-        public int FrameSize { get { 
-            return SampleRate * FrameDuration / 1000; // 帧大小
-            }  
-        }
-        // 计算帧的字节大小
-        public int FrameByteSize => FrameSize * (Bitrate / 8);
-
-        public AudioOpusService()
-        {
-            // 初始化 Opus 解码器
-            opusDecoder = new OpusDecoder(SampleRate, Channels);
-            // 初始化 Opus 编码器
-            opusEncoder = new OpusEncoder(SampleRate, Channels, OpusPredefinedValues.OPUS_APPLICATION_VOIP);
-        }
-        public AudioOpusService(int sampleRate, int bitrate=16, int channels = 1, int frameDuration = 60)
-        {
-            SampleRate = sampleRate;
-            Bitrate = bitrate;
-            Channels = channels;
-            FrameDuration = frameDuration;
-
-            // 初始化 Opus 解码器
-            opusDecoder = new OpusDecoder(SampleRate, Channels);
-            // 初始化 Opus 编码器
-            opusEncoder = new OpusEncoder(SampleRate, Channels, OpusPredefinedValues.OPUS_APPLICATION_VOIP);
-        }
+        private OpusDecoder opusDecoder;   // 解码器
+        private OpusEncoder opusEncoder;   // 编码器
+        private readonly object _lock = new();
+        private int _currentSampleRate;
+        private int _currentChannels;
 
         /// <summary>
-        /// 解码
-        /// </summary>
-        /// <param name="opusData"></param>
-        /// <returns></returns>
-        public byte[] ConvertOpusToPcm(byte[] opusData)
-        {
-            try
-            {
-                // 解码 Opus 数据
-                short[] pcmData = new short[FrameSize * 2];
-                int decodedSamples = opusDecoder.Decode(opusData, opusData.Length, pcmData, FrameSize, false);
-
-                if (decodedSamples > 0)
-                {
-                    // 将解码后的 PCM 数据转换为字节数组
-                    byte[] pcmBytes = new byte[decodedSamples * 2];
-                    Buffer.BlockCopy(pcmData, 0, pcmBytes, 0, pcmBytes.Length);
-                    return pcmBytes;
-                }
-            }
-            catch (Exception ex)
-            {
-                LogConsole.WarningLine($"Opus 解码:{ex.Message}");
-            }
-
-            return new byte[0];
-        }
-        /// <summary>
-        /// 编码
+        /// 编码器
         /// </summary>
         /// <param name="pcmData"></param>
+        /// <param name="sampleRate"></param>
+        /// <param name="channels"></param>
+        /// <param name="frameDuration"></param>
+        /// <param name="bitrate"></param>
         /// <returns></returns>
-        public byte[] ConvertPcmToOpus(byte[] pcmData)
+        public byte[] Encode(byte[] pcmData, int sampleRate=24000, int channels=1, int frameDuration = 60, int bitrate = 16)
         {
-            if (pcmData == null || pcmData.Length == 0)
-                throw new ArgumentException("PCM数据不能为空", nameof(pcmData));
+            lock (_lock)
+            {
+                if (opusEncoder == null || _currentSampleRate != sampleRate || _currentChannels != channels)
+                {
+                    opusEncoder?.Dispose();
+                    opusEncoder = new OpusEncoder(sampleRate, channels, OpusPredefinedValues.OPUS_APPLICATION_VOIP);
+                    _currentSampleRate = sampleRate;
+                    _currentChannels = channels;
+                }
 
-            // 验证数据长度
-            if (pcmData.Length < FrameByteSize)
-                throw new ArgumentException($"PCM数据长度 ({pcmData.Length}) 小于帧大小 ({FrameByteSize})", nameof(pcmData));
+                try
+                {
+                    // 计算帧大小 (采样数，不是字节数)
+                    int frameSize = sampleRate * frameDuration / 1000; // 默认60ms帧
 
-            // 转换为short数组（假设16位PCM）
-            short[] frame = new short[FrameSize];
-            Buffer.BlockCopy(pcmData, 0, frame, 0, FrameByteSize);
+                    // 确保输入数据长度正确 (16位音频 = 2字节/样本)
+                    int expectedBytes = frameSize * channels * 2;
 
-            // 创建输出缓冲区
-            byte[] encodedFrame = new byte[FrameSize * 6];
+                    if (pcmData.Length != expectedBytes)
+                    {
+                        // 调整数据长度或填充零
+                        byte[] adjustedData = new byte[expectedBytes];
+                        if (pcmData.Length < expectedBytes)
+                        {
+                            // 数据不足，复制现有数据并填充零
+                            Array.Copy(pcmData, adjustedData, pcmData.Length);
+                        }
+                        else
+                        {
+                            // 数据过多，截断
+                            Array.Copy(pcmData, adjustedData, expectedBytes);
+                        }
+                        pcmData = adjustedData;
+                    }
 
-            // 执行编码
-            int encodedLength = opusEncoder.Encode(frame, frame.Length, encodedFrame, encodedFrame.Length);
+                    short[] pcmShorts = new short[frameSize * channels];
+                    for (int i = 0; i < pcmShorts.Length && i * 2 + 1 < pcmData.Length; i++)
+                    {
+                        pcmShorts[i] = BitConverter.ToInt16(pcmData, i * 2);
+                    }
 
-            // 返回实际编码的数据
-            byte[] result = new byte[encodedLength];
-            Array.Copy(encodedFrame, result, encodedLength);
+                    byte[] outputBuffer = new byte[4000]; // Opus最大包大小
+                    int encodedLength = opusEncoder.Encode(pcmShorts, frameSize, outputBuffer, outputBuffer.Length);
 
-            return result;
+                    byte[] result = new byte[encodedLength];
+                    Array.Copy(outputBuffer, result, encodedLength);
+                    return result;
+                }
+                catch (Exception ex)
+                {
+                    LogConsole.WarningLine($"Opus 编码失败: {ex.Message}");
+                    return Array.Empty<byte>();
+                }
+            }
         }
-        //public List<byte[]> ConvertPcmToOpus(byte[] pcmData)
-        //{
-        //    List<byte[]> opusFrames = new List<byte[]>();
-        //    try
-        //    {
-        //        // 确保输入数据长度是 FrameSize * 2 的整数倍（因为每个样本是 2 字节）
-        //        int remainder = pcmData.Length % (FrameSize * 2);
-        //        if (remainder != 0)
-        //        {
-        //            // 填充零以确保数据长度是 FrameSize * 2 的整数倍
-        //            Array.Resize(ref pcmData, pcmData.Length + (FrameSize * 2 - remainder));
-        //        }
 
-        //        // 将字节数组转换为 short 数组
-        //        short[] pcmShortData = new short[pcmData.Length / 2];
-        //        Buffer.BlockCopy(pcmData, 0, pcmShortData, 0, pcmData.Length);
+        /// <summary>
+        /// 解码器
+        /// </summary>
+        /// <param name="opusData"></param>
+        /// <param name="sampleRate"></param>
+        /// <param name="channels"></param>
+        /// <param name="frameDuration"></param>
+        /// <param name="bitrate"></param>
+        /// <returns></returns>
+        public byte[] Decode(byte[] opusData, int sampleRate=24000, int channels=1, int frameDuration = 60, int bitrate = 16)
+        {
+            lock (_lock)
+            {
+                if (opusDecoder == null || _currentSampleRate != sampleRate || _currentChannels != channels)
+                {
+                    opusDecoder?.Dispose();
+                    opusDecoder = new OpusDecoder(sampleRate, channels);
+                    _currentSampleRate = sampleRate;
+                    _currentChannels = channels;
+                }
+                try
+                {
+                    // 计算帧大小 (采样数，不是字节数)
+                    int frameSize = sampleRate * frameDuration / 1000; // 默认60ms帧
+                    short[] pcmShorts = new short[frameSize * channels];
+                    int decodedSamples = opusDecoder.Decode(opusData, opusData.Length, pcmShorts, frameSize, false);
+                    if (decodedSamples <= 0)
+                        return Array.Empty<byte>();
+                    byte[] pcmData = new byte[decodedSamples * 2 * channels];
+                    for (int i = 0; i < decodedSamples * channels; i++)
+                    {
+                        byte[] bytes = BitConverter.GetBytes(pcmShorts[i]);
+                        Array.Copy(bytes, 0, pcmData, i * 2, 2);
+                    }
+                    return pcmData;
+                }
+                catch (Exception ex)
+                {
+                    LogConsole.WarningLine($"Opus 解码失败: {ex.Message}");
+                    return Array.Empty<byte>();
+                }
+            }
+        }
 
-        //        // 逐帧编码
-        //        for (int i = 0; i < pcmShortData.Length; i += FrameSize)
-        //        {
-        //            short[] frame = new short[FrameSize];
-        //            Array.Copy(pcmShortData, i, frame, 0, FrameSize);
-
-        //            // 进行编码
-        //            byte[] encodedFrame = new byte[FrameSize * 6];
-        //            int encodedLength = opusEncoder.Encode(frame, frame.Length, encodedFrame, encodedFrame.Length);
-
-        //            if (encodedLength > 0)
-        //            {
-        //                byte[] trimmedFrame = new byte[encodedLength];
-        //                Array.Copy(encodedFrame, 0, trimmedFrame, 0, encodedLength);
-        //                opusFrames.Add(trimmedFrame);
-        //            }
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        LogConsole.WarningLine($"Opus 编码:{ex.Message}");
-        //    }
-
-        //    return opusFrames;
-        //}
         /// <summary>
         /// 将 PCM 数据转换为 float 数组
         /// </summary>
