@@ -1,0 +1,122 @@
+name: XiaoZhiSharp Release and Packaging
+
+on:
+  push:
+    tags:
+      - 'v*'  # 当推送以 v 开头的标签时触发此工作流
+
+jobs:
+  build-and-publish:
+    runs-on: windows-latest
+    # 添加明确的权限配置
+    permissions:
+      contents: write  # 允许创建Release和上传资产
+      packages: write  # 允许发布NuGet包
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '8.0.x'  # 根据项目实际使用的 .NET 版本进行修改
+
+      - name: Build CozeSharp
+        run: dotnet build CozeSharp/CozeSharp.csproj --configuration Release
+
+      - name: Pack CozeSharp for NuGet
+        run: |
+          echo "Packing NuGet package with dynamic version..."
+          $TAG = "${{ github.ref_name }}"
+          $VERSION = $TAG.Substring(1)  # 移除v前缀，例如v1.0.0变成1.0.0
+          
+          # 确保输出目录存在
+          New-Item -ItemType Directory -Force -Path nupkgs
+          
+          # 执行打包命令并捕获退出代码
+          $packResult = dotnet pack CozeSharp/CozeSharp.csproj --configuration Release --output nupkgs -p:Version=$VERSION
+          $LASTEXITCODE
+          
+          # 检查打包是否成功
+          if ($LASTEXITCODE -ne 0) {
+            throw "NuGet package creation failed with exit code $LASTEXITCODE"
+          }
+          
+          # 列出打包输出目录内容
+          echo "Listing files in nupkgs directory:"
+          Get-ChildItem -Path nupkgs -Recurse
+          
+          # 列出项目文件内容以确认打包配置
+          echo "Contents of CozeSharp.csproj:"
+          Get-Content CozeSharp/CozeSharp.csproj
+        shell: pwsh
+        continue-on-error: false
+
+      - name: Verify NuGet package exists
+        run: |
+          $nupkgFiles = Get-ChildItem -Path nupkgs -Filter *.nupkg
+          if ($nupkgFiles.Count -eq 0) {
+            throw "No NuGet packages found in nupkgs directory"
+          } else {
+            echo "Found $($nupkgFiles.Count) NuGet packages:"
+            $nupkgFiles | ForEach-Object { echo $_.FullName }
+          }
+        shell: pwsh
+        continue-on-error: false
+
+      - name: Publish CozeSharp to NuGet
+        run: |
+          echo "Publishing NuGet package..."
+          $nupkgFiles = Get-ChildItem -Path nupkgs -Filter *.nupkg
+          if ($nupkgFiles.Count -eq 0) {
+            throw "No NuGet packages found to publish"
+          }
+          
+          foreach ($file in $nupkgFiles) {
+            echo "Publishing package: $($file.FullName)"
+            dotnet nuget push $file.FullName --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
+            if ($LASTEXITCODE -ne 0) {
+              throw "Failed to publish package: $($file.FullName)"
+            }
+          }
+        shell: pwsh
+        continue-on-error: false
+
+      - name: Build CozeSharp_ConsoleApp (独立文件部署，Windows x64)
+        run: |
+          $TAG = "${{ github.ref_name }}"
+          $VERSION = $TAG.Substring(1)  # 移除v前缀
+          echo "Building self-contained Windows x64 application with version $VERSION"
+          
+          # 发布独立文件部署的Windows x64应用程序
+          dotnet publish CozeSharp_ConsoleApp/CozeSharp_ConsoleApp.csproj -c Release -r win-x64 --self-contained true -o publish -p:Version=$VERSION -p:PublishSingleFile=true -p:PublishTrimmed=true
+          
+          # 验证输出文件
+          echo "Listing published files:"
+          Get-ChildItem -Path publish -Recurse
+        shell: pwsh
+
+      - name: Create Windows Application Package
+        run: |
+          cd publish
+          Compress-Archive -Path . -DestinationPath CozeSharp_ConsoleApp-win-x64.zip
+          echo "Created package: CozeSharp_ConsoleApp-win-x64.zip"
+          Get-Item CozeSharp_ConsoleApp-win-x64.zip
+        shell: pwsh
+
+      - name: Create Release and Upload Asset
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body: |
+            此版本包含以下更新：
+            - 待添加具体更新内容
+          files: |
+            publish/CozeSharp_ConsoleApp-win-x64.zip
+          draft: false
+          prerelease: false
+          fail_on_unmatched_files: true
