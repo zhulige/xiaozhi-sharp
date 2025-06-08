@@ -22,10 +22,10 @@ jobs:
         with:
           dotnet-version: '8.0.x'  # 根据项目实际使用的 .NET 版本进行修改
 
-      - name: Build CozeSharp
-        run: dotnet build CozeSharp/CozeSharp.csproj --configuration Release
+      - name: Build XiaoZhiSharp
+        run: dotnet build XiaoZhiSharp/XiaoZhiSharp.csproj --configuration Release
 
-      - name: Pack CozeSharp for NuGet
+      - name: Pack XiaoZhiSharp for NuGet
         run: |
           echo "Packing NuGet package with dynamic version..."
           $TAG = "${{ github.ref_name }}"
@@ -35,7 +35,7 @@ jobs:
           New-Item -ItemType Directory -Force -Path nupkgs
           
           # 执行打包命令并捕获退出代码
-          $packResult = dotnet pack CozeSharp/CozeSharp.csproj --configuration Release --output nupkgs -p:Version=$VERSION
+          $packResult = dotnet pack XiaoZhiSharp/XiaoZhiSharp.csproj --configuration Release --output nupkgs -p:Version=$VERSION
           $LASTEXITCODE
           
           # 检查打包是否成功
@@ -48,8 +48,8 @@ jobs:
           Get-ChildItem -Path nupkgs -Recurse
           
           # 列出项目文件内容以确认打包配置
-          echo "Contents of CozeSharp.csproj:"
-          Get-Content CozeSharp/CozeSharp.csproj
+          echo "Contents of XiaoZhiSharp.csproj:"
+          Get-Content XiaoZhiSharp/XiaoZhiSharp.csproj
         shell: pwsh
         continue-on-error: false
 
@@ -65,7 +65,7 @@ jobs:
         shell: pwsh
         continue-on-error: false
 
-      - name: Publish CozeSharp to NuGet
+      - name: Publish XiaoZhiSharp to NuGet
         run: |
           echo "Publishing NuGet package..."
           $nupkgFiles = Get-ChildItem -Path nupkgs -Filter *.nupkg
@@ -83,14 +83,14 @@ jobs:
         shell: pwsh
         continue-on-error: false
 
-      - name: Build CozeSharp_ConsoleApp (独立文件部署，Windows x64)
+      - name: Build XiaoZhiSharp_ConsoleApp (独立文件部署，Windows x64)
         run: |
           $TAG = "${{ github.ref_name }}"
           $VERSION = $TAG.Substring(1)  # 移除v前缀
           echo "Building self-contained Windows x64 application with version $VERSION"
           
           # 发布独立文件部署的Windows x64应用程序
-          dotnet publish CozeSharp_ConsoleApp/CozeSharp_ConsoleApp.csproj -c Release -r win-x64 --self-contained true -o publish -p:Version=$VERSION -p:PublishSingleFile=true -p:PublishTrimmed=true
+          dotnet publish XiaoZhiSharp_ConsoleApp/XiaoZhiSharp_ConsoleApp.csproj -c Release -r win-x64 --self-contained true -o publish -p:Version=$VERSION -p:PublishSingleFile=true -p:PublishTrimmed=true
           
           # 验证输出文件
           echo "Listing published files:"
@@ -100,9 +100,9 @@ jobs:
       - name: Create Windows Application Package
         run: |
           cd publish
-          Compress-Archive -Path . -DestinationPath CozeSharp_ConsoleApp-win-x64.zip
-          echo "Created package: CozeSharp_ConsoleApp-win-x64.zip"
-          Get-Item CozeSharp_ConsoleApp-win-x64.zip
+          Compress-Archive -Path . -DestinationPath XiaoZhiSharp_ConsoleApp-win-x64.zip
+          echo "Created package: XiaoZhiSharp_ConsoleApp-win-x64.zip"
+          Get-Item XiaoZhiSharp_ConsoleApp-win-x64.zip
         shell: pwsh
 
       - name: Create Release and Upload Asset
@@ -116,7 +116,7 @@ jobs:
             此版本包含以下更新：
             - 待添加具体更新内容
           files: |
-            publish/CozeSharp_ConsoleApp-win-x64.zip
+            publish/XiaoZhiSharp_ConsoleApp-win-x64.zip
           draft: false
           prerelease: false
           fail_on_unmatched_files: true
