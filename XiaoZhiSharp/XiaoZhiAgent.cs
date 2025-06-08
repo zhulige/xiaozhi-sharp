@@ -53,18 +53,11 @@ namespace XiaoZhiSharp
             if (OnAudioEvent != null)
                 await OnAudioEvent(opus);
         }
-
         private async Task ChatService_OnMessageEvent(string type, string message)
         {
             if (OnMessageEvent != null)
                 await OnMessageEvent(type, message);
         }
-
-        /// <summary>
-        /// 发送消息
-        /// </summary>
-        /// <param name="message"></param>
-        /// <returns></returns>
         public async Task ChatMessage(string message)
         {
             if (_chatService != null)
