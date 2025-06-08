@@ -1,16 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0</TargetFrameworks>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Title>xiaozhi-sharp</Title>
-    <PackageProjectUrl>https://coze.nbee.net</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/zhulige/xiaozhi-sharp</RepositoryUrl>
-    <Version>1.0.2</Version>
-    <Company>NBeeNET</Company>
+    <PackageId>XiaoZhiSharp</PackageId>
+    <Description>小智XiaoZhi Chat SDK</Description>
     <Authors>ZhuLige</Authors>
+    <TargetFramework>net8.0</TargetFramework>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <PackageProjectUrl>http://coze.nbee.net</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/zhulige/xiaozhi-sharp</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
@@ -22,7 +19,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ModelContextProtocol" Version="0.2.0-preview.3" />
     <PackageReference Include="NAudio" Version="2.2.1" />
   </ItemGroup>
 
