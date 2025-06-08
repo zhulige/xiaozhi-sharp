@@ -22,6 +22,7 @@ class Program
     private static Pipe _serverToClientPipe = new Pipe();
     private static IHost? _host;
     private static XiaoZhiAgent _agent;
+    private static bool _recordStatus = false;
     static async Task Main(string[] args)
     {
         var builder = Host.CreateApplicationBuilder(args);
@@ -41,11 +42,7 @@ class Program
 微信：Zhu-Lige       电子邮箱：zhuLige@qq.com
 有任何动态请大家关注 https://github.com/zhulige/xiaozhi-sharp
 ========================================================================";
-        Console.ForegroundColor = ConsoleColor.Green;
         Console.WriteLine(logoAndCopyright);
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine("使用前请配置 appsettings.json ！");
-        Console.WriteLine("========================================================================");
         Console.ForegroundColor = ConsoleColor.White;
 
 
@@ -71,6 +68,20 @@ class Program
             }
             else
             {
+                if (!_recordStatus)
+                {
+                    _recordStatus = true;
+                    Console.Title = "开始录音...";
+                    Console.WriteLine("开始录音... 再次回车结束录音");
+                    await _agent.StartRecording();
+                }
+                else
+                {
+                    await _agent.StopRecording();
+                    Console.Title = "扣子CozeSharp客户端";
+                    Console.WriteLine("结束录音");
+                    _recordStatus = false;
+                }
             }
         }
     }

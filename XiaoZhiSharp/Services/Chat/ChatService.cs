@@ -139,8 +139,20 @@ namespace XiaoZhiSharp.Services.Chat
                     LogConsole.SendLine($"{TAG} {message}");
             }
         }
+        private async Task SendAudioAsync(byte[] opus)
+        {
+            if (_webSocket == null)
+                return;
 
-
+            if (_webSocket.State == WebSocketState.Open)
+            {
+                await _webSocket.SendAsync(new ArraySegment<byte>(opus), WebSocketMessageType.Binary, true, CancellationToken.None);
+            }
+        }
+        public async Task SendAudio(byte[] audio)
+        {
+            await SendAudioAsync(audio);
+        }
         /// <summary>
         /// 打断消息
         /// </summary>
@@ -162,6 +174,19 @@ namespace XiaoZhiSharp.Services.Chat
         public async Task McpMessage(string message)
         {
             await SendMessageAsync(XiaoZhi_Protocol.Mcp(message, _sessionId));
+        }
+
+        public async Task StartRecording()
+        {
+            await SendMessageAsync(XiaoZhi_Protocol.Listen_Start("", "manual"));
+        }
+        public async Task StartRecordingAuto()
+        {
+            await SendMessageAsync(XiaoZhi_Protocol.Listen_Start(_sessionId, "auto"));
+        }
+        public async Task StopRecording()
+        {
+            await SendMessageAsync(XiaoZhi_Protocol.Listen_Stop(_sessionId));
         }
 
     }

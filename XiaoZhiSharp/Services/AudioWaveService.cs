@@ -14,25 +14,44 @@ namespace XiaoZhiSharp.Services
     public class AudioWaveService : IAudioService, IDisposable
     {
         // NAudio 音频输出相关组件
-        private readonly IWavePlayer? _waveOut;
-        private readonly BufferedWaveProvider? _waveOutProvider = null;
+        private IWavePlayer? _waveOut;
+        private BufferedWaveProvider? _waveOutProvider = null;
         // NAudio 音频输入相关组件
-        private readonly WaveInEvent? _waveIn;
+        private WaveInEvent? _waveIn;
 
         public event IAudioService.PcmAudioEventHandler? OnPcmAudioEvent;
-
+        public bool IsWaveIn { get; set; } = false;
         // 音频参数
-        private const int SampleRate = 24000;
-        private const int Bitrate = 16;
-        private const int Channels = 1;
-        private const int FrameDuration = 60;
-        private const int FrameSize = SampleRate * FrameDuration / 1000; // 帧大小
+        public int SampleRate { get; set; } = 24000;
+        public int Bitrate { get; set; } = 16;
+        public int Channels { get; set; } = 1;
+        public int FrameDuration { get; set; } = 60;
+        public int FrameSize
+        {
+            get
+            {
+                return SampleRate * FrameDuration / 1000; // 帧大小
+            }
+        }
 
         public bool IsPlaying { get; private set; }
         public bool IsRecording { get; private set; } = false;
         public AudioWaveService()
         {
+            Initialize();
+        }
+        public AudioWaveService(int sampleRate, bool isWaveIn, int bitrate = 16, int channels = 1, int frameDuration = 60)
+        {
+            SampleRate = sampleRate;
+            Bitrate = bitrate;
+            Channels = channels;
+            FrameDuration = frameDuration;
+            IsWaveIn = isWaveIn;
 
+            Initialize();
+        }
+        public void Initialize()
+        {
             // 初始化音频输出相关组件
             var waveFormat = new WaveFormat(SampleRate, Bitrate, Channels);
             _waveOut = new WaveOutEvent();
@@ -41,11 +60,14 @@ namespace XiaoZhiSharp.Services
             // 增大缓冲区大小，例如设置为 10 秒的音频数据
             _waveOutProvider.BufferLength = SampleRate * Channels * 2 * 10;
 
-            // 初始化音频输入相关组件
-            _waveIn = new WaveInEvent();
-            _waveIn.WaveFormat = new WaveFormat(48000, Bitrate, Channels);
-            _waveIn.DataAvailable += waveIn_DataAvailable;
-            _waveIn.RecordingStopped += waveIn_RecordingStopped;
+            if (IsWaveIn)
+            {
+                // 初始化音频输入相关组件
+                _waveIn = new WaveInEvent();
+                _waveIn.WaveFormat = new WaveFormat(48000, Bitrate, Channels);
+                _waveIn.DataAvailable += waveIn_DataAvailable;
+                _waveIn.RecordingStopped += waveIn_RecordingStopped;
+            }
 
             // 启动音频播放线程
             Thread threadWave = new Thread(() =>
@@ -68,9 +90,7 @@ namespace XiaoZhiSharp.Services
                 }
             });
             threadWave.Start();
-
         }
-
         public void StartRecording()
         {
             if (_waveIn != null)
@@ -271,7 +291,6 @@ namespace XiaoZhiSharp.Services
 
             return floatArray;
         }
-
         public void Dispose()
         {
             IsPlaying = false;
