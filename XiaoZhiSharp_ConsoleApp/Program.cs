@@ -72,14 +72,14 @@ class Program
                 {
                     _recordStatus = true;
                     Console.Title = "开始录音...";
-                    Console.WriteLine("开始录音... 再次回车结束录音");
+                    LogConsole.InfoLine("开始录音... 再次回车结束录音");
                     await _agent.StartRecording();
                 }
                 else
                 {
                     await _agent.StopRecording();
-                    Console.Title = "扣子CozeSharp客户端";
-                    Console.WriteLine("结束录音");
+                    Console.Title = "小智XiaoZhiSharp客户端";
+                    LogConsole.InfoLine("结束录音");
                     _recordStatus = false;
                 }
             }
