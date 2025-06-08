@@ -2,29 +2,8 @@
 # 此 .gitignore 文件已由 Microsoft(R) Visual Studio 自动创建。
 ################################################################################
 
-/XiaoZhiSharp_ConsoleApp/obj
-/.vs/XiaoZhiSharp/CopilotIndices/0.2.1634.3922
-/.vs/XiaoZhiSharp
-/XiaoZhiSharp/obj
-/XiaoZhiSharp_ConsoleApp/bin/Debug/net8.0
-/XiaoZhiSharp_ConsoleApp/bin/Release/net8.0
-/XiaoZhiSharp_ConsoleApp/Properties/PublishProfiles
 /.vs
-/XiaoZhiSharp_Test/obj
-/XiaoZhiSharp/bin/Debug/net8.0
-/XiaoZhiSharp_Test/bin/Debug/net8.0
-/XiaoZhiSharp/bin/Release/net8.0
-/XiaoZhiSharp_Test/bin/Release/net8.0
-<<<<<<< HEAD
-/XiaoZhiSharp_BlazorApp/bin/Debug/net8.0
-/XiaoZhiSharp_BlazorApp/obj
-/XiaoZhiSharp_PerformanceTesting/bin
-/XiaoZhiSharp_PerformanceTesting/obj
-/XiaoZhiSharp_PerformanceTesting/Properties/PublishProfiles
-/XiaoZhiSharp_Test/Properties/PublishProfiles
-/XiaoZhiSharp_MauiApp/bin/Debug
-/XiaoZhiSharp_MauiApp/obj
-/XiaoZhiSharp_BlazorApp/bin/Release/net8.0
-=======
-/XiaoZhiSharp/bin/Debug
->>>>>>> 7ae698a2a8e188aea55ec3b8035a3cd1dee04ca1
+/XiaoZhiSharp/bin
+/XiaoZhiSharp/obj
+/XiaoZhiSharp_ConsoleApp/bin
+/XiaoZhiSharp_ConsoleApp/obj
