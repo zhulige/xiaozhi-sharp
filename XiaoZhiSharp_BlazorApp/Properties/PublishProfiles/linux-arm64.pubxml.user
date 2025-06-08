@@ -1,9 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- https://go.microsoft.com/fwlink/?LinkID=208121. -->
-<Project>
-  <PropertyGroup>
-    <_PublishTargetUrl>D:\GITHUB\zhulige\xiaozhi-sharp\XiaoZhiSharp_BlazorApp\bin\Release\net8.0\publish\linux-arm64</_PublishTargetUrl>
-    <History>True|2025-04-13T12:31:23.1543200Z||;True|2025-03-21T00:43:03.8418100+08:00||;</History>
-    <LastFailureDetails />
-  </PropertyGroup>
-</Project>
