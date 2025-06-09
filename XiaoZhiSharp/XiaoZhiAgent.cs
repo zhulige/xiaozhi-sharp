@@ -13,7 +13,7 @@ namespace XiaoZhiSharp
         private string _token { get; set; } = "test-token";
         private string _deviceId { get; set; } = SystemInfo.GetMacAddress();
         private Services.Chat.ChatService? _chatService = null;
-        private Services.AudioWaveService? _audioService = null;
+        private Services.IAudioService? _audioService = null;
         private Services.AudioOpusService _audioOpusService = new Services.AudioOpusService();
 
         #region 属性
@@ -40,7 +40,7 @@ namespace XiaoZhiSharp
 
             if (Global.IsAudio)
             {
-                _audioService = new AudioWaveService();
+                _audioService = new AudioPortService();//new AudioWaveService();
                 _audioService.OnPcmAudioEvent += AudioService_OnPcmAudioEvent;
             }
         }
