@@ -35,6 +35,8 @@ class Program
 
 当前功能：
 1. 语音消息 输入回车：开始录音；再次输入回车：结束录音
+   注意：CapsLock键也可以控制录音状态，按下CapsLock开始录音，再次按下结束录音
+   录音结束后会自动发送语音消息到服务器，服务器会返回语音识别结果
 2. 文字消息 可以随意输入文字对话
 3. 全量往返协议输出，方便调试
 
@@ -60,6 +62,36 @@ class Program
         _agent.OnMessageEvent += Agent_OnMessageEvent;
         await _agent.Start();
 
+        _ = Task.Run(async () =>
+        {
+            while (true)
+            {
+                bool isCapsLockOn = Console.CapsLock;
+                //Console.WriteLine($"当前 Caps Lock 状态: {(isCapsLockOn ? "开启" : "关闭")}");
+                if (isCapsLockOn)
+                {
+                    if (_recordStatus == false)
+                    {
+                        _recordStatus = true;
+                        LogConsole.InfoLine("开始录音... 再次按Caps键结束录音");
+                        await _agent.StartRecording();
+                        continue;
+                    }
+                }
+                if (!isCapsLockOn)
+                {
+                    if (_recordStatus == true)
+                    {
+                        _recordStatus = false;
+                        await _agent.StopRecording();
+                        LogConsole.InfoLine("结束录音");
+                        continue;
+                    }
+                }
+                await Task.Delay(100); // 避免过于频繁的检查
+            }
+        });
+
         while (true)
         {
             string? input = Console.ReadLine();
@@ -67,23 +99,23 @@ class Program
             {
                 await _agent.ChatMessage(input);
             }
-            else
-            {
-                if (!_recordStatus)
-                {
-                    _recordStatus = true;
-                    Console.Title = "开始录音...";
-                    LogConsole.InfoLine("开始录音... 再次回车结束录音");
-                    await _agent.StartRecording();
-                }
-                else
-                {
-                    await _agent.StopRecording();
-                    Console.Title = "小智XiaoZhiSharp客户端";
-                    LogConsole.InfoLine("结束录音");
-                    _recordStatus = false;
-                }
-            }
+            //else
+            //{
+            //    if (!_recordStatus)
+            //    {
+            //        _recordStatus = true;
+            //        Console.Title = "开始录音...";
+            //        LogConsole.InfoLine("开始录音... 再次回车结束录音");
+            //        await _agent.StartRecording();
+            //    }
+            //    else
+            //    {
+            //        await _agent.StopRecording();
+            //        Console.Title = "小智XiaoZhiSharp客户端";
+            //        LogConsole.InfoLine("结束录音");
+            //        _recordStatus = false;
+            //    }
+            //}
         }
     }
 

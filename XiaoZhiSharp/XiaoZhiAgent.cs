@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using XiaoZhiSharp.Protocols;
 using XiaoZhiSharp.Services;
@@ -17,6 +19,12 @@ namespace XiaoZhiSharp
         private Services.AudioOpusService _audioOpusService = new Services.AudioOpusService();
 
         #region 属性
+        public Services.IAudioService? AudioService
+        {
+            get { return _audioService; }
+            set { _audioService = value; }
+        }
+
         #endregion
 
         #region 事件
@@ -40,7 +48,19 @@ namespace XiaoZhiSharp
 
             if (Global.IsAudio)
             {
-                _audioService = new AudioPortService();//new AudioWaveService();
+                if (_audioService == null)
+                {
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    {
+                        LogConsole.InfoLine("当前操作系统是 Windows");
+                        _audioService = new AudioWaveService();
+                    }
+                    else
+                    {
+                        _audioService = new AudioPortService();
+                    }
+
+                }
                 _audioService.OnPcmAudioEvent += AudioService_OnPcmAudioEvent;
             }
         }
