@@ -52,7 +52,8 @@ class Program
             .AddMcpServer()
             .WithStreamServerTransport(_clientToServerPipe.Reader.AsStream(), _serverToClientPipe.Writer.AsStream())
             .WithTools<IotThings_Tool>()
-            .WithTools<Chrome_Tool>();
+            .WithTools<Chrome_Tool>()
+            .WithTools<WindowsApp_Tool>();
 
         _host = builder.Build();
         await _host.StartAsync();
