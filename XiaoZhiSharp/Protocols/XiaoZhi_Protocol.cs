@@ -280,6 +280,15 @@ namespace XiaoZhiSharp.Protocols
             return BitConverter.ToString(bytes).Replace("-", "").ToLower();
         }
 
+        public static string Heartbeat() {
+            JObject jsonObj = new JObject
+            {
+                ["type"] = "heartbeat"
+            };
+            string message = Newtonsoft.Json.JsonConvert.SerializeObject(jsonObj);
+            return message;
+        }
+
         public static string Mcp(string msg, string? sessionId = "") {
             JObject jsonObj = new JObject
             {

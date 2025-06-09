@@ -19,6 +19,11 @@ namespace XiaoZhiSharp
         private Services.AudioOpusService _audioOpusService = new Services.AudioOpusService();
 
         #region 属性
+        public string WsUrl
+        {
+            get { return _wsUrl; }
+            set { _wsUrl = value; }
+        }
         public Services.IAudioService? AudioService
         {
             get { return _audioService; }
@@ -64,7 +69,6 @@ namespace XiaoZhiSharp
                 _audioService.OnPcmAudioEvent += AudioService_OnPcmAudioEvent;
             }
         }
-
         private async Task AudioService_OnPcmAudioEvent(byte[] pcm)
         {
             byte[] opus = _audioOpusService.Encode(pcm);
@@ -96,10 +100,6 @@ namespace XiaoZhiSharp
             if (_chatService != null)
                 await _chatService.McpMessage(message);
         }
-
-        /// <summary>
-        /// 开始录音
-        /// </summary>
         public async Task StartRecording()
         {
             if (_audioService != null)
@@ -108,9 +108,6 @@ namespace XiaoZhiSharp
                 _audioService.StartRecording();
             }
         }
-        /// <summary>
-        /// 结束录音
-        /// </summary>
         public async Task StopRecording()
         {
             if (_audioService != null)

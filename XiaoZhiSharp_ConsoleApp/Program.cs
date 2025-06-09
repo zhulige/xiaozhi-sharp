@@ -59,7 +59,10 @@ class Program
 
         XiaoZhiSharp.Global.IsDebug = false;
         _agent = new XiaoZhiAgent();
+        //XiaoZhiSharp.Global.SampleRate_WaveOut = 24000;
+        //_agent.WsUrl = "wss://coze.nbee.net/xiaozhi/v1/"; 
         _agent.OnMessageEvent += Agent_OnMessageEvent;
+        LogConsole.InfoLine(_agent.WsUrl);
         await _agent.Start();
 
         _ = Task.Run(async () =>
@@ -99,29 +102,41 @@ class Program
             {
                 await _agent.ChatMessage(input);
             }
-            //else
-            //{
-            //    if (!_recordStatus)
-            //    {
-            //        _recordStatus = true;
-            //        Console.Title = "开始录音...";
-            //        LogConsole.InfoLine("开始录音... 再次回车结束录音");
-            //        await _agent.StartRecording();
-            //    }
-            //    else
-            //    {
-            //        await _agent.StopRecording();
-            //        Console.Title = "小智XiaoZhiSharp客户端";
-            //        LogConsole.InfoLine("结束录音");
-            //        _recordStatus = false;
-            //    }
-            //}
+            else
+            {
+                //if (!_recordStatus)
+                //{
+                //    _recordStatus = true;
+                //    //Console.Title = "开始录音...";
+                //    LogConsole.InfoLine("开始录音... 再次回车结束录音");
+                //    await _agent.StartRecording();
+                //}
+                //else
+                //{
+                //    await _agent.StopRecording();
+                //    //Console.Title = "小智XiaoZhiSharp客户端";
+                //    LogConsole.InfoLine("结束录音");
+                //    _recordStatus = false;
+                //}
+            }
         }
     }
 
     private static async Task Agent_OnMessageEvent(string type, string message)
     {
-        LogConsole.InfoLine($"[{type}] {message}");
+        switch(type.ToLower())
+        {
+            case "question":
+                LogConsole.WriteLine(MessageType.Send, $"[{type}] {message}");
+                break;
+            case "answer":
+                LogConsole.WriteLine(MessageType.Recv, $"[{type}] {message}");
+                break;
+            default:
+                LogConsole.InfoLine($"[{type}] {message}");
+                break;
+        }
+        //LogConsole.InfoLine($"[{type}] {message}");
 
         if (_mcpClient == null)
         {

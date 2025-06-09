@@ -19,7 +19,6 @@ namespace XiaoZhiSharp.Services.Chat
         private string? _sessionId = "";
         // 首次连接
         private bool _isFirst = true;
-
         private ClientWebSocket? _webSocket = null;
 
         #region 属性
@@ -58,8 +57,17 @@ namespace XiaoZhiSharp.Services.Chat
             {
                 await ReceiveMessagesAsync();
             });
-        }
 
+            Task.Run(async () =>
+            {
+                while (_webSocket.State == WebSocketState.Open)
+                {
+                    //await SendMessageAsync(XiaoZhi_Protocol.Heartbeat());
+                    await SendMessageAsync(XiaoZhi_Protocol.Listen_Detect(""));
+                    await Task.Delay(10000);
+                }
+            });
+        }
         private async Task ReceiveMessagesAsync()
         {
             if (_webSocket == null)
@@ -165,30 +173,19 @@ namespace XiaoZhiSharp.Services.Chat
         {
             await SendAudioAsync(audio);
         }
-        /// <summary>
-        /// 打断消息
-        /// </summary>
-        /// <returns></returns>
         public async Task ChatAbort()
         {
             await SendMessageAsync(XiaoZhi_Protocol.Abort());
         }
-        /// <summary>
-        /// 发送消息
-        /// </summary>
-        /// <param name="message"></param>
-        /// <returns></returns>
         public async Task ChatMessage(string message)
         {
             await ChatAbort();
             await SendMessageAsync(XiaoZhi_Protocol.Listen_Detect(message));
         }
-
         public async Task McpMessage(string message)
         {
             await SendMessageAsync(XiaoZhi_Protocol.Mcp(message, _sessionId));
         }
-
         public async Task StartRecording()
         {
             await ChatAbort();
