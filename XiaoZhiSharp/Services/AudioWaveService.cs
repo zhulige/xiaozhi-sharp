@@ -96,7 +96,7 @@ namespace XiaoZhiSharp.Services
                 {
                     _waveIn.StartRecording();
                     IsRecording = true;
-                    LogConsole.WriteLine("开始录音");
+                    //LogConsole.WriteLine("开始录音");
                 }
             }
         }
@@ -107,7 +107,7 @@ namespace XiaoZhiSharp.Services
                 if (IsRecording)
                 {
                     _waveIn.StopRecording();
-                    LogConsole.WriteLine("结束录音");
+                    //LogConsole.WriteLine("结束录音");
                     IsRecording = false;
                 }
             }
