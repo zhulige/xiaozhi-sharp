@@ -87,7 +87,8 @@ namespace XiaoZhiSharp.Services.Chat
                         if (result.MessageType == WebSocketMessageType.Text)
                         {
                             var message = Encoding.UTF8.GetString(messageBytes);
-                            LogConsole.ReceiveLine($"{TAG} {message}");
+                            if (Global.IsDebug)
+                                LogConsole.ReceiveLine($"{TAG} {message}");
 
                             if (!string.IsNullOrEmpty(message))
                             {
@@ -99,11 +100,23 @@ namespace XiaoZhiSharp.Services.Chat
                                 }
                                 _sessionId = msg.session_id;
                                 if (msg.type == "mcp") {
-                                    if (msg.payload.method == "initialize") {
-                                        //await SendMessageAsync(XiaoZhi_Protocol.Mcp_Initialize_Receive(_sessionId));
-                                    }
                                     if (OnMessageEvent != null)
                                         await OnMessageEvent("mcp", Newtonsoft.Json.JsonConvert.SerializeObject(msg.payload));
+                                }
+                                // 问
+                                if (msg.type == "stt")
+                                {
+                                    if (OnMessageEvent != null)
+                                        await OnMessageEvent("question", System.Convert.ToString(msg.text));
+                                }
+                                // 答
+                                if (msg.type == "tts")
+                                {
+                                    if (msg.state == "sentence_start")
+                                    {
+                                        if (OnMessageEvent != null)
+                                            await OnMessageEvent("answer", System.Convert.ToString(msg.text));
+                                    }
                                 }
                             }
 
@@ -125,7 +138,6 @@ namespace XiaoZhiSharp.Services.Chat
                 }
             }
         }
-
         private async Task SendMessageAsync(string message)
         {
             if (_webSocket == null)
@@ -159,7 +171,7 @@ namespace XiaoZhiSharp.Services.Chat
         /// <returns></returns>
         public async Task ChatAbort()
         {
-            //await SendMessageAsync();
+            await SendMessageAsync(XiaoZhi_Protocol.Abort());
         }
         /// <summary>
         /// 发送消息
@@ -168,6 +180,7 @@ namespace XiaoZhiSharp.Services.Chat
         /// <returns></returns>
         public async Task ChatMessage(string message)
         {
+            await ChatAbort();
             await SendMessageAsync(XiaoZhi_Protocol.Listen_Detect(message));
         }
 
@@ -178,6 +191,7 @@ namespace XiaoZhiSharp.Services.Chat
 
         public async Task StartRecording()
         {
+            await ChatAbort();
             await SendMessageAsync(XiaoZhi_Protocol.Listen_Start("", "manual"));
         }
         public async Task StartRecordingAuto()
@@ -188,6 +202,5 @@ namespace XiaoZhiSharp.Services.Chat
         {
             await SendMessageAsync(XiaoZhi_Protocol.Listen_Stop(_sessionId));
         }
-
     }
 }

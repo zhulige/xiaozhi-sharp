@@ -55,6 +55,7 @@ class Program
         _host = builder.Build();
         await _host.StartAsync();
 
+        XiaoZhiSharp.Global.IsDebug = false;
         _agent = new XiaoZhiAgent();
         _agent.OnMessageEvent += Agent_OnMessageEvent;
         await _agent.Start();
