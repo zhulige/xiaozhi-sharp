@@ -1,0 +1,38 @@
+﻿@page "/"
+@implements IDisposable
+@inject XiaoZhi_AgentService XiaoZhiAgent
+
+@XiaoZhiAgent.QuestionMessae <br/>
+@XiaoZhiAgent.AnswerMessae
+
+<Search Placeholder="" @bind-Value="@txtValue" AllowClear EnterButton="@("发送")" OnSearch="SendText" OnPressEnter="SendText" Size="InputSize.Large" />
+
+
+@code{
+    private string txtValue = string.Empty;
+    private System.Timers.Timer _timer = new System.Timers.Timer(1000) { Enabled = true };
+    protected override async Task OnInitializedAsync()
+    {
+        _timer.Elapsed += Timer_Elapsed;
+    }
+    private async void Timer_Elapsed(object sender, EventArgs args)
+    {
+        await Task.Factory.StartNew(() =>
+        {
+            InvokeAsync(() => { StateHasChanged(); return Task.CompletedTask; });
+        });
+    }
+    void IDisposable.Dispose()
+    {
+        _timer.Close();
+    }
+
+    async Task SendText()
+    {
+        if (!string.IsNullOrEmpty(txtValue))
+        {
+            await XiaoZhiAgent.Agent.ChatMessage(txtValue);
+        }
+    }
+
+}

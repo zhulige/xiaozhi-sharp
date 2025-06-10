@@ -79,7 +79,7 @@ namespace XiaoZhiSharp.Services
                 }
                 catch (Exception ex)
                 {
-                    LogConsole.WarningLine($"Opus 编码失败: {ex.Message}");
+                    //LogConsole.WarningLine($"Opus 编码失败: {ex.Message}");
                     return Array.Empty<byte>();
                 }
             }
@@ -123,7 +123,7 @@ namespace XiaoZhiSharp.Services
                 }
                 catch (Exception ex)
                 {
-                    LogConsole.WarningLine($"Opus 解码失败: {ex.Message}");
+                    //LogConsole.WarningLine($"Opus 解码失败: {ex.Message}");
                     return Array.Empty<byte>();
                 }
             }

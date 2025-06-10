@@ -52,11 +52,12 @@ namespace XiaoZhiSharp
         public XiaoZhiAgent() { }
         #endregion
 
-        public async Task Start()
+        public void Start()
         {
             _chatService = new Services.Chat.ChatService(_wsUrl, _token, _deviceId);
             _chatService.OnMessageEvent += ChatService_OnMessageEvent;
-            _chatService.OnAudioEvent += ChatService_OnAudioEvent;
+            if (Global.IsAudio)
+                _chatService.OnAudioEvent += ChatService_OnAudioEvent;
             _chatService.Start();
 
             if (Global.IsAudio)
@@ -65,7 +66,7 @@ namespace XiaoZhiSharp
                 {
                     if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     {
-                        LogConsole.InfoLine("当前操作系统是 Windows");
+                        //LogConsole.InfoLine("当前操作系统是 Windows");
                         _audioService = new AudioWaveService();
                     }
                     else
@@ -74,14 +75,15 @@ namespace XiaoZhiSharp
                     }
 
                 }
-                _audioService.OnPcmAudioEvent += AudioService_OnPcmAudioEvent;
+                if (_audioService != null)
+                    _audioService.OnPcmAudioEvent += AudioService_OnPcmAudioEvent;
             }
         }
-        public async Task Restart()
+        public void Restart()
         {
             _chatService.Dispose();
             //_audioService
-            await Start();
+            Start();
         }
         private async Task AudioService_OnPcmAudioEvent(byte[] pcm)
         {
@@ -104,9 +106,9 @@ namespace XiaoZhiSharp
         }
         private async Task ChatService_OnMessageEvent(string type, string message)
         {
-            if (type == "answer_stop") {
-                await StopRecording();
-            }
+            //if (type == "answer_stop") {
+            //    await StopRecording();
+            //}
             if (OnMessageEvent != null)
                 await OnMessageEvent(type, message);
         }
