@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.nbeenet.xiaoyiApp" android:versionCode="4" android:versionName="v1.0.4">
-  <application android:allowBackup="true" android:icon="@mipmap/appicon" android:supportsRtl="true" android:label="xiaoyiApp">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.nbeenet.xiaozhiApp" android:versionCode="4" android:versionName="v1.0.4">
+  <application android:allowBackup="true" android:icon="@mipmap/appicon" android:supportsRtl="true" android:label="小智Sharp">
     <!-- 这里可以添加 Activity、Service 等组件声明 -->
     <service
     android:name="com.nbeenet.xiaoyiApp.MyForegroundService"

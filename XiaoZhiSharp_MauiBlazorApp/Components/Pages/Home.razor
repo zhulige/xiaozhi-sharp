@@ -28,15 +28,18 @@
         break;
 }
 
+@XiaoZhiAgent.VadCounter
 
-<Button Type="ButtonType.Primary" Shape="ButtonShape.Circle" Size="ButtonSize.Large" Style="zoom:2.0;" OnClick='() => { XiaoZhiAgent.Agent.StartRecording(); }'>录音</Button>
+<Button Type="ButtonType.Primary" Shape="ButtonShape.Circle" Size="ButtonSize.Large" Style="zoom:2.0;" OnClick='() => { XiaoZhiAgent.Agent.StartRecording("auto"); }'>录音</Button>
 
-<Button Type="ButtonType.Primary" Shape="ButtonShape.Circle" Size="ButtonSize.Large" Style="zoom:2.0;" OnClick='() => { XiaoZhiAgent.Agent.StopRecording(); }'>停止</Button>
+@* <Button Type="ButtonType.Primary" Shape="ButtonShape.Circle" Size="ButtonSize.Large" Style="zoom:2.0;" OnClick='() => { XiaoZhiAgent.Agent.StopRecording(); }'>停止</Button> *@
 
 <Button Type="ButtonType.Primary" Shape="ButtonShape.Circle" Size="ButtonSize.Large" Style="zoom:2.0;" OnClick='() => { XiaoZhiAgent.Agent.ChatAbort(); }'>打断</Button>
-
+<br />
+<br />
 <Search Placeholder="" @bind-Value="@txtValue" AllowClear EnterButton="@("发送")" OnSearch="SendText" OnPressEnter="SendText" Size="InputSize.Large" />
-
+<br />
+<br />
 @code{
     private string txtValue = string.Empty;
     private System.Timers.Timer _timer = new System.Timers.Timer(1000) { Enabled = true };

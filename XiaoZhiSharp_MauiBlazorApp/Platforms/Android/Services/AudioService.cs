@@ -91,6 +91,7 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
                     _audioRecord.StartRecording();
                     _isRecording = true;
                     Console.WriteLine("开始录音");
+                    VadCounter = 0; // 重置静音计数器
 
                     Task.Run(() =>
                     {

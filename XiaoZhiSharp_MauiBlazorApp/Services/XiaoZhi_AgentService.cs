@@ -13,9 +13,14 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
         {
             get { return _agent; }
         }
+        public int VadCounter
+        {
+            get { return _agent.AudioService?.VadCounter ?? 0; }
+        }
 
         public XiaoZhi_AgentService()
         {
+            XiaoZhiSharp.Global.VadThreshold = 40;
             XiaoZhiSharp.Global.IsDebug = false;
             //XiaoZhiSharp.Global.IsAudio = false;
             _agent = new XiaoZhiAgent();
@@ -44,7 +49,9 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
                 AnswerMessae = message;
             if (type == "emotion")
                 Emotion = message;
-            
+            if (type == "answer_stop")
+                await _agent.StartRecording("auto");
+
             //LogConsole.InfoLine($"[{type}] {message}");
         }
     }
