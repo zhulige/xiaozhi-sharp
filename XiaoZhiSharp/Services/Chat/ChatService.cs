@@ -207,7 +207,7 @@ namespace XiaoZhiSharp.Services.Chat
         }
         public async Task StartRecordingAuto()
         {
-            await SendMessageAsync(XiaoZhi_Protocol.Listen_Start(_sessionId, "auto"));
+            await SendMessageAsync(XiaoZhi_Protocol.Listen_Start("", "auto"));
         }
         public async Task StopRecording()
         {

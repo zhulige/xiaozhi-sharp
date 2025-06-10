@@ -104,6 +104,9 @@ namespace XiaoZhiSharp
         }
         private async Task ChatService_OnMessageEvent(string type, string message)
         {
+            if (type == "answer_stop") {
+                await StopRecording();
+            }
             if (OnMessageEvent != null)
                 await OnMessageEvent(type, message);
         }
@@ -122,11 +125,23 @@ namespace XiaoZhiSharp
             if (_chatService != null)
                 await _chatService.McpMessage(message);
         }
-        public async Task StartRecording()
+        /// <summary>
+        /// 开始录音
+        /// </summary>
+        /// <param name="type">auto\manual</param>
+        /// <returns></returns>
+        public async Task StartRecording(string type= "auto")
         {
             if (_audioService != null)
             {
-                await _chatService.StartRecording();
+               if (type == "auto")
+                {
+                    await _chatService.StartRecordingAuto();
+                }
+                else
+                {
+                    await _chatService.StartRecording();
+                }
                 _audioService.StartRecording();
             }
         }
