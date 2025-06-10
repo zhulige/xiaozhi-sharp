@@ -28,9 +28,6 @@ XiaoZhiSharp 是使用 C# 语言编写的 “XiaoZhi SDK”，并提供了Consol
 using XiaoZhiSharp;
 
 XiaoZhiAgent agent = new XiaoZhiAgent();
-agent.Token = configuration["CozeSettings:Token"];
-agent.BotId = configuration["CozeSettings:BotId"];
-agent.UserId = configuration["CozeSettings:UserId"];
 agent.OnMessageEvent += Agent_OnMessageEvent;
 await agent.Start();
 
