@@ -132,7 +132,7 @@ namespace XiaoZhiSharp
         /// </summary>
         /// <param name="type">auto\manual</param>
         /// <returns></returns>
-        public async Task StartRecording(string type= "auto")
+        public async Task StartRecording(string type= "manual")
         {
             if (_audioService != null)
             {
