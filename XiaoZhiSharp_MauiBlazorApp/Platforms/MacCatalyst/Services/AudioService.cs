@@ -19,7 +19,7 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
 
         public bool IsPlaying => _isPlaying;
         public bool IsRecording => _isRecording;
-
+        public int VadCounter { get; private set; } = 0; // 用于语音活动检测的计数器
         public AudioService()
         {
 

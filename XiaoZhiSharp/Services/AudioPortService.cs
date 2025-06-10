@@ -31,7 +31,7 @@ namespace XiaoZhiSharp.Services
 
         public bool IsRecording { get; private set; }
         public bool IsPlaying { get; private set; }
-
+        public int VadCounter { get; private set; } = 0; // 用于语音活动检测的计数器
         public AudioPortService()
         {
             // 初始化音频输出组件

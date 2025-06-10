@@ -12,6 +12,7 @@ namespace XiaoZhiSharp.Services
         event PcmAudioEventHandler? OnPcmAudioEvent;
         bool IsPlaying { get; }
         bool IsRecording { get; }
+        int VadCounter { get; }
         void StartRecording();
         void StopRecording();
         void StartPlaying();

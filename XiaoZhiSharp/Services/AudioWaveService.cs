@@ -35,6 +35,7 @@ namespace XiaoZhiSharp.Services
         }
         public bool IsPlaying { get; private set; }
         public bool IsRecording { get; private set; } = false;
+        public int VadCounter { get; private set; } = 0; // 用于语音活动检测的计数器
         public AudioWaveService()
         {
             Initialize();
@@ -86,6 +87,7 @@ namespace XiaoZhiSharp.Services
                 {
                     _waveIn.StartRecording();
                     IsRecording = true;
+                    VadCounter = 0;
                     //LogConsole.WriteLine("开始录音");
                 }
             }
@@ -99,6 +101,7 @@ namespace XiaoZhiSharp.Services
                     _waveIn.StopRecording();
                     //LogConsole.WriteLine("结束录音");
                     IsRecording = false;
+                    VadCounter = 0;
                 }
             }
         }
@@ -145,7 +148,7 @@ namespace XiaoZhiSharp.Services
                 byte[] pcmBytes48000 = e.Buffer;
                 if (!IsAudioMute(pcmBytes48000, e.BytesRecorded))
                 {
-                    Console.Title = "录音";
+                    Console.Title = "录音-" + VadCounter;
                     byte[] pcmBytes = ConvertPcmSampleRate(pcmBytes48000, 48000, SampleRate_WaveIn, Channels, Bitrate);
 
                     if (OnPcmAudioEvent != null)
@@ -155,7 +158,8 @@ namespace XiaoZhiSharp.Services
                 }
                 else
                 {
-                    Console.Title = "静音";
+                    VadCounter ++;
+                    Console.Title = "静音-" + VadCounter;
                 }
             });
         }

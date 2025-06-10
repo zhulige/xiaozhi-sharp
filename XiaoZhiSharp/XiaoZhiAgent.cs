@@ -139,6 +139,17 @@ namespace XiaoZhiSharp
                if (type == "auto")
                 {
                     await _chatService.StartRecordingAuto();
+                    _ = Task.Run(async () =>
+                    {
+                        while (true) {
+                            if (_audioService.VadCounter >= Global.VadThreshold)
+                            {
+                                _audioService.StopRecording();
+                                await _chatService.StopRecording();
+                            }
+                            await Task.Delay(100); // 每秒检查一次
+                        }
+                    }); 
                 }
                 else
                 {
