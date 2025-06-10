@@ -26,7 +26,7 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
             XiaoZhiSharp.Global.IsAudio = false;
             _agent = new XiaoZhiAgent();
             _agent.DeviceId = Global.DeivceId;
-            _agent.WsUrl = "wss://coze.nbee.net/xiaozhi/v1/"; 
+            //_agent.WsUrl = "wss://coze.nbee.net/xiaozhi/v1/"; 
             _agent.OnMessageEvent += Agent_OnMessageEvent;
             if (DeviceInfo.Platform == DevicePlatform.Android) { }
             _agent.Start();
@@ -34,7 +34,10 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
 
         private async Task Agent_OnMessageEvent(string type, string message)
         {
-            QuestionMessae = message;
+            if(type== "question")
+                QuestionMessae = message;
+            if (type == "answer")
+                AnswerMessae = message;
             //LogConsole.InfoLine($"[{type}] {message}");
         }
     }
