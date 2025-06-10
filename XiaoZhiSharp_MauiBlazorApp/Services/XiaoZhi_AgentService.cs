@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using XiaoZhiSharp;
-using XiaoZhiSharp.Services;
-using XiaoZhiSharp.Utils;
+﻿using XiaoZhiSharp;
 
 namespace XiaoZhiSharp_MauiBlazorApp.Services
 {
@@ -23,18 +16,20 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
         public XiaoZhi_AgentService()
         {
             XiaoZhiSharp.Global.IsDebug = false;
-            XiaoZhiSharp.Global.IsAudio = false;
+            //XiaoZhiSharp.Global.IsAudio = false;
             _agent = new XiaoZhiAgent();
             _agent.DeviceId = Global.DeivceId;
             //_agent.WsUrl = "wss://coze.nbee.net/xiaozhi/v1/"; 
             _agent.OnMessageEvent += Agent_OnMessageEvent;
-            if (DeviceInfo.Platform == DevicePlatform.Android) { }
+            if (DeviceInfo.Platform == DevicePlatform.Android) { 
+                _agent.AudioService = new Services.AudioService();
+            }
             _agent.Start();
         }
 
         private async Task Agent_OnMessageEvent(string type, string message)
         {
-            if(type== "question")
+            if (type == "question")
                 QuestionMessae = message;
             if (type == "answer")
                 AnswerMessae = message;

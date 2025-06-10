@@ -86,8 +86,4 @@
       <ProjectReference Include="..\XiaoZhiSharp\XiaoZhiSharp.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Platforms\Android\Services\" />
-    </ItemGroup>
-
 </Project>
