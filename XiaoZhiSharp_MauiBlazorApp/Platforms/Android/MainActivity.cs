@@ -1,6 +1,7 @@
 ﻿using Android.App;
 using Android.Content.PM;
 using Android.OS;
+using Microsoft.AspNetCore.Components.WebView.Maui;
 using System.Text;
 
 namespace XiaoZhiSharp_MauiBlazorApp
@@ -10,6 +11,7 @@ namespace XiaoZhiSharp_MauiBlazorApp
     {
         protected override void OnCreate(Bundle savedInstanceState)
         {
+            // 获取 Android ID 并格式化为 MAC 地址格式
             var androidId = Android.Provider.Settings.Secure.GetString(ContentResolver, Android.Provider.Settings.Secure.AndroidId);
             var formattedAndroidId = FormatAndroidIdToMacFormat(androidId);
             Global.DeivceId = formattedAndroidId;

@@ -6,8 +6,9 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
     {
         private readonly XiaoZhiAgent _agent;
 
-        public string QuestionMessae = "123";
-        public string AnswerMessae = "456";
+        public string QuestionMessae = "";
+        public string AnswerMessae = "";
+        public string Emotion = "normal";
         public XiaoZhiAgent Agent
         {
             get { return _agent; }
@@ -33,6 +34,9 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
                 QuestionMessae = message;
             if (type == "answer")
                 AnswerMessae = message;
+            if (type == "emotion")
+                Emotion = message;
+            
             //LogConsole.InfoLine($"[{type}] {message}");
         }
     }

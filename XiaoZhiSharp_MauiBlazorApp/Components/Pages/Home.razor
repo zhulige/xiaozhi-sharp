@@ -2,19 +2,40 @@
 @implements IDisposable
 @inject XiaoZhi_AgentService XiaoZhiAgent
 
-@XiaoZhiAgent.QuestionMessae <br/>
+<br />
+@XiaoZhiAgent.QuestionMessae
+<br/>
 @XiaoZhiAgent.AnswerMessae
+<br />
+<br />
+@XiaoZhiAgent.Emotion
+<br />
+@switch (XiaoZhiAgent.Emotion)
+{
+    case "happy":
+    case "excited":
+        <video id="videoElement" autoplay muted loop playsinline src="/facebot/excited.mp4" style="width:100%"></video>
+        break;
+    case "sad":
+        <video id="videoElement" autoplay muted loop playsinline src="/facebot/sad.mp4" style="width:100%"></video>
+        break;
+    case "surprise":
+    case "angry":
+        <video id="videoElement" autoplay muted loop playsinline src="/facebot/angry.mp4" style="width:100%"></video>
+        break;
+    default:
+        <video id="videoElement" autoplay muted loop playsinline src="/facebot/normal.mp4" style="width:100%"></video>
+        break;
+}
+
+
+<Button Type="ButtonType.Primary" Shape="ButtonShape.Circle" Size="ButtonSize.Large" Style="zoom:2.0;" OnClick='() => { XiaoZhiAgent.Agent.StartRecording(); }'>录音</Button>
+
+<Button Type="ButtonType.Primary" Shape="ButtonShape.Circle" Size="ButtonSize.Large" Style="zoom:2.0;" OnClick='() => { XiaoZhiAgent.Agent.StopRecording(); }'>停止</Button>
+
+<Button Type="ButtonType.Primary" Shape="ButtonShape.Circle" Size="ButtonSize.Large" Style="zoom:2.0;" OnClick='() => { XiaoZhiAgent.Agent.ChatAbort(); }'>打断</Button>
 
 <Search Placeholder="" @bind-Value="@txtValue" AllowClear EnterButton="@("发送")" OnSearch="SendText" OnPressEnter="SendText" Size="InputSize.Large" />
-
-
-<Button Type="ButtonType.Primary" Shape="ButtonShape.Circle" Size="ButtonSize.Large" Style="zoom:3.0;" OnClick='() => { XiaoZhiAgent.Agent.StartRecording(); }'>录音</Button>
-
-<Button Type="ButtonType.Primary" Shape="ButtonShape.Circle" Size="ButtonSize.Large" Style="zoom:3.0;" OnClick='() => { XiaoZhiAgent.Agent.StopRecording(); }'>停止</Button>
-
-<Button Type="ButtonType.Primary" Shape="ButtonShape.Circle" Size="ButtonSize.Large" Style="zoom:3.0;" OnClick='() => { XiaoZhiAgent.Agent.ChatAbort(); }'>打断</Button>
-
-
 
 @code{
     private string txtValue = string.Empty;
