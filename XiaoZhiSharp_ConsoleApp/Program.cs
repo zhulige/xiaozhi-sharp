@@ -66,7 +66,7 @@ class Program
         //_agent.OnAudioPcmEvent =
         _agent.OnMessageEvent += Agent_OnMessageEvent;
         LogConsole.InfoLine(_agent.WsUrl);
-        await _agent.Start();
+        _agent.Start();
 
         _ = Task.Run(async () =>
         {
@@ -105,7 +105,7 @@ class Program
             {
                 if (input.ToLower() == "restart")
                 {
-                    await _agent.Restart();
+                    _agent.Restart();
                 }
                 else
                 {
