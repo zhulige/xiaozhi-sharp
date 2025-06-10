@@ -58,7 +58,7 @@ class Program
         _host = builder.Build();
         await _host.StartAsync();
 
-        XiaoZhiSharp.Global.IsDebug = false;
+        XiaoZhiSharp.Global.IsDebug = true;
         _agent = new XiaoZhiAgent();
         //XiaoZhiSharp.Global.SampleRate_WaveOut = 24000;
         //_agent.WsUrl = "wss://coze.nbee.net/xiaozhi/v1/"; 

@@ -125,6 +125,20 @@ namespace XiaoZhiSharp.Services.Chat
                                         if (OnMessageEvent != null)
                                             await OnMessageEvent("answer", System.Convert.ToString(msg.text));
                                     }
+
+                                    if (msg.state == "stop")
+                                    {
+                                        if (OnMessageEvent != null)
+                                            await OnMessageEvent("answer_stop", "");
+                                    }
+                                }
+                                // 情感
+                                if (msg.type == "llm")
+                                {
+                                    if (OnMessageEvent != null)
+                                        await OnMessageEvent("emotion", System.Convert.ToString(msg.emotion));
+                                    if (OnMessageEvent != null)
+                                        await OnMessageEvent("emotion_text", System.Convert.ToString(msg.text));
                                 }
                             }
 

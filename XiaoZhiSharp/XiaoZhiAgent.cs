@@ -43,6 +43,9 @@ namespace XiaoZhiSharp
 
         public delegate Task AudioEventHandler(byte[] opus);
         public event AudioEventHandler? OnAudioEvent = null;
+
+        public delegate Task AudioPcmEventHandler(byte[] pcm);
+        public event AudioPcmEventHandler? OnAudioPcmEvent = null;
         #endregion
 
         #region 构造函数
@@ -91,6 +94,9 @@ namespace XiaoZhiSharp
             {
                 byte[] pcmData = _audioOpusService.Decode(opus);
                 _audioService.AddOutSamples(pcmData);
+
+                if(OnAudioPcmEvent!=null)
+                    await OnAudioPcmEvent(pcmData);
             }
 
             if (OnAudioEvent != null)

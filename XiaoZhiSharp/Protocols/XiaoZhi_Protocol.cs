@@ -215,6 +215,7 @@ namespace XiaoZhiSharp.Protocols
                 ""reason"": ""wake_word_detected""
             }";
             message = message.Replace("\n", "").Replace("\r", "").Replace("\r\n", "").Replace(" ", "");
+            message = message.Replace("<会话ID>", "");
             //Console.WriteLine($"发送的消息: {message}");
             return message;
         }
