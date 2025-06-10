@@ -100,12 +100,18 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
                             try
                             {
                                 int bytesRead = _audioRecord.Read(buffer, 0, buffer.Length);
-                                //if (bytesRead > 0 && !IsAudioMute(buffer, bytesRead))
                                 if (bytesRead > 0)
                                 {
-                                    //AddOutSamples(buffer);
-                                    if (OnPcmAudioEvent != null) { 
-                                        OnPcmAudioEvent(buffer); 
+                                    if (!IsAudioMute(buffer, bytesRead)) // 修复错误：替换 e.BytesRecorded 为 bytesRead
+                                    {
+                                        if (OnPcmAudioEvent != null)
+                                        {
+                                            OnPcmAudioEvent(buffer);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        VadCounter++; // 增加静音计数器
                                     }
                                 }
                             }
