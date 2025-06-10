@@ -80,7 +80,7 @@ class Program
                     {
                         _recordStatus = true;
                         LogConsole.InfoLine("开始录音... 再次按Caps键结束录音");
-                        await _agent.StartRecording();
+                        await _agent.StartRecording("auto");
                         continue;
                     }
                 }

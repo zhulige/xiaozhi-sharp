@@ -51,7 +51,7 @@ namespace XiaoZhiSharp.Services.Chat
             _webSocket.Options.SetRequestHeader("Device-Id", _deviceId);
             _webSocket.Options.SetRequestHeader("Client-Id", Guid.NewGuid().ToString());
             _webSocket.ConnectAsync(uri, CancellationToken.None);
-            //LogConsole.InfoLine($"{TAG} 连接中...");
+            LogConsole.InfoLine($"{TAG} 连接中...");
 
             Task.Run(async () =>
             {
@@ -84,7 +84,7 @@ namespace XiaoZhiSharp.Services.Chat
                         if (_isFirst)
                         {
                             _isFirst = false;
-                            //LogConsole.InfoLine($"{TAG} 连接成功");
+                            LogConsole.InfoLine($"{TAG} 连接成功");
                             await SendMessageAsync(XiaoZhi_Protocol.Hello());
                         }
 
@@ -95,15 +95,14 @@ namespace XiaoZhiSharp.Services.Chat
                         if (result.MessageType == WebSocketMessageType.Text)
                         {
                             var message = Encoding.UTF8.GetString(messageBytes);
-                            //if (Global.IsDebug)
-                            //    LogConsole.ReceiveLine($"{TAG} {message}");
+                            LogConsole.ReceiveLine($"{TAG} {message}");
 
                             if (!string.IsNullOrEmpty(message))
                             {
                                 dynamic? msg = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(message);
                                 if (msg == null)
                                 {
-                                    //LogConsole.ErrorLine($"{TAG} 接收到的消息格式错误: {message}");
+                                    LogConsole.ErrorLine($"{TAG} 接收到的消息格式错误: {message}");
                                     continue;
                                 }
                                 _sessionId = msg.session_id;
@@ -154,7 +153,7 @@ namespace XiaoZhiSharp.Services.Chat
                     catch (Exception ex)
                     {
 
-                        //LogConsole.ErrorLine($"{TAG} {ex.Message}");
+                        LogConsole.ErrorLine($"{TAG} {ex.Message}");
                         break;
                     }
                 }
@@ -169,8 +168,7 @@ namespace XiaoZhiSharp.Services.Chat
             {
                 var buffer = Encoding.UTF8.GetBytes(message);
                 await _webSocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
-                //if (Global.IsDebug)
-                //    LogConsole.SendLine($"{TAG} {message}");
+                LogConsole.SendLine($"{TAG} {message}");
             }
         }
         private async Task SendAudioAsync(byte[] opus)

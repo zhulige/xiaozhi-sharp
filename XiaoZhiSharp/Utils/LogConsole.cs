@@ -45,6 +45,9 @@ namespace XiaoZhiSharp.Utils
         // 私有方法，用于处理消息的输出，封装公共逻辑
         private static void WriteMessage(MessageType type, string message, bool isNewLine)
         {
+            if (!Global.IsDebug)
+                return;
+
             if (!IsWrite)
                 return;
 

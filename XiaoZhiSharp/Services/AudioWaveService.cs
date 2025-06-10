@@ -145,7 +145,7 @@ namespace XiaoZhiSharp.Services
                 byte[] pcmBytes48000 = e.Buffer;
                 if (!IsAudioMute(pcmBytes48000, e.BytesRecorded))
                 {
-                    //Console.Title = "录音";
+                    Console.Title = "录音";
                     byte[] pcmBytes = ConvertPcmSampleRate(pcmBytes48000, 48000, SampleRate_WaveIn, Channels, Bitrate);
 
                     if (OnPcmAudioEvent != null)
@@ -155,7 +155,7 @@ namespace XiaoZhiSharp.Services
                 }
                 else
                 {
-                    //Console.Title = "静音";
+                    Console.Title = "静音";
                 }
             });
         }

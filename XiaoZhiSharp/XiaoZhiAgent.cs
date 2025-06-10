@@ -66,7 +66,7 @@ namespace XiaoZhiSharp
                 {
                     if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     {
-                        //LogConsole.InfoLine("当前操作系统是 Windows");
+                        LogConsole.InfoLine("当前操作系统是 Windows");
                         _audioService = new AudioWaveService();
                     }
                     else
