@@ -18,14 +18,16 @@
 ## 项目简介 
 XiaoZhiSharp 是使用 C# 语言编写的 “XiaoZhi SDK”，并提供了ConsoleApp 应用。
 
+**跨平台支持**：本项目支持以下平台：
+- **操作系统**：Windows、MacOS、Linux、Android、IOS
+- **硬件平台**：x86、x86_64、arm、arm_64
+- **开发板**：ASUS Tinker Board2s、Raspberry Pi
+
 ## 示例
 ``` C#
 using XiaoZhiSharp;
 
 XiaoZhiAgent agent = new XiaoZhiAgent();
-agent.Token = configuration["CozeSettings:Token"];
-agent.BotId = configuration["CozeSettings:BotId"];
-agent.UserId = configuration["CozeSettings:UserId"];
 agent.OnMessageEvent += Agent_OnMessageEvent;
 await agent.Start();
 
@@ -40,7 +42,7 @@ private static Task Agent_OnMessageEvent(string type, string message)
 
 ## NuGet
 ```
-dotnet add package XiaoZhiSharp --version 1.0.1
+dotnet add package XiaoZhiSharp --version 1.0.4
 ```
 
 ## 相关资源
