@@ -62,6 +62,8 @@ class Program
         _agent = new XiaoZhiAgent();
         //XiaoZhiSharp.Global.SampleRate_WaveOut = 24000;
         //_agent.WsUrl = "wss://coze.nbee.net/xiaozhi/v1/"; 
+        //_agent.AudioService = new 
+        //_agent.OnAudioPcmEvent =
         _agent.OnMessageEvent += Agent_OnMessageEvent;
         LogConsole.InfoLine(_agent.WsUrl);
         await _agent.Start();
