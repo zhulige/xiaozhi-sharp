@@ -22,7 +22,8 @@ class Program
     private static Pipe _serverToClientPipe = new Pipe();
     private static IHost? _host;
     private static XiaoZhiAgent _agent;
-    private static bool _recordStatus = false;
+    //private static bool _recordStatus = false;
+    private static string _audioMode = ""; 
     static async Task Main(string[] args)
     {
         var builder = Host.CreateApplicationBuilder(args);
@@ -46,7 +47,6 @@ class Program
 ========================================================================";
         Console.WriteLine(logoAndCopyright);
         Console.ForegroundColor = ConsoleColor.White;
-
 
         builder.Services
             .AddMcpServer()
@@ -76,22 +76,24 @@ class Program
                 //Console.WriteLine($"当前 Caps Lock 状态: {(isCapsLockOn ? "开启" : "关闭")}");
                 if (isCapsLockOn)
                 {
-                    if (_recordStatus == false)
+                    if (_agent.IsRecording == false)
                     {
-                        _recordStatus = true;
+                        _audioMode = "manual";
                         LogConsole.InfoLine("开始录音... 再次按Caps键结束录音");
-                        await _agent.StartRecording("auto");
+                        await _agent.StartRecording("manual");
                         continue;
                     }
                 }
                 if (!isCapsLockOn)
                 {
-                    if (_recordStatus == true)
+                    if (_agent.IsRecording == true)
                     {
-                        _recordStatus = false;
-                        await _agent.StopRecording();
-                        LogConsole.InfoLine("结束录音");
-                        continue;
+                        if (_audioMode == "manual")
+                        {
+                            await _agent.StopRecording();
+                            LogConsole.InfoLine("结束录音");
+                            continue;
+                        }
                     }
                 }
                 await Task.Delay(100); // 避免过于频繁的检查
@@ -114,20 +116,20 @@ class Program
             }
             else
             {
-                //if (!_recordStatus)
-                //{
-                //    _recordStatus = true;
-                //    //Console.Title = "开始录音...";
-                //    LogConsole.InfoLine("开始录音... 再次回车结束录音");
-                //    await _agent.StartRecording();
-                //}
-                //else
-                //{
-                //    await _agent.StopRecording();
-                //    //Console.Title = "小智XiaoZhiSharp客户端";
-                //    LogConsole.InfoLine("结束录音");
-                //    _recordStatus = false;
-                //}
+                if (!_agent.IsRecording)
+                {
+                    //Console.Title = "开始录音...";
+                    //LogConsole.InfoLine("开始录音... 再次回车结束录音");
+                    _audioMode = "auto";
+                    LogConsole.InfoLine("开始录音... Auto");
+                    await _agent.StartRecording("auto");
+                }
+                else
+                {
+                    //await _agent.StopRecording();
+                    //Console.Title = "小智XiaoZhiSharp客户端";
+                    //LogConsole.InfoLine("结束录音");
+                }
             }
         }
     }

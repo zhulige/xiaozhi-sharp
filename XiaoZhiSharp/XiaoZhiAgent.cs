@@ -35,6 +35,11 @@ namespace XiaoZhiSharp
             set { _deviceId = value; }
         }
 
+        public bool IsRecording
+        {
+            get { return _audioService != null && _audioService.IsRecording; }
+        }
+
         #endregion
 
         #region 事件
