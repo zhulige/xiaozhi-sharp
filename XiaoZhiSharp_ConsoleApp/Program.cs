@@ -101,7 +101,14 @@ class Program
             string? input = Console.ReadLine();
             if (!string.IsNullOrEmpty(input))
             {
-                await _agent.ChatMessage(input);
+                if (input.ToLower() == "restart")
+                {
+                    await _agent.Restart();
+                }
+                else
+                {
+                    await _agent.ChatMessage(input);
+                }
             }
             else
             {

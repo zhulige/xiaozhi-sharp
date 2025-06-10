@@ -29,6 +29,11 @@ namespace XiaoZhiSharp
             get { return _audioService; }
             set { _audioService = value; }
         }
+        public string DeviceId
+        {
+            get { return _deviceId; }
+            set { _deviceId = value; }
+        }
 
         #endregion
 
@@ -69,6 +74,12 @@ namespace XiaoZhiSharp
                 _audioService.OnPcmAudioEvent += AudioService_OnPcmAudioEvent;
             }
         }
+        public async Task Restart()
+        {
+            _chatService.Dispose();
+            //_audioService
+            await Start();
+        }
         private async Task AudioService_OnPcmAudioEvent(byte[] pcm)
         {
             byte[] opus = _audioOpusService.Encode(pcm);
@@ -94,6 +105,11 @@ namespace XiaoZhiSharp
         {
             if (_chatService != null)
                 await _chatService.ChatMessage(message);
+        }
+        public async Task ChatAbort()
+        {
+            if (_chatService != null)
+                await _chatService.ChatAbort();
         }
         public async Task McpMessage(string message)
         {

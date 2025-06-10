@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace XiaoZhiSharp.Services.Chat
 {
-    public class ChatService
+    public class ChatService: IDisposable
     {
         private string TAG = "小智";
         private string _wsUrl { get; set; } = "wss://api.tenclass.net/xiaozhi/v1/";
@@ -198,6 +198,10 @@ namespace XiaoZhiSharp.Services.Chat
         public async Task StopRecording()
         {
             await SendMessageAsync(XiaoZhi_Protocol.Listen_Stop(_sessionId));
+        }
+        public void Dispose()
+        {
+            _webSocket.Dispose();
         }
     }
 }
