@@ -21,9 +21,17 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
             _agent.DeviceId = Global.DeivceId;
             //_agent.WsUrl = "wss://coze.nbee.net/xiaozhi/v1/"; 
             _agent.OnMessageEvent += Agent_OnMessageEvent;
-            if (DeviceInfo.Platform == DevicePlatform.Android) { 
+            
+            // 根据平台注册相应的音频服务
+            if (DeviceInfo.Platform == DevicePlatform.Android) 
+            { 
                 _agent.AudioService = new Services.AudioService();
             }
+            else if (DeviceInfo.Platform == DevicePlatform.WinUI)
+            {
+                _agent.AudioService = new Services.AudioService();
+            }
+            
             _agent.Start();
         }
 
