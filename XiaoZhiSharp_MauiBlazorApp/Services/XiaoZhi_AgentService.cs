@@ -9,6 +9,16 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
         public string QuestionMessae = "";
         public string AnswerMessae = "";
         public string Emotion = "normal";
+        public float AudioLevel = 0.0f; // 音频强度 0-1
+        public bool IsConnected = false; // 连接状态
+        
+        // 设置相关属性
+        public string ServerUrl { get; set; } = "wss://api.tenclass.net/xiaozhi/v1/";
+        public string OtaUrl { get; set; } = "https://api.tenclass.net/xiaozhi/ota/";
+        public string DeviceId { get; set; } = Global.DeivceId;
+        public int VadThreshold { get; set; } = 40;
+        public bool IsDebugMode { get; set; } = false;
+        
         public XiaoZhiAgent Agent
         {
             get { return _agent; }
@@ -17,16 +27,24 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
         {
             get { return _agent.AudioService?.VadCounter ?? 0; }
         }
+        public bool IsRecording
+        {
+            get { return _agent.AudioService?.IsRecording ?? false; }
+        }
 
         public XiaoZhi_AgentService()
         {
-            XiaoZhiSharp.Global.VadThreshold = 40;
-            XiaoZhiSharp.Global.IsDebug = false;
+            // 从配置初始化设置
+            LoadSettings();
+            
+            XiaoZhiSharp.Global.VadThreshold = VadThreshold;
+            XiaoZhiSharp.Global.IsDebug = IsDebugMode;
             //XiaoZhiSharp.Global.IsAudio = false;
             _agent = new XiaoZhiAgent();
-            _agent.DeviceId = Global.DeivceId;
-            //_agent.WsUrl = "wss://coze.nbee.net/xiaozhi/v1/"; 
+            _agent.DeviceId = DeviceId;
+            _agent.WsUrl = ServerUrl;
             _agent.OnMessageEvent += Agent_OnMessageEvent;
+            _agent.OnAudioPcmEvent += Agent_OnAudioPcmEvent;
             
             // 根据平台注册相应的音频服务
             if (DeviceInfo.Platform == DevicePlatform.Android) 
@@ -39,6 +57,82 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
             }
             
             _agent.Start();
+            IsConnected = true; // 假设启动后就连接成功
+        }
+
+        private void LoadSettings()
+        {
+            // 从Preferences加载设置
+            ServerUrl = Preferences.Get("ServerUrl", "wss://api.tenclass.net/xiaozhi/v1/");
+            OtaUrl = Preferences.Get("OtaUrl", "https://api.tenclass.net/xiaozhi/ota/");
+            DeviceId = Preferences.Get("DeviceId", Global.DeivceId);
+            VadThreshold = Preferences.Get("VadThreshold", 40);
+            IsDebugMode = Preferences.Get("IsDebugMode", false);
+        }
+
+        public void SaveSettings()
+        {
+            // 保存设置到Preferences
+            Preferences.Set("ServerUrl", ServerUrl);
+            Preferences.Set("OtaUrl", OtaUrl);
+            Preferences.Set("DeviceId", DeviceId);
+            Preferences.Set("VadThreshold", VadThreshold);
+            Preferences.Set("IsDebugMode", IsDebugMode);
+        }
+
+        public async Task ApplySettings()
+        {
+            // 应用设置并重启连接
+            SaveSettings();
+            
+            // 更新全局配置
+            XiaoZhiSharp.Global.VadThreshold = VadThreshold;
+            XiaoZhiSharp.Global.IsDebug = IsDebugMode;
+            
+            // 更新Agent配置
+            _agent.DeviceId = DeviceId;
+            _agent.WsUrl = ServerUrl;
+            _agent.OtaUrl = OtaUrl;
+            
+            // 重启连接
+            _agent.Restart();
+        }
+
+        public void ResetSettings()
+        {
+            // 重置为默认值
+            ServerUrl = "wss://api.tenclass.net/xiaozhi/v1/";
+            OtaUrl = "https://api.tenclass.net/xiaozhi/ota/";
+            DeviceId = Global.DeivceId;
+            VadThreshold = 40;
+            IsDebugMode = false;
+        }
+
+        private async Task Agent_OnAudioPcmEvent(byte[] pcm)
+        {
+            // 计算音频强度
+            AudioLevel = CalculateAudioLevel(pcm);
+        }
+
+        private float CalculateAudioLevel(byte[] pcmData)
+        {
+            if (pcmData == null || pcmData.Length == 0)
+                return 0.0f;
+
+            double rms = 0;
+            int sampleCount = pcmData.Length / 2; // 16位音频
+
+            for (int i = 0; i < sampleCount; i++)
+            {
+                short sample = BitConverter.ToInt16(pcmData, i * 2);
+                rms += sample * sample;
+            }
+
+            rms = Math.Sqrt(rms / sampleCount);
+            float level = (float)(rms / short.MaxValue);
+            
+            // 限制在0-1范围
+            return Math.Max(0.0f, Math.Min(1.0f, level * 10)); // 放大10倍以便显示
         }
 
         private async Task Agent_OnMessageEvent(string type, string message)

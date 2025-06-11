@@ -1,6 +1,13 @@
 ﻿/*#if (SampleContent)*/
 html, body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: linear-gradient(135deg, #4a90e2, #5ba0f2);
+    height: 100vh;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    border: none;
+    outline: none;
 }
 
 a, .btn-link {
@@ -67,8 +74,19 @@ h1:focus {
         content: "An error has occurred."
     }
 
+/* 顶部安全区域 */
 .status-bar-safe-area {
-    display: none;
+    display: flex;
+    position: sticky;
+    top: 0;
+    height: env(safe-area-inset-top);
+    background: linear-gradient(135deg, #4a90e2, #5ba0f2);
+    width: 100%;
+    z-index: 1000;
+    /* 确保完全无缝 */
+    border: none;
+    margin: 0;
+    padding: 0;
 }
 
 @supports (-webkit-touch-callout: none) {
@@ -77,12 +95,922 @@ h1:focus {
         position: sticky;
         top: 0;
         height: env(safe-area-inset-top);
-        background-color: #f7f7f7;
+        background: linear-gradient(135deg, #4a90e2, #5ba0f2);
         width: 100%;
-        z-index: 1;
+        z-index: 1000;
+        /* 确保完全无缝 */
+        border: none;
+        margin: 0;
+        padding: 0;
     }
 
     .flex-column, .navbar-brand {
         padding-left: env(safe-area-inset-left);
     }
+}
+
+/* 聊天容器 */
+.chat-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: transparent; /* 让背景透明，显示父容器的渐变 */
+    /* 确保无缝连接 */
+    margin: 0;
+    padding: 0;
+    border: none;
+    outline: none;
+    /* 精确定位，避免任何间隙 */
+    position: relative;
+    top: 0;
+    left: 0;
+    right: 0;
+}
+
+/* 顶部状态栏 - 完全无缝连接系统状态栏 */
+.status-bar {
+    background: linear-gradient(135deg, #4a90e2, #5ba0f2);
+    color: white;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /* 完全移除所有边框、阴影和间距 */
+    box-shadow: none;
+    border: none;
+    margin: 0;
+    padding-top: 10px;
+    position: relative;
+    z-index: 999;
+    /* 确保与系统状态栏完全贴合 */
+    border-top: none;
+    outline: none;
+    /* 精确贴合，移除任何可能的间隙 */
+    top: 0;
+    width: 100%;
+}
+
+.status-bar .title {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.status-bar .connection-status {
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #4caf50;
+    animation: pulse 2s infinite;
+}
+
+.status-indicator.disconnected {
+    background-color: #f44336;
+    animation: none;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+/* 聊天消息区域 */
+.chat-messages {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    background-color: #f0f0f0;
+    background-image: 
+        radial-gradient(circle at 20% 50%, rgba(120, 120, 120, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(120, 120, 120, 0.05) 0%, transparent 50%);
+    position: relative;
+}
+
+/* AI表情动画背景 */
+.emotion-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.emotion-video {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    object-fit: cover;
+    opacity: 0.3;
+    filter: blur(1px);
+    transition: all 0.5s ease;
+    box-shadow: 0 0 20px rgba(74, 144, 226, 0.3);
+}
+
+.emotion-video:hover {
+    opacity: 0.5;
+    filter: blur(0px);
+    transform: scale(1.05);
+}
+
+/* 不同情绪状态的动画效果 */
+.emotion-background:has(.emotion-video[src*="excited"]) .emotion-video {
+    box-shadow: 0 0 30px rgba(255, 193, 7, 0.5);
+    animation: excitedPulse 2s ease-in-out infinite;
+}
+
+.emotion-background:has(.emotion-video[src*="sad"]) .emotion-video {
+    box-shadow: 0 0 30px rgba(33, 150, 243, 0.4);
+    filter: blur(2px) saturate(0.7);
+}
+
+.emotion-background:has(.emotion-video[src*="angry"]) .emotion-video {
+    box-shadow: 0 0 30px rgba(244, 67, 54, 0.5);
+    animation: angryShake 0.5s ease-in-out infinite;
+}
+
+.emotion-background:has(.emotion-video[src*="laughing"]) .emotion-video {
+    box-shadow: 0 0 30px rgba(76, 175, 80, 0.5);
+    animation: laughingBounce 1s ease-in-out infinite;
+}
+
+.emotion-background:has(.emotion-video[src*="loading"]) .emotion-video {
+    box-shadow: 0 0 30px rgba(156, 39, 176, 0.4);
+    animation: loadingSpin 2s linear infinite;
+}
+
+@keyframes excitedPulse {
+    0%, 100% { transform: scale(1); opacity: 0.3; }
+    50% { transform: scale(1.1); opacity: 0.5; }
+}
+
+@keyframes angryShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-2px); }
+    75% { transform: translateX(2px); }
+}
+
+@keyframes laughingBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+@keyframes loadingSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 消息内容层 */
+.messages-content {
+    position: relative;
+    z-index: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 欢迎消息 */
+.welcome-message {
+    background-color: white;
+    border-radius: 15px;
+    padding: 20px;
+    margin: 20px auto;
+    max-width: 300px;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border: 1px solid #e0e0e0;
+}
+
+.welcome-message h3 {
+    color: #333;
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.welcome-message ul {
+    list-style: none;
+    color: #666;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.welcome-message ul li {
+    margin: 5px 0;
+}
+
+/* 消息气泡 */
+.message-bubble {
+    max-width: 80%;
+    margin: 10px 0;
+    padding: 12px 16px;
+    border-radius: 18px;
+    word-wrap: break-word;
+    position: relative;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.message-bubble.user {
+    background-color: #4a90e2;
+    color: white;
+    margin-left: auto;
+    border-bottom-right-radius: 5px;
+}
+
+.message-bubble.assistant {
+    background-color: white;
+    color: #333;
+    margin-right: auto;
+    border-bottom-left-radius: 5px;
+    border: 1px solid #e0e0e0;
+}
+
+.message-time {
+    font-size: 11px;
+    color: #999;
+    text-align: center;
+    margin: 5px 0;
+}
+
+/* 录音状态显示区域 */
+.recording-status {
+    background-color: white;
+    border-top: 1px solid #e0e0e0;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+}
+
+.status-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.recording-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #666;
+}
+
+.recording-indicator.active {
+    color: #4caf50;
+}
+
+.recording-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #ccc;
+}
+
+.recording-dot.active {
+    background-color: #4caf50;
+    animation: pulse 1s infinite;
+}
+
+/* VAD状态显示 */
+.vad-status {
+    font-size: 14px;
+    color: #666;
+}
+
+.vad-status.active {
+    color: #ff9800;
+}
+
+/* 音频强度显示 */
+.audio-level {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.audio-level-label {
+    font-size: 12px;
+    color: #666;
+    min-width: 40px;
+}
+
+.audio-level-bar {
+    width: 80px;
+    height: 4px;
+    background-color: #e0e0e0;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.audio-level-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4caf50, #8bc34a, #cddc39, #ffeb3b, #ffc107, #ff9800, #f44336);
+    border-radius: 2px;
+    transition: width 0.1s ease;
+    min-width: 2px;
+}
+
+/* 情绪状态显示 */
+.emotion-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.emotion-label {
+    font-size: 12px;
+    color: #666;
+    padding: 4px 8px;
+    background-color: #f0f0f0;
+    border-radius: 12px;
+    border: 1px solid #ddd;
+    transition: all 0.3s ease;
+}
+
+.emotion-status .emotion-label {
+    background: linear-gradient(45deg, #e3f2fd, #bbdefb);
+    border-color: #90caf9;
+    color: #1976d2;
+}
+
+/* 输入区域 */
+.input-area {
+    background-color: white;
+    border-top: 1px solid #e0e0e0;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+}
+
+.text-input {
+    flex: 1;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    padding: 12px 16px;
+    font-size: 16px;
+    outline: none;
+    background-color: #f8f8f8;
+    transition: all 0.3s ease;
+}
+
+.text-input:focus {
+    border-color: #4a90e2;
+    background-color: white;
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.1);
+}
+
+.send-button {
+    background-color: #4a90e2;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 16px;
+}
+
+.send-button:hover {
+    background-color: #357abd;
+    transform: scale(1.05);
+}
+
+.send-button:active {
+    transform: scale(0.95);
+}
+
+.send-button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* 功能按钮 */
+.action-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.action-button {
+    background-color: transparent;
+    border: 2px solid #4a90e2;
+    color: #4a90e2;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.action-button:hover {
+    background-color: #4a90e2;
+    color: white;
+}
+
+.action-button.recording {
+    background-color: #4caf50;
+    border-color: #4caf50;
+    color: white;
+    animation: pulse 1s infinite;
+}
+
+.action-button.stop {
+    background-color: #f44336;
+    border-color: #f44336;
+    color: white;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .status-bar {
+        /* 移除默认padding，使用计算后的安全区域 */
+        padding: 0 20px 10px 20px;
+        /* 智能处理安全区域，确保内容不被刘海遮挡但视觉上完全贴合 */
+        padding-top: env(safe-area-inset-top, 0px);
+        /* 确保最小高度 */
+        min-height: 50px;
+        /* 移除任何可能的边框或阴影 */
+        border: none;
+        box-shadow: none;
+        margin: 0;
+    }
+    
+    .chat-messages {
+        padding: 15px;
+    }
+    
+    .input-area {
+        padding: 10px 15px;
+    }
+    
+    .recording-status {
+        padding: 10px 15px;
+    }
+    
+    .message-bubble {
+        max-width: 90%;
+    }
+    
+    /* 移动设备上调整动画大小 */
+    .emotion-video {
+        width: 150px;
+        height: 150px;
+    }
+    
+    .status-info {
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    
+    .audio-level-bar {
+        width: 60px;
+    }
+    
+    /* 设置页面移动端优化 */
+    .settings-container {
+        padding: 15px;
+        padding-bottom: 90px; /* 移动端底部导航更高 */
+    }
+    
+    .settings-header {
+        padding: 0 15px 15px 15px;
+        margin-bottom: 20px;
+        /* 完全移除顶部padding，让标题直接从顶部开始 */
+        padding-top: 0;
+        margin-top: 0;
+    }
+    
+    .settings-header h2 {
+        font-size: 20px;
+        /* 增加顶部间距，但保持视觉连续性 */
+        padding-top: 20px;
+    }
+    
+    .setting-group {
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .setting-header {
+        margin-bottom: 12px;
+    }
+    
+    .setting-icon {
+        font-size: 20px;
+        margin-right: 12px;
+        width: 35px;
+    }
+    
+    .setting-info h3 {
+        font-size: 15px;
+    }
+    
+    .setting-info p {
+        font-size: 13px;
+    }
+    
+    .input-field {
+        padding: 10px 14px;
+        font-size: 16px; /* 防止iOS缩放 */
+    }
+    
+    .settings-actions {
+        gap: 12px;
+    }
+    
+    .settings-action-button {
+        padding: 12px 18px;
+        font-size: 15px;
+    }
+    
+    /* 底部导航移动端优化 */
+    .bottom-navigation {
+        padding: 8px 0;
+    }
+    
+    .nav-item {
+        padding: 8px 4px;
+        gap: 2px;
+    }
+    
+    .nav-icon {
+        font-size: 18px;
+    }
+    
+    .nav-label {
+        font-size: 11px;
+    }
+}
+
+/* 基础样式重置 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    /* 移除所有元素的默认边框 */
+    border: none;
+    outline: none;
+}
+
+/* 移除WebView和容器的边框 */
+body, html, .app-container, .chat-container, #app {
+    border: none !important;
+    outline: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent;
+}
+
+/* 确保所有容器元素无缝连接 */
+div, main, section, article {
+    border: none;
+    outline: none;
+}
+
+/* 移除任何可能的分割线 */
+.blazor-error-boundary, .content {
+    border: none;
+    outline: none;
+    margin: 0;
+    padding: 0;
+}
+
+/* 应用容器 */
+.app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: linear-gradient(135deg, #4a90e2, #5ba0f2);
+    background-attachment: fixed;
+    margin: 0;
+    padding: 0;
+    border: none;
+    outline: none;
+}
+
+/* 设置页面容器 */
+.settings-container {
+    flex: 1;
+    background-color: #f5f5f5;
+    overflow-y: auto;
+    padding: 20px;
+    padding-bottom: 80px; /* 为底部导航留出空间 */
+    /* 为设置页面添加圆角，形成卡片效果 */
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    margin-top: 0;
+}
+
+.settings-header {
+    text-align: center;
+    margin-bottom: 30px;
+    background: transparent; /* 让背景透明，与顶部区域融合 */
+    color: white;
+    padding: 20px;
+    border-radius: 0; /* 移除圆角 */
+    box-shadow: none; /* 移除阴影 */
+    /* 设置页面的标题直接融入顶部背景 */
+    margin: -20px -20px 30px -20px; /* 扩展到容器边缘 */
+    padding: 30px 20px 20px 20px;
+}
+
+.settings-header h2 {
+    margin-bottom: 8px;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.settings-subtitle {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+.settings-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+/* 设置项组 */
+.setting-group {
+    background-color: white;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border: 1px solid #e0e0e0;
+    transition: all 0.3s ease;
+}
+
+.setting-group:hover {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+}
+
+.setting-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.setting-icon {
+    font-size: 24px;
+    margin-right: 15px;
+    width: 40px;
+    text-align: center;
+}
+
+.setting-info h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+.setting-info p {
+    font-size: 14px;
+    color: #666;
+    margin: 0;
+}
+
+.setting-input {
+    width: 100%;
+}
+
+.input-field {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 16px;
+    background-color: #f8f8f8;
+    transition: all 0.3s ease;
+}
+
+.input-field:focus {
+    outline: none;
+    border-color: #4a90e2;
+    background-color: white;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+/* 切换开关 */
+.setting-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #4a90e2;
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+/* 操作按钮区域 */
+.settings-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.settings-action-button {
+    padding: 15px 20px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.settings-action-button.save {
+    background: linear-gradient(135deg, #4caf50, #66bb6a);
+    color: white;
+}
+
+.settings-action-button.save:hover {
+    background: linear-gradient(135deg, #45a049, #5cb85c);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+}
+
+.settings-action-button.apply {
+    background: linear-gradient(135deg, #2196f3, #42a5f5);
+    color: white;
+}
+
+.settings-action-button.apply:hover {
+    background: linear-gradient(135deg, #1976d2, #1e88e5);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+}
+
+.settings-action-button.reset {
+    background: linear-gradient(135deg, #ff9800, #ffb74d);
+    color: white;
+}
+
+.settings-action-button.reset:hover {
+    background: linear-gradient(135deg, #f57c00, #fb8c00);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+}
+
+.settings-action-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* 加载动画 */
+.loading-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid transparent;
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 状态消息 */
+.status-message {
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 20px;
+    font-weight: 500;
+    text-align: center;
+}
+
+.status-message.success {
+    background-color: #e8f5e8;
+    color: #2e7d32;
+    border: 1px solid #c8e6c9;
+}
+
+.status-message.error {
+    background-color: #ffebee;
+    color: #c62828;
+    border: 1px solid #ffcdd2;
+}
+
+.status-message.info {
+    background-color: #e3f2fd;
+    color: #1565c0;
+    border: 1px solid #bbdefb;
+}
+
+/* 底部导航栏 */
+.bottom-navigation {
+    background: linear-gradient(135deg, #4a90e2, #5ba0f2);
+    display: flex;
+    padding: 10px 0;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    border-top: 1px solid #e0e0e0;
+}
+
+.nav-item {
+    flex: 1;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    padding: 12px 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.nav-item:hover {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.nav-item.active {
+    color: white;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    margin: 0 8px;
+}
+
+.nav-icon {
+    font-size: 20px;
+}
+
+.nav-label {
+    font-size: 12px;
+    font-weight: 500;
 }

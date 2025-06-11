@@ -3,6 +3,8 @@ using Android.Content.PM;
 using Android.OS;
 using Microsoft.AspNetCore.Components.WebView.Maui;
 using System.Text;
+using AndroidX.Core.View;
+using Android.Views;
 
 namespace XiaoZhiSharp_MauiBlazorApp
 {
@@ -17,6 +19,25 @@ namespace XiaoZhiSharp_MauiBlazorApp
             Global.DeivceId = formattedAndroidId;
 
             base.OnCreate(savedInstanceState);
+
+            // 设置状态栏颜色和样式
+            if (Build.VERSION.SdkInt >= BuildVersionCodes.Lollipop)
+            {
+                Window?.SetStatusBarColor(Android.Graphics.Color.ParseColor("#4a90e2")); // 设置为蓝色
+                
+                // 设置状态栏文字为白色（适配深色背景）
+                if (Build.VERSION.SdkInt >= BuildVersionCodes.M)
+                {
+                    var decorView = Window?.DecorView;
+                    if (decorView != null)
+                    {
+                        // 清除SYSTEM_UI_FLAG_LIGHT_STATUS_BAR标志，使状态栏文字变白
+                        var flags = (int)decorView.SystemUiVisibility;
+                        flags &= ~(int)SystemUiFlags.LightStatusBar;
+                        decorView.SystemUiVisibility = (StatusBarVisibility)flags;
+                    }
+                }
+            }
         }
 
         // 将 Android ID 格式化为 MAC 地址格式

@@ -2,51 +2,203 @@
 @implements IDisposable
 @inject XiaoZhi_AgentService XiaoZhiAgent
 
-<br />
-@XiaoZhiAgent.QuestionMessae
-<br/>
-@XiaoZhiAgent.AnswerMessae
-<br />
-<br />
-@XiaoZhiAgent.Emotion
-<br />
-@switch (XiaoZhiAgent.Emotion)
-{
-    case "happy":
-    case "excited":
-        <video id="videoElement" autoplay muted loop playsinline src="/facebot/excited.mp4" style="width:100%"></video>
-        break;
-    case "sad":
-        <video id="videoElement" autoplay muted loop playsinline src="/facebot/sad.mp4" style="width:100%"></video>
-        break;
-    case "surprise":
-    case "angry":
-        <video id="videoElement" autoplay muted loop playsinline src="/facebot/angry.mp4" style="width:100%"></video>
-        break;
-    default:
-        <video id="videoElement" autoplay muted loop playsinline src="/facebot/normal.mp4" style="width:100%"></video>
-        break;
-}
+<div class="app-container">
+    <!-- 主内容区域 -->
+    @if (currentPage == "chat")
+    {
+        <!-- 聊天页面 -->
+        <div class="chat-container">
+            <!-- 顶部状态栏 -->
+            <div class="status-bar">
+                <div class="title">小智AI助手</div>
+                <div class="connection-status">
+                    <span class="status-indicator @(XiaoZhiAgent.IsConnected ? "" : "disconnected")"></span>
+                    <span>连接状态：@(XiaoZhiAgent.IsConnected ? "已连接" : "未连接")</span>
+                </div>
+            </div>
 
-@XiaoZhiAgent.VadCounter
+            <!-- 聊天消息区域 -->
+            <div class="chat-messages" @ref="messagesContainer">
+                <!-- AI表情动画背景 -->
+                <div class="emotion-background">
+                    @switch (XiaoZhiAgent.Emotion.ToLower())
+                    {
+                        case "happy":
+                        case "excited":
+                            <video class="emotion-video" autoplay muted loop playsinline src="/facebot/excited.mp4"></video>
+                            break;
+                        case "sad":
+                            <video class="emotion-video" autoplay muted loop playsinline src="/facebot/sad.mp4"></video>
+                            break;
+                        case "surprised":
+                        case "surprise":
+                            <video class="emotion-video" autoplay muted loop playsinline src="/facebot/surprised.mp4"></video>
+                            break;
+                        case "angry":
+                            <video class="emotion-video" autoplay muted loop playsinline src="/facebot/angry.mp4"></video>
+                            break;
+                        case "laughing":
+                            <video class="emotion-video" autoplay muted loop playsinline src="/facebot/laughing.mp4"></video>
+                            break;
+                        case "pleased":
+                            <video class="emotion-video" autoplay muted loop playsinline src="/facebot/pleased.mp4"></video>
+                            break;
+                        case "loading":
+                            <video class="emotion-video" autoplay muted loop playsinline src="/facebot/loading.mp4"></video>
+                            break;
+                        case "typing":
+                            <video class="emotion-video" autoplay muted loop playsinline src="/facebot/typing.mp4"></video>
+                            break;
+                        case "voice":
+                            <video class="emotion-video" autoplay muted loop playsinline src="/facebot/voice.mp4"></video>
+                            break;
+                        default:
+                            <video class="emotion-video" autoplay muted loop playsinline src="/facebot/normal.mp4"></video>
+                            break;
+                    }
+                </div>
 
-<Button Type="ButtonType.Primary" Shape="ButtonShape.Circle" Size="ButtonSize.Large" Style="zoom:2.0;" OnClick='() => { XiaoZhiAgent.Agent.StartRecording("auto"); }'>录音</Button>
+                <!-- 消息内容 -->
+                <div class="messages-content">
+                    <!-- 欢迎消息 -->
+                    @if (string.IsNullOrEmpty(XiaoZhiAgent.QuestionMessae) && string.IsNullOrEmpty(XiaoZhiAgent.AnswerMessae))
+                    {
+                        <div class="welcome-message">
+                            <h3>欢迎使用小智AI助手！</h3>
+                            <ul>
+                                <li>• 输入文字或点击🎤语音对话</li>
+                                <li>• 支持实时语音识别和AI回复</li>
+                            </ul>
+                        </div>
+                    }
 
-@* <Button Type="ButtonType.Primary" Shape="ButtonShape.Circle" Size="ButtonSize.Large" Style="zoom:2.0;" OnClick='() => { XiaoZhiAgent.Agent.StopRecording(); }'>停止</Button> *@
+                    <!-- 对话消息 -->
+                    @if (!string.IsNullOrEmpty(XiaoZhiAgent.QuestionMessae))
+                    {
+                        <div class="message-time">@DateTime.Now.ToString("HH:mm")</div>
+                        <div class="message-bubble user">
+                            @XiaoZhiAgent.QuestionMessae
+                        </div>
+                    }
 
-<Button Type="ButtonType.Primary" Shape="ButtonShape.Circle" Size="ButtonSize.Large" Style="zoom:2.0;" OnClick='() => { XiaoZhiAgent.Agent.ChatAbort(); }'>打断</Button>
-<br />
-<br />
-<Search Placeholder="" @bind-Value="@txtValue" AllowClear EnterButton="@("发送")" OnSearch="SendText" OnPressEnter="SendText" Size="InputSize.Large" />
-<br />
-<br />
-@code{
+                    @if (!string.IsNullOrEmpty(XiaoZhiAgent.AnswerMessae))
+                    {
+                        <div class="message-time">@DateTime.Now.ToString("HH:mm")</div>
+                        <div class="message-bubble assistant">
+                            @XiaoZhiAgent.AnswerMessae
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- 录音状态显示区域 -->
+            <div class="recording-status">
+                <div class="status-info">
+                    <!-- 录音状态 -->
+                    <div class="recording-indicator @(XiaoZhiAgent.IsRecording ? "active" : "")">
+                        <span class="recording-dot @(XiaoZhiAgent.IsRecording ? "active" : "")"></span>
+                        <span>@(XiaoZhiAgent.IsRecording ? "录音中" : "待机")</span>
+                    </div>
+
+                    <!-- VAD状态 -->
+                    <div class="vad-status @GetVadStatusClass()">
+                        VAD: @XiaoZhiAgent.VadCounter
+                    </div>
+
+                    <!-- 音频强度显示 -->
+                    <div class="audio-level">
+                        <span class="audio-level-label">音量</span>
+                        <div class="audio-level-bar">
+                            <div class="audio-level-fill" style="width: @(XiaoZhiAgent.AudioLevel * 100)%"></div>
+                        </div>
+                    </div>
+
+                    <!-- 情绪状态显示 -->
+                    <div class="emotion-status">
+                        <span class="emotion-label">情绪: @XiaoZhiAgent.Emotion</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 输入区域 -->
+            <div class="input-area">
+                <input type="text" class="text-input" placeholder="输入消息..." 
+                       @bind="txtValue" @onkeypress="@HandleKeyPress" />
+                
+                <div class="action-buttons">
+                    @if (XiaoZhiAgent.IsRecording)
+                    {
+                        <button class="action-button stop" @onclick="StopRecording" title="停止录音">
+                            ⏹
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="action-button" @onclick="StartRecording" title="开始录音">
+                            🎤
+                        </button>
+                    }
+                    
+                    <button class="action-button" @onclick="StopChat" title="打断对话">
+                        ⏸
+                    </button>
+                </div>
+
+                <button class="send-button" @onclick="SendText" disabled="@string.IsNullOrWhiteSpace(txtValue)">
+                    ➤
+                </button>
+            </div>
+        </div>
+    }
+    else if (currentPage == "settings")
+    {
+        <!-- 设置页面 -->
+        <Settings />
+    }
+
+    <!-- 底部导航栏 -->
+    <div class="bottom-navigation">
+        <button class="nav-item @(currentPage == "chat" ? "active" : "")" @onclick="SwitchToChat">
+            <span class="nav-icon">💬</span>
+            <span class="nav-label">聊天</span>
+        </button>
+        
+        <button class="nav-item @(currentPage == "settings" ? "active" : "")" @onclick="SwitchToSettings">
+            <span class="nav-icon">⚙️</span>
+            <span class="nav-label">设置</span>
+        </button>
+    </div>
+</div>
+
+@code {
+    private string currentPage = "chat"; // 当前页面：chat 或 settings
     private string txtValue = string.Empty;
-    private System.Timers.Timer _timer = new System.Timers.Timer(1000) { Enabled = true };
+    private System.Timers.Timer _timer = new System.Timers.Timer(100) { Enabled = true }; // 更频繁的更新以显示音频强度
+    private ElementReference messagesContainer;
+
     protected override async Task OnInitializedAsync()
     {
         _timer.Elapsed += Timer_Elapsed;
     }
+
+    private void SwitchPage(string page)
+    {
+        currentPage = page;
+        StateHasChanged();
+    }
+
+    private void SwitchToChat()
+    {
+        currentPage = "chat";
+        StateHasChanged();
+    }
+
+    private void SwitchToSettings()
+    {
+        currentPage = "settings";
+        StateHasChanged();
+    }
+
     private async void Timer_Elapsed(object sender, EventArgs args)
     {
         await Task.Factory.StartNew(() =>
@@ -54,17 +206,98 @@
             InvokeAsync(() => { StateHasChanged(); return Task.CompletedTask; });
         });
     }
-    void IDisposable.Dispose()
-    {
-        _timer.Close();
-    }
 
-    async Task SendText()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!string.IsNullOrEmpty(txtValue))
+        // 自动滚动到底部（仅在聊天页面）
+        if (currentPage == "chat" && (!string.IsNullOrEmpty(XiaoZhiAgent.QuestionMessae) || !string.IsNullOrEmpty(XiaoZhiAgent.AnswerMessae)))
         {
-            await XiaoZhiAgent.Agent.ChatMessage(txtValue);
+            await ScrollToBottom();
         }
     }
 
+    private async Task ScrollToBottom()
+    {
+        try
+        {
+            await Task.Delay(100); // 等待DOM更新
+            // 这里可以添加JavaScript来滚动到底部，如果需要的话
+        }
+        catch
+        {
+            // 忽略错误
+        }
+    }
+
+    private async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(txtValue))
+        {
+            await SendText();
+        }
+    }
+
+    private async Task SendText()
+    {
+        if (!string.IsNullOrWhiteSpace(txtValue))
+        {
+            var message = txtValue.Trim();
+            txtValue = string.Empty; // 清空输入框
+            await XiaoZhiAgent.Agent.ChatMessage(message);
+        }
+    }
+
+    private async Task StartRecording()
+    {
+        try
+        {
+            await XiaoZhiAgent.Agent.StartRecording("auto");
+        }
+        catch (Exception ex)
+        {
+            // 处理录音启动错误
+            Console.WriteLine($"启动录音时出错: {ex.Message}");
+        }
+    }
+
+    private async Task StopRecording()
+    {
+        try
+        {
+            await XiaoZhiAgent.Agent.StopRecording();
+        }
+        catch (Exception ex)
+        {
+            // 处理录音停止错误
+            Console.WriteLine($"停止录音时出错: {ex.Message}");
+        }
+    }
+
+    private async Task StopChat()
+    {
+        try
+        {
+            await XiaoZhiAgent.Agent.ChatAbort();
+        }
+        catch (Exception ex)
+        {
+            // 处理打断对话错误
+            Console.WriteLine($"打断对话时出错: {ex.Message}");
+        }
+    }
+
+    private string GetVadStatusClass()
+    {
+        if (XiaoZhiAgent.VadCounter > 0 && XiaoZhiAgent.VadCounter < 10)
+        {
+            return "active";
+        }
+        return string.Empty;
+    }
+
+    void IDisposable.Dispose()
+    {
+        _timer?.Close();
+        _timer?.Dispose();
+    }
 }

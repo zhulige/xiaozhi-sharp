@@ -1,0 +1,203 @@
+@page "/settings"
+@inject XiaoZhi_AgentService XiaoZhiAgent
+
+<div class="settings-container">
+    <!-- 页面标题 -->
+    <div class="settings-header">
+        <h2>🔧 连接设置</h2>
+        <p class="settings-subtitle">配置小智AI服务器连接参数</p>
+    </div>
+
+    <!-- 设置项列表 -->
+    <div class="settings-content">
+        <!-- 服务器URL设置 -->
+        <div class="setting-group">
+            <div class="setting-header">
+                <div class="setting-icon">🌐</div>
+                <div class="setting-info">
+                    <h3>服务器URL</h3>
+                    <p>WebSocket服务器连接地址</p>
+                </div>
+            </div>
+            <div class="setting-input">
+                <input type="text" class="input-field" @bind="XiaoZhiAgent.ServerUrl" 
+                       placeholder="wss://api.tenclass.net/xiaozhi/v1/" />
+            </div>
+        </div>
+
+        <!-- MAC地址设置 -->
+        <div class="setting-group">
+            <div class="setting-header">
+                <div class="setting-icon">🏷️</div>
+                <div class="setting-info">
+                    <h3>MAC地址</h3>
+                    <p>设备唯一标识符</p>
+                </div>
+            </div>
+            <div class="setting-input">
+                <input type="text" class="input-field" @bind="XiaoZhiAgent.DeviceId" 
+                       placeholder="06:FB:BE:44:2D:29" />
+            </div>
+        </div>
+
+        <!-- OTA地址设置 -->
+        <div class="setting-group">
+            <div class="setting-header">
+                <div class="setting-icon">🔄</div>
+                <div class="setting-info">
+                    <h3>OTA地址</h3>
+                    <p>设备更新和配置服务器地址</p>
+                </div>
+            </div>
+            <div class="setting-input">
+                <input type="text" class="input-field" @bind="XiaoZhiAgent.OtaUrl" 
+                       placeholder="https://api.tenclass.net/xiaozhi/ota/" />
+            </div>
+        </div>
+
+        <!-- VAD阈值设置 -->
+        <div class="setting-group">
+            <div class="setting-header">
+                <div class="setting-icon">🎙️</div>
+                <div class="setting-info">
+                    <h3>VAD阈值</h3>
+                    <p>语音活动检测阈值 (毫秒)</p>
+                </div>
+            </div>
+            <div class="setting-input">
+                <input type="number" class="input-field" @bind="XiaoZhiAgent.VadThreshold" 
+                       min="10" max="100" placeholder="40" />
+            </div>
+        </div>
+
+        <!-- 调试模式设置 -->
+        <div class="setting-group">
+            <div class="setting-header">
+                <div class="setting-icon">🐛</div>
+                <div class="setting-info">
+                    <h3>调试模式</h3>
+                    <p>启用调试日志输出</p>
+                </div>
+            </div>
+            <div class="setting-toggle">
+                <label class="toggle-switch">
+                    <input type="checkbox" @bind="XiaoZhiAgent.IsDebugMode" />
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- 操作按钮 -->
+    <div class="settings-actions">
+        <button class="settings-action-button save" @onclick="SaveSettings" disabled="@isSaving">
+            @if (isSaving)
+            {
+                <span class="loading-spinner"></span>
+                <span>保存中...</span>
+            }
+            else
+            {
+                <span>💾 保存设置</span>
+            }
+        </button>
+        
+        <button class="settings-action-button apply" @onclick="ApplySettings" disabled="@isApplying">
+            @if (isApplying)
+            {
+                <span class="loading-spinner"></span>
+                <span>应用中...</span>
+            }
+            else
+            {
+                <span>🔄 应用并重连</span>
+            }
+        </button>
+        
+        <button class="settings-action-button reset" @onclick="ResetSettings">
+            🔄 恢复默认
+        </button>
+    </div>
+
+    <!-- 状态提示 -->
+    @if (!string.IsNullOrEmpty(statusMessage))
+    {
+        <div class="status-message @statusType">
+            @statusMessage
+        </div>
+    }
+</div>
+
+@code {
+    private bool isSaving = false;
+    private bool isApplying = false;
+    private string statusMessage = "";
+    private string statusType = "";
+
+    private async Task SaveSettings()
+    {
+        isSaving = true;
+        statusMessage = "";
+        
+        try
+        {
+            XiaoZhiAgent.SaveSettings();
+            statusMessage = "设置已保存成功！";
+            statusType = "success";
+            
+            // 3秒后清除消息
+            await Task.Delay(3000);
+            statusMessage = "";
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"保存失败: {ex.Message}";
+            statusType = "error";
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task ApplySettings()
+    {
+        isApplying = true;
+        statusMessage = "";
+        
+        try
+        {
+            await XiaoZhiAgent.ApplySettings();
+            statusMessage = "设置已应用，连接已重新建立！";
+            statusType = "success";
+            
+            // 3秒后清除消息
+            await Task.Delay(3000);
+            statusMessage = "";
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"应用失败: {ex.Message}";
+            statusType = "error";
+        }
+        finally
+        {
+            isApplying = false;
+        }
+    }
+
+    private async Task ResetSettings()
+    {
+        XiaoZhiAgent.ResetSettings();
+        
+        statusMessage = "设置已恢复为默认值";
+        statusType = "info";
+        
+        StateHasChanged();
+        
+        // 3秒后清除消息
+        await Task.Delay(3000);
+        statusMessage = "";
+        StateHasChanged();
+    }
+} 

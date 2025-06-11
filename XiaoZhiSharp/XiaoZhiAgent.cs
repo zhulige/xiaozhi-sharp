@@ -24,6 +24,11 @@ namespace XiaoZhiSharp
             get { return _wsUrl; }
             set { _wsUrl = value; }
         }
+        public string OtaUrl
+        {
+            get { return _otaUrl; }
+            set { _otaUrl = value; }
+        }
         public Services.IAudioService? AudioService
         {
             get { return _audioService; }
