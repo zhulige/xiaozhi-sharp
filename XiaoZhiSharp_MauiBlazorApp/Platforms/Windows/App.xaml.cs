@@ -40,22 +40,22 @@ namespace XiaoZhiSharp_MauiBlazorApp.WinUI
                 {
                     var titleBar = appWindow.TitleBar;
                     
-                    // 设置标题栏颜色为蓝色主题
+                    // 设置标题栏颜色为蓝色主题 - 使用Microsoft.UI.Colors
                     titleBar.BackgroundColor = ColorHelper.FromArgb(255, 74, 144, 226); // #4a90e2
-                    titleBar.ForegroundColor = Colors.White;
+                    titleBar.ForegroundColor = Microsoft.UI.Colors.White;
                     titleBar.InactiveBackgroundColor = ColorHelper.FromArgb(255, 91, 160, 242); // #5ba0f2
-                    titleBar.InactiveForegroundColor = Colors.White;
+                    titleBar.InactiveForegroundColor = Microsoft.UI.Colors.White;
                     
                     // 按钮颜色
-                    titleBar.ButtonBackgroundColor = Colors.Transparent;
-                    titleBar.ButtonForegroundColor = Colors.White;
+                    titleBar.ButtonBackgroundColor = Microsoft.UI.Colors.Transparent;
+                    titleBar.ButtonForegroundColor = Microsoft.UI.Colors.White;
                     titleBar.ButtonHoverBackgroundColor = ColorHelper.FromArgb(50, 255, 255, 255);
-                    titleBar.ButtonHoverForegroundColor = Colors.White;
+                    titleBar.ButtonHoverForegroundColor = Microsoft.UI.Colors.White;
                     titleBar.ButtonPressedBackgroundColor = ColorHelper.FromArgb(100, 255, 255, 255);
-                    titleBar.ButtonPressedForegroundColor = Colors.White;
+                    titleBar.ButtonPressedForegroundColor = Microsoft.UI.Colors.White;
                     
-                    titleBar.ButtonInactiveBackgroundColor = Colors.Transparent;
-                    titleBar.ButtonInactiveForegroundColor = Colors.White;
+                    titleBar.ButtonInactiveBackgroundColor = Microsoft.UI.Colors.Transparent;
+                    titleBar.ButtonInactiveForegroundColor = Microsoft.UI.Colors.White;
                 }
             }
         }
