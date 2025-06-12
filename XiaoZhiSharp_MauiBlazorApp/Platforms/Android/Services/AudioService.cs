@@ -1,4 +1,5 @@
 ﻿using Android.App;
+using Android.Content;
 using Android.Content.PM;
 using Android.Media;
 using AndroidX.Core.App;
@@ -11,6 +12,7 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
 {
     public class AudioService : IDisposable, IAudioService
     {
+        #region 常量定义
         // 音频参数
         private const int SampleRate = 24000;
         private const int SampleRate_WaveIn = 16000;
@@ -18,7 +20,6 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
         private const int Channels = 1;
         private const int FrameDuration = 60;
         private const int FrameSize = SampleRate * FrameDuration / 1000; // 帧大小
-
         // 计算60ms的样本数
         private const int SamplesPerFrame = SampleRate_WaveIn * FrameDuration / 1000;
         // 16位音频每个样本2字节
@@ -31,12 +32,15 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
         private AudioTrack? _audioTrack;
         private bool _isPlaying;
         private bool _isRecording;
-
+        #endregion
+        #region 事件
         public event IAudioService.PcmAudioEventHandler? OnPcmAudioEvent;
-
+        #endregion
+        #region 属性
         public bool IsPlaying => _isPlaying;
         public bool IsRecording => _isRecording;
         public int VadCounter { get; private set; } = 0; // 用于语音活动检测的计数器
+        #endregion
         public AudioService()
         {
             if (!HasAudioPermission())
@@ -54,7 +58,6 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
 
                 // 初始化音频录制组件
                 _audioRecord = new AudioRecord(AudioSource.Mic, SampleRate_WaveIn, ChannelIn.Mono, Android.Media.Encoding.Pcm16bit, bufferSize);
-
                 // 检查 AudioRecord 是否初始化成功
                 if (_audioRecord.State != State.Initialized)
                 {
@@ -71,7 +74,6 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
                 Console.WriteLine($"初始化音频组件时出错: {ex.Message}");
             }
         }
-
         private bool HasAudioPermission()
         {
             return ContextCompat.CheckSelfPermission(Android.App.Application.Context, Android.Manifest.Permission.RecordAudio) == Permission.Granted;
@@ -104,12 +106,14 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
                                 int bytesRead = _audioRecord.Read(buffer, 0, buffer.Length);
                                 if (bytesRead > 0)
                                 {
+                                    if (OnPcmAudioEvent != null)
+                                    {
+                                        OnPcmAudioEvent(buffer);
+                                    }
+
                                     if (!IsAudioMute(buffer, bytesRead))
                                     {
-                                        if (OnPcmAudioEvent != null)
-                                        {
-                                            OnPcmAudioEvent(buffer);
-                                        }
+
                                     }
                                     else
                                     {
