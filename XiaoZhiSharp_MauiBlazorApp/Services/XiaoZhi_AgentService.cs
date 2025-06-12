@@ -53,7 +53,7 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
             }
             else if (DeviceInfo.Platform == DevicePlatform.WinUI)
             {
-                _agent.AudioService = new Services.AudioService();
+               //_agent.AudioService = new Services.AudioService();
             }
             
             _agent.Start();

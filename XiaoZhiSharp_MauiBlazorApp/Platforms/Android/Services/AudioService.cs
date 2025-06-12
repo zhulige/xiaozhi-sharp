@@ -1,8 +1,9 @@
-﻿using Android.Media;
+﻿using Android.App;
 using Android.Content.PM;
+using Android.Media;
 using AndroidX.Core.App;
 using AndroidX.Core.Content;
-using Android.App;
+using NAudio.Wave;
 using System.Threading.Tasks;
 using XiaoZhiSharp.Services;
 
@@ -17,6 +18,13 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
         private const int Channels = 1;
         private const int FrameDuration = 60;
         private const int FrameSize = SampleRate * FrameDuration / 1000; // 帧大小
+
+        // 计算60ms的样本数
+        private const int SamplesPerFrame = SampleRate_WaveIn * FrameDuration / 1000;
+        // 16位音频每个样本2字节
+        private const int BytesPerSample = Bitrate / 8;
+        // 60ms帧的字节数
+        private const int BytesPerFrame = SamplesPerFrame * BytesPerSample;
 
         private MediaPlayer? _mediaPlayer;
         private AudioRecord? _audioRecord;
@@ -40,9 +48,11 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
             {
                 // 初始化音频播放组件
                 _mediaPlayer = new MediaPlayer();
+                // 计算最小缓冲区大小，并确保至少能容纳一帧数据
+                int minBufferSize = AudioRecord.GetMinBufferSize(SampleRate_WaveIn, ChannelIn.Mono, Android.Media.Encoding.Pcm16bit);
+                int bufferSize = Math.Max(minBufferSize, BytesPerFrame * 2); // 至少能容纳2帧数据
 
                 // 初始化音频录制组件
-                int bufferSize = AudioRecord.GetMinBufferSize(SampleRate_WaveIn, ChannelIn.Mono, Android.Media.Encoding.Pcm16bit);
                 _audioRecord = new AudioRecord(AudioSource.Mic, SampleRate_WaveIn, ChannelIn.Mono, Android.Media.Encoding.Pcm16bit, bufferSize);
 
                 // 检查 AudioRecord 是否初始化成功
@@ -54,14 +64,7 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
 
                 // 初始化 AudioTrack
                 int audioTrackBufferSize = AudioTrack.GetMinBufferSize(SampleRate, ChannelOut.Mono, Android.Media.Encoding.Pcm16bit);
-                _audioTrack = new AudioTrack(
-                    Android.Media.Stream.Music,
-                    SampleRate,
-                    ChannelOut.Mono,
-                    Android.Media.Encoding.Pcm16bit,
-                    audioTrackBufferSize,
-                    AudioTrackMode.Stream
-                );
+                _audioTrack = new AudioTrack(Android.Media.Stream.Music, SampleRate, ChannelOut.Mono, Android.Media.Encoding.Pcm16bit, audioTrackBufferSize, AudioTrackMode.Stream);
             }
             catch (Exception ex)
             {
@@ -73,13 +76,11 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
         {
             return ContextCompat.CheckSelfPermission(Android.App.Application.Context, Android.Manifest.Permission.RecordAudio) == Permission.Granted;
         }
-
         private async Task RequestAudioPermission()
         {
             ActivityCompat.RequestPermissions(Platform.CurrentActivity, new string[] { Android.Manifest.Permission.RecordAudio }, 1);
             await Task.Delay(1000); // 等待用户响应权限请求
         }
-
         public void StartRecording()
         {
             try
@@ -103,7 +104,7 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
                                 int bytesRead = _audioRecord.Read(buffer, 0, buffer.Length);
                                 if (bytesRead > 0)
                                 {
-                                    if (!IsAudioMute(buffer, bytesRead)) // 修复错误：替换 e.BytesRecorded 为 bytesRead
+                                    if (!IsAudioMute(buffer, bytesRead))
                                     {
                                         if (OnPcmAudioEvent != null)
                                         {
@@ -145,7 +146,6 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
                 Console.WriteLine($"启动录音时出错: {ex.Message}");
             }
         }
-
         public void StopRecording()
         {
             try
@@ -162,10 +162,6 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
                 Console.WriteLine($"停止录音时出错: {ex.Message}");
             }
         }
-
-        /// <summary>
-        /// 静音检测
-        /// </summary>
         private bool IsAudioMute(byte[] buffer, int bytesRecorded)
         {
             double rms = 0;
@@ -183,7 +179,6 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
             double MuteThreshold = 0.01; // 静音阈值
             return rms < MuteThreshold;
         }
-
         public void StartPlaying()
         {
             try
@@ -199,7 +194,6 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
                 Console.WriteLine($"启动播放时出错: {ex.Message}");
             }
         }
-
         public void StopPlaying()
         {
             try
@@ -215,7 +209,6 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
                 Console.WriteLine($"停止播放时出错: {ex.Message}");
             }
         }
-
         public void AddOutSamples(byte[] pcmData)
         {
             try
@@ -234,12 +227,10 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
                 Console.WriteLine($"添加样本数据时出错: {ex.Message}");
             }
         }
-
         public void AddOutSamples(float[] pcmData)
         {
             throw new NotImplementedException("不支持 float 类型的 PCM 数据");
         }
-
         public void Dispose()
         {
             try
