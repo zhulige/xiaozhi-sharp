@@ -73,7 +73,7 @@ namespace XiaoZhiSharp.Services.Chat
             if (_webSocket == null)
                 return;
 
-            var buffer = new byte[1024 * 10];
+            var buffer = new byte[1024 * 15];
             while (true)
             {
                 if (_webSocket.State == WebSocketState.Open)
@@ -157,6 +157,8 @@ namespace XiaoZhiSharp.Services.Chat
                         break;
                     }
                 }
+
+                Thread.Sleep(10); // 避免过于频繁的循环
             }
         }
         private async Task SendMessageAsync(string message)
@@ -191,7 +193,7 @@ namespace XiaoZhiSharp.Services.Chat
         }
         public async Task ChatMessage(string message)
         {
-            await ChatAbort();
+            //await ChatAbort();
             await SendMessageAsync(XiaoZhi_Protocol.Listen_Detect(message));
         }
         public async Task McpMessage(string message)
@@ -200,12 +202,12 @@ namespace XiaoZhiSharp.Services.Chat
         }
         public async Task StartRecording()
         {
-            await ChatAbort();
+            //await ChatAbort();
             await SendMessageAsync(XiaoZhi_Protocol.Listen_Start("", "manual"));
         }
         public async Task StartRecordingAuto()
         {
-            await ChatAbort();
+            //await ChatAbort();
             await SendMessageAsync(XiaoZhi_Protocol.Listen_Start("", "auto"));
         }
         public async Task StopRecording()

@@ -158,6 +158,7 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
                 {
                     _audioRecord.Stop();
                     _isRecording = false;
+                    VadCounter = 0;
                     Console.WriteLine("结束录音");
                 }
             }
