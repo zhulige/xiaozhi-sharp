@@ -148,7 +148,8 @@ namespace XiaoZhiSharp.Services
                 byte[] pcmBytes48000 = e.Buffer;
                 if (!IsAudioMute(pcmBytes48000, e.BytesRecorded))
                 {
-                    Console.Title = "录音-" + VadCounter;
+                    if(Global.IsDebug)
+                        Console.Title = "录音-" + VadCounter;
                     byte[] pcmBytes = ConvertPcmSampleRate(pcmBytes48000, 48000, SampleRate_WaveIn, Channels, Bitrate);
 
                     if (OnPcmAudioEvent != null)
@@ -159,7 +160,8 @@ namespace XiaoZhiSharp.Services
                 else
                 {
                     VadCounter ++;
-                    Console.Title = "静音-" + VadCounter;
+                    if (Global.IsDebug)
+                        Console.Title = "静音-" + VadCounter;
                 }
             });
         }
