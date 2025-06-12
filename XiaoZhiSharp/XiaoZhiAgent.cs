@@ -40,7 +40,10 @@ namespace XiaoZhiSharp
             get { return _deviceId; }
             set { _deviceId = value; }
         }
-
+        public bool IsPlaying
+        {
+            get { return _audioService != null && _audioService.IsPlaying; }
+        }
         public bool IsRecording
         {
             get { return _audioService != null && _audioService.IsRecording; }
