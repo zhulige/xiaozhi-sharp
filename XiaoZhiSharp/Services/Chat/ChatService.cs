@@ -191,7 +191,7 @@ namespace XiaoZhiSharp.Services.Chat
         }
         public async Task ChatMessage(string message)
         {
-            await ChatAbort();
+            //await ChatAbort();
             await SendMessageAsync(XiaoZhi_Protocol.Listen_Detect(message));
         }
         public async Task McpMessage(string message)
@@ -200,12 +200,12 @@ namespace XiaoZhiSharp.Services.Chat
         }
         public async Task StartRecording()
         {
-            await ChatAbort();
+            //await ChatAbort();
             await SendMessageAsync(XiaoZhi_Protocol.Listen_Start("", "manual"));
         }
         public async Task StartRecordingAuto()
         {
-            await ChatAbort();
+            //await ChatAbort();
             await SendMessageAsync(XiaoZhi_Protocol.Listen_Start("", "auto"));
         }
         public async Task StopRecording()
