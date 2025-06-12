@@ -1014,3 +1014,204 @@ input:checked + .slider:before {
     font-size: 12px;
     font-weight: 500;
 }
+
+/* OTA状态信息样式 */
+.ota-status-group {
+    background: linear-gradient(135deg, #e8f5e8, #f0f8f0);
+    border: 1px solid #c8e6c9;
+}
+
+.ota-status-content {
+    padding: 15px;
+    background: white;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+.status-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.status-row:last-child {
+    border-bottom: none;
+}
+
+.status-label {
+    font-weight: 600;
+    color: #555;
+    min-width: 100px;
+}
+
+.status-value {
+    color: #333;
+    font-family: monospace;
+    font-size: 14px;
+}
+
+.status-value.connected {
+    color: #4caf50;
+    font-weight: 600;
+}
+
+.status-value.disconnected {
+    color: #f44336;
+    font-weight: 600;
+}
+
+.status-value.activation-code {
+    background: #e3f2fd;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    color: #1976d2;
+}
+
+.status-value.firmware-url {
+    color: #ff9800;
+    font-weight: 600;
+}
+
+.ota-actions {
+    margin-top: 15px;
+    text-align: center;
+}
+
+.ota-check-button {
+    background: linear-gradient(135deg, #2196f3, #42a5f5);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.ota-check-button:hover {
+    background: linear-gradient(135deg, #1976d2, #1e88e5);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+}
+
+/* 调试日志样式 */
+.debug-logs-group {
+    background: linear-gradient(135deg, #f3e5f5, #fce4ec);
+    border: 1px solid #e1bee7;
+}
+
+.debug-logs-content {
+    background: white;
+    border-radius: 8px;
+    margin-top: 10px;
+    overflow: hidden;
+}
+
+.logs-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.logs-count {
+    font-size: 14px;
+    color: #666;
+    font-weight: 600;
+}
+
+.clear-logs-button {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.clear-logs-button:hover {
+    background: #c82333;
+    transform: translateY(-1px);
+}
+
+.logs-container {
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.no-logs {
+    text-align: center;
+    color: #999;
+    font-style: italic;
+    padding: 20px;
+}
+
+.log-entry {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    padding: 4px 8px;
+    margin: 2px 0;
+    background: #f8f9fa;
+    border-radius: 4px;
+    color: #333;
+    border-left: 3px solid #007bff;
+}
+
+.log-entry:hover {
+    background: #e9ecef;
+}
+
+/* 滚动条美化 */
+.logs-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.logs-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.logs-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.logs-container::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* 移动端响应式调整 */
+@media (max-width: 768px) {
+    .status-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .status-label {
+        min-width: auto;
+        font-size: 14px;
+    }
+
+    .status-value {
+        font-size: 13px;
+    }
+
+    .logs-container {
+        max-height: 200px;
+    }
+
+    .log-entry {
+        font-size: 11px;
+        word-break: break-all;
+    }
+}

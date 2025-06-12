@@ -26,14 +26,26 @@ XiaoZhiSharp 是使用 C# 语言编写的 “XiaoZhi SDK”，并提供了Consol
 ## 示例
 ``` C#
 using XiaoZhiSharp;
+using XiaoZhiSharp.Protocols;
 
 XiaoZhiAgent agent = new XiaoZhiAgent();
 agent.OnMessageEvent += Agent_OnMessageEvent;
-await agent.Start();
+agent.OnOtaEvent += Agent_OnOtaEvent;
+await agent.Start(); // 会自动进行OTA检查，然后连接WebSocket
 
 private static Task Agent_OnMessageEvent(string type, string message)
 {
     LogConsole.InfoLine($"[{type}] {message}");
+    return Task.CompletedTask;
+}
+
+private static Task Agent_OnOtaEvent(OtaResponse? otaResponse)
+{
+    if (otaResponse != null)
+    {
+        LogConsole.InfoLine("OTA检查完成，获取到服务器配置信息");
+        // 处理OTA响应数据，包括WebSocket URL、Token、MQTT配置等
+    }
     return Task.CompletedTask;
 }
 ```

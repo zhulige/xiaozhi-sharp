@@ -65,8 +65,13 @@ class Program
         //_agent.AudioService = new 
         //_agent.OnAudioPcmEvent =
         _agent.OnMessageEvent += Agent_OnMessageEvent;
-        LogConsole.InfoLine(_agent.WsUrl);
-        _agent.Start();
+        _agent.OnOtaEvent += Agent_OnOtaEvent;
+        LogConsole.InfoLine($"初始OTA URL: {_agent.OtaUrl}");
+        LogConsole.InfoLine($"初始WebSocket URL: {_agent.WsUrl}");
+        LogConsole.InfoLine($"设备ID: {_agent.DeviceId}");
+        LogConsole.InfoLine($"客户端ID: {_agent.ClientId}");
+        LogConsole.InfoLine($"User-Agent: {_agent.UserAgent}");
+        await _agent.Start();
 
         _ = Task.Run(async () =>
         {
@@ -107,7 +112,7 @@ class Program
             {
                 if (input.ToLower() == "restart")
                 {
-                    _agent.Restart();
+                    await _agent.Restart();
                 }
                 else
                 {
@@ -131,6 +136,42 @@ class Program
                     //LogConsole.InfoLine("结束录音");
                 }
             }
+        }
+    }
+
+    private static async Task Agent_OnOtaEvent(OtaResponse? otaResponse)
+    {
+        if (otaResponse != null)
+        {
+            LogConsole.InfoLine("=== OTA检查结果 ===");
+            
+            if (otaResponse.Activation != null)
+            {
+                LogConsole.InfoLine($"设备激活码: {otaResponse.Activation.Code}");
+                LogConsole.InfoLine($"激活消息: {otaResponse.Activation.Message}");
+            }
+
+            if (otaResponse.Firmware != null && !string.IsNullOrEmpty(otaResponse.Firmware.Url))
+            {
+                LogConsole.InfoLine($"发现固件更新: {otaResponse.Firmware.Version}");
+                LogConsole.InfoLine($"下载地址: {otaResponse.Firmware.Url}");
+            }
+
+            if (otaResponse.WebSocket != null)
+            {
+                LogConsole.InfoLine($"WebSocket服务器: {otaResponse.WebSocket.Url}");
+            }
+
+            if (otaResponse.Mqtt != null)
+            {
+                LogConsole.InfoLine($"MQTT服务器: {otaResponse.Mqtt.Endpoint}");
+            }
+
+            LogConsole.InfoLine("=== OTA检查完成 ===");
+        }
+        else
+        {
+            LogConsole.InfoLine("OTA检查失败，将使用默认配置");
         }
     }
 

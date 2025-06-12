@@ -1,5 +1,6 @@
 @page "/settings"
 @inject XiaoZhi_AgentService XiaoZhiAgent
+@implements IDisposable
 
 <div class="settings-container">
     <!-- 页面标题 -->
@@ -55,6 +56,92 @@
             </div>
         </div>
 
+        <!-- OTA状态信息 -->
+        <div class="setting-group ota-status-group">
+            <div class="setting-header">
+                <div class="setting-icon">📊</div>
+                <div class="setting-info">
+                    <h3>OTA状态信息</h3>
+                    <p>设备连接和配置状态</p>
+                </div>
+            </div>
+            <div class="ota-status-content">
+                <div class="status-row">
+                    <span class="status-label">连接状态:</span>
+                    <span class="status-value @(XiaoZhiAgent.IsConnected ? "connected" : "disconnected")">
+                        @(XiaoZhiAgent.IsConnected ? "✅ 已连接" : "❌ 未连接")
+                    </span>
+                </div>
+                
+                <div class="status-row">
+                    <span class="status-label">OTA状态:</span>
+                    <span class="status-value">@XiaoZhiAgent.OtaStatus</span>
+                </div>
+
+                @if (XiaoZhiAgent.LastOtaCheckTime.HasValue)
+                {
+                    <div class="status-row">
+                        <span class="status-label">最后检查:</span>
+                        <span class="status-value">@XiaoZhiAgent.LastOtaCheckTime?.ToString("yyyy-MM-dd HH:mm:ss")</span>
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(XiaoZhiAgent.ActivationCode))
+                {
+                    <div class="status-row">
+                        <span class="status-label">激活码:</span>
+                        <span class="status-value activation-code">@XiaoZhiAgent.ActivationCode</span>
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(XiaoZhiAgent.ActivationMessage))
+                {
+                    <div class="status-row">
+                        <span class="status-label">激活消息:</span>
+                        <span class="status-value">@XiaoZhiAgent.ActivationMessage</span>
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(XiaoZhiAgent.FirmwareVersion))
+                {
+                    <div class="status-row">
+                        <span class="status-label">固件版本:</span>
+                        <span class="status-value">@XiaoZhiAgent.FirmwareVersion</span>
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(XiaoZhiAgent.FirmwareUrl))
+                {
+                    <div class="status-row">
+                        <span class="status-label">固件下载:</span>
+                        <span class="status-value firmware-url">🔗 有更新可用</span>
+                    </div>
+                }
+
+                @if (XiaoZhiAgent.ServerTime.HasValue)
+                {
+                    <div class="status-row">
+                        <span class="status-label">服务器时间:</span>
+                        <span class="status-value">@XiaoZhiAgent.ServerTime?.ToString("yyyy-MM-dd HH:mm:ss")</span>
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(XiaoZhiAgent.MqttEndpoint))
+                {
+                    <div class="status-row">
+                        <span class="status-label">MQTT服务器:</span>
+                        <span class="status-value">@XiaoZhiAgent.MqttEndpoint</span>
+                    </div>
+                }
+
+                <div class="ota-actions">
+                    <button class="ota-check-button" @onclick="ManualOtaCheck">
+                        🔄 手动检查OTA
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- VAD阈值设置 -->
         <div class="setting-group">
             <div class="setting-header">
@@ -86,6 +173,41 @@
                 </label>
             </div>
         </div>
+
+        <!-- 调试日志显示 -->
+        @if (XiaoZhiAgent.IsDebugMode)
+        {
+            <div class="setting-group debug-logs-group">
+                <div class="setting-header">
+                    <div class="setting-icon">📋</div>
+                    <div class="setting-info">
+                        <h3>调试日志</h3>
+                        <p>实时消息和OTA状态日志</p>
+                    </div>
+                </div>
+                <div class="debug-logs-content">
+                    <div class="logs-header">
+                        <span class="logs-count">共 @XiaoZhiAgent.DebugLogs.Count 条日志</span>
+                        <button class="clear-logs-button" @onclick="ClearLogs">
+                            🗑️ 清空日志
+                        </button>
+                    </div>
+                    <div class="logs-container">
+                        @if (XiaoZhiAgent.DebugLogs.Count == 0)
+                        {
+                            <div class="no-logs">暂无日志信息</div>
+                        }
+                        else
+                        {
+                            @foreach (var log in XiaoZhiAgent.DebugLogs.Reverse())
+                            {
+                                <div class="log-entry">@log</div>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        }
     </div>
 
     <!-- 操作按钮 -->
@@ -133,6 +255,24 @@
     private bool isApplying = false;
     private string statusMessage = "";
     private string statusType = "";
+    private Timer? refreshTimer;
+
+    protected override void OnInitialized()
+    {
+        // 启动定时器，每秒刷新一次界面（仅在调试模式下）
+        refreshTimer = new Timer(async _ =>
+        {
+            if (XiaoZhiAgent.IsDebugMode)
+            {
+                await InvokeAsync(StateHasChanged);
+            }
+        }, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+    }
+
+    public void Dispose()
+    {
+        refreshTimer?.Dispose();
+    }
 
     private async Task SaveSettings()
     {
@@ -199,5 +339,47 @@
         await Task.Delay(3000);
         statusMessage = "";
         StateHasChanged();
+    }
+
+    private async Task ManualOtaCheck()
+    {
+        statusMessage = "正在进行OTA检查...";
+        statusType = "info";
+        StateHasChanged();
+        
+        try
+        {
+            await XiaoZhiAgent.ManualOtaCheck();
+            statusMessage = "OTA检查完成";
+            statusType = "success";
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"OTA检查失败: {ex.Message}";
+            statusType = "error";
+        }
+        
+        StateHasChanged();
+        
+        // 3秒后清除消息
+        await Task.Delay(3000);
+        statusMessage = "";
+        StateHasChanged();
+    }
+
+    private void ClearLogs()
+    {
+        XiaoZhiAgent.ClearDebugLogs();
+        statusMessage = "调试日志已清空";
+        statusType = "info";
+        StateHasChanged();
+        
+        // 3秒后清除消息
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(3000);
+            statusMessage = "";
+            await InvokeAsync(StateHasChanged);
+        });
     }
 } 

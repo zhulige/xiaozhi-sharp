@@ -1,4 +1,6 @@
 ﻿using XiaoZhiSharp;
+using XiaoZhiSharp.Protocols;
+using System.Collections.ObjectModel;
 
 namespace XiaoZhiSharp_MauiBlazorApp.Services
 {
@@ -18,6 +20,18 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
         public string DeviceId { get; set; } = Global.DeivceId;
         public int VadThreshold { get; set; } = 40;
         public bool IsDebugMode { get; set; } = false;
+
+        // OTA 相关信息
+        public OtaResponse? LatestOtaResponse { get; private set; }
+        public string OtaStatus { get; private set; } = "未检查";
+        public DateTime? LastOtaCheckTime { get; private set; }
+        public string? ActivationCode { get; private set; }
+        public string? ActivationMessage { get; private set; }
+        public string? FirmwareVersion { get; private set; }
+        public string? FirmwareUrl { get; private set; }
+        public DateTime? ServerTime { get; private set; }
+        public string? MqttEndpoint { get; private set; }
+        public ObservableCollection<string> DebugLogs { get; private set; } = new();
         
         public XiaoZhiAgent Agent
         {
@@ -43,8 +57,10 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
             _agent = new XiaoZhiAgent();
             _agent.DeviceId = DeviceId;
             _agent.WsUrl = ServerUrl;
+            _agent.OtaUrl = OtaUrl;
             _agent.OnMessageEvent += Agent_OnMessageEvent;
             _agent.OnAudioPcmEvent += Agent_OnAudioPcmEvent;
+            _agent.OnOtaEvent += Agent_OnOtaEvent;
             
             // 根据平台注册相应的音频服务
             if (DeviceInfo.Platform == DevicePlatform.Android) 
@@ -56,7 +72,7 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
                //_agent.AudioService = new Services.AudioService();
             }
             
-            _agent.Start();
+            _ = Task.Run(async () => await _agent.Start());
             IsConnected = true; // 假设启动后就连接成功
         }
 
@@ -95,7 +111,7 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
             _agent.OtaUrl = OtaUrl;
             
             // 重启连接
-            _agent.Restart();
+            await _agent.Restart();
         }
 
         public void ResetSettings()
@@ -146,7 +162,108 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
             if (type == "answer_stop")
                 await _agent.StartRecording("auto");
 
-            //LogConsole.InfoLine($"[{type}] {message}");
+            // 添加调试日志
+            if (IsDebugMode)
+            {
+                AddDebugLog($"[{type}] {message}");
+            }
+        }
+
+        private async Task Agent_OnOtaEvent(OtaResponse? otaResponse)
+        {
+            LastOtaCheckTime = DateTime.Now;
+            LatestOtaResponse = otaResponse;
+
+            if (otaResponse != null)
+            {
+                OtaStatus = "检查成功";
+                
+                // 提取激活信息
+                if (otaResponse.Activation != null)
+                {
+                    ActivationCode = otaResponse.Activation.Code;
+                    ActivationMessage = otaResponse.Activation.Message;
+                }
+
+                // 提取固件信息
+                if (otaResponse.Firmware != null)
+                {
+                    FirmwareVersion = otaResponse.Firmware.Version;
+                    FirmwareUrl = otaResponse.Firmware.Url;
+                }
+
+                // 提取服务器时间
+                if (otaResponse.ServerTime != null)
+                {
+                    ServerTime = DateTimeOffset.FromUnixTimeMilliseconds(otaResponse.ServerTime.Timestamp).DateTime;
+                }
+
+                // 提取MQTT信息
+                if (otaResponse.Mqtt != null)
+                {
+                    MqttEndpoint = otaResponse.Mqtt.Endpoint;
+                }
+
+                // 如果WebSocket配置更新了，更新当前URL
+                if (otaResponse.WebSocket != null && !string.IsNullOrEmpty(otaResponse.WebSocket.Url))
+                {
+                    ServerUrl = otaResponse.WebSocket.Url;
+                }
+
+                AddDebugLog($"OTA检查成功，激活码: {ActivationCode}");
+                
+                if (!string.IsNullOrEmpty(FirmwareUrl))
+                {
+                    AddDebugLog($"发现固件更新: {FirmwareVersion}");
+                }
+            }
+            else
+            {
+                OtaStatus = "检查失败";
+                AddDebugLog("OTA检查失败，使用默认配置");
+            }
+        }
+
+        private void AddDebugLog(string message)
+        {
+            var logMessage = $"[{DateTime.Now:HH:mm:ss}] {message}";
+            
+            if (DebugLogs.Count >= 100) // 保持最新100条日志
+            {
+                DebugLogs.RemoveAt(0);
+            }
+            
+            DebugLogs.Add(logMessage);
+        }
+
+        public void ClearDebugLogs()
+        {
+            DebugLogs.Clear();
+        }
+
+        public async Task ManualOtaCheck()
+        {
+            try
+            {
+                OtaStatus = "检查中...";
+                AddDebugLog("开始手动OTA检查");
+                
+                var result = await _agent.CheckOtaUpdate();
+                
+                if (result != null)
+                {
+                    AddDebugLog("手动OTA检查成功");
+                }
+                else
+                {
+                    AddDebugLog("手动OTA检查失败");
+                }
+            }
+            catch (Exception ex)
+            {
+                OtaStatus = "检查异常";
+                AddDebugLog($"OTA检查异常: {ex.Message}");
+            }
         }
     }
 }
