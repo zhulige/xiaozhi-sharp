@@ -157,6 +157,8 @@ namespace XiaoZhiSharp.Services.Chat
                         break;
                     }
                 }
+
+                Thread.Sleep(10); // 避免过于频繁的循环
             }
         }
         private async Task SendMessageAsync(string message)
