@@ -22,7 +22,7 @@ namespace XiaoZhiSharp.Services.Chat
         private ClientWebSocket? _webSocket = null;
 
         #region 属性
-
+        public WebSocketState ConnectState { get { return _webSocket?.State ?? WebSocketState.None; } }
         #endregion
 
         #region 事件

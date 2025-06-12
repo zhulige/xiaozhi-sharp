@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.WebSockets;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using XiaoZhiSharp.Protocols;
@@ -44,7 +45,10 @@ namespace XiaoZhiSharp
         {
             get { return _audioService != null && _audioService.IsRecording; }
         }
-
+        public WebSocketState ConnectState
+        {
+            get { return _chatService != null ? _chatService.ConnectState : WebSocketState.None; }
+        }
         #endregion
 
         #region 事件
