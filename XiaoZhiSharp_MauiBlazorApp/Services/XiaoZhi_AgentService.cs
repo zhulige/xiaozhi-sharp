@@ -73,7 +73,7 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
             { 
                 var audioService = new Services.AudioService();
                 // 配置VAD参数
-                audioService.ConfigureVAD(UseVAD, VadEnergyThreshold, VadSilenceFrames, TtsCooldownTime);
+                //audioService.ConfigureVAD(UseVAD, VadEnergyThreshold, VadSilenceFrames, TtsCooldownTime);
                 _agent.AudioService = audioService;
             }
             else if (DeviceInfo.Platform == DevicePlatform.WinUI)
@@ -135,7 +135,7 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
             if (_agent.AudioService != null && DeviceInfo.Platform == DevicePlatform.Android)
             {
                 var audioService = _agent.AudioService as Services.AudioService;
-                audioService?.ConfigureVAD(UseVAD, VadEnergyThreshold, VadSilenceFrames, TtsCooldownTime);
+                //audioService?.ConfigureVAD(UseVAD, VadEnergyThreshold, VadSilenceFrames, TtsCooldownTime);
             }
             
             // 重启连接
