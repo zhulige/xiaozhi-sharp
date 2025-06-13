@@ -14,7 +14,7 @@
                 <div class="title">小智AI助手</div>
                 <div class="connection-status">
                     <span class="status-indicator @(XiaoZhiAgent.IsConnected ? "" : "disconnected")"></span>
-                    <span>连接状态：@(XiaoZhiAgent.IsConnected ? "已连接" : "未连接")</span>
+                    <span>连接状态：@(XiaoZhiAgent.IsConnected ? "已连接" : "未连接") @XiaoZhiAgent.Agent.ConnectState.ToString()</span>
                 </div>
                 <div class="clear-chat">
                     <button class="clear-chat-button" @onclick="ClearChat" title="清空聊天记录">
