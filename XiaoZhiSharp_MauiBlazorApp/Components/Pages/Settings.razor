@@ -102,6 +102,27 @@
                     </div>
                 }
 
+                <!-- 版本信息区域 -->
+                <div class="status-row version-info">
+                    <span class="status-label">当前版本:</span>
+                    <span class="status-value">@XiaoZhiAgent.CurrentVersion</span>
+                </div>
+
+                @if (!string.IsNullOrEmpty(XiaoZhiAgent.LatestVersion))
+                {
+                    <div class="status-row version-info">
+                        <span class="status-label">最新版本:</span>
+                        <span class="status-value">@XiaoZhiAgent.LatestVersion</span>
+                    </div>
+                    
+                    <div class="status-row version-info">
+                        <span class="status-label">更新状态:</span>
+                        <span class="status-value @(XiaoZhiAgent.NeedUpdate ? "update-needed" : "up-to-date")">
+                            @(XiaoZhiAgent.NeedUpdate ? "⚠️ 需要更新" : "✅ 已是最新")
+                        </span>
+                    </div>
+                }
+
                 @if (!string.IsNullOrEmpty(XiaoZhiAgent.FirmwareVersion))
                 {
                     <div class="status-row">
@@ -114,7 +135,9 @@
                 {
                     <div class="status-row">
                         <span class="status-label">固件下载:</span>
-                        <span class="status-value firmware-url">🔗 有更新可用</span>
+                        <span class="status-value firmware-url">
+                            <a href="@XiaoZhiAgent.FirmwareUrl" target="_blank">🔗 下载更新</a>
+                        </span>
                     </div>
                 }
 
@@ -383,3 +406,31 @@
         });
     }
 } 
+
+<style>
+    /* 版本信息样式 */
+    .version-info {
+        padding: 8px 0;
+        border-bottom: 1px dashed #eaeaea;
+    }
+    
+    .update-needed {
+        color: #ff6b6b;
+        font-weight: bold;
+    }
+    
+    .up-to-date {
+        color: #51cf66;
+        font-weight: bold;
+    }
+    
+    .firmware-url a {
+        color: #339af0;
+        text-decoration: none;
+        font-weight: bold;
+    }
+    
+    .firmware-url a:hover {
+        text-decoration: underline;
+    }
+</style> 

@@ -141,7 +141,7 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
                                         bool hasVoice = DetectVoiceActivity(buffer, bytesRead);
                                         
                                         if (hasVoice)
-                                        {
+                                    {
                                             currentSilenceFrames = 0;
                                             if (!isSpeaking)
                                             {

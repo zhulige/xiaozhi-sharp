@@ -4,6 +4,21 @@ using System.Collections.ObjectModel;
 
 namespace XiaoZhiSharp_MauiBlazorApp.Services
 {
+    // 聊天消息类
+    public class ChatMessage
+    {
+        public string Content { get; set; } = "";
+        public bool IsUser { get; set; } = false;
+        public DateTime Timestamp { get; set; } = DateTime.Now;
+        
+        public ChatMessage(string content, bool isUser)
+        {
+            Content = content;
+            IsUser = isUser;
+            Timestamp = DateTime.Now;
+        }
+    }
+    
     public class XiaoZhi_AgentService
     {
         private readonly XiaoZhiAgent _agent;
@@ -39,6 +54,15 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
         public string? MqttEndpoint { get; private set; }
         public ObservableCollection<string> DebugLogs { get; private set; } = new();
         
+        // 版本信息
+        public string CurrentVersion { get; private set; } = "1.0.0"; // 当前版本
+        public string? LatestVersion { get; private set; } // 最新版本
+        public bool NeedUpdate { get; private set; } = false; // 是否需要更新
+        public string UpdateMessage { get; private set; } = ""; // 更新提示信息
+        
+        // 聊天历史记录
+        public ObservableCollection<ChatMessage> ChatHistory { get; private set; } = new();
+        
         public XiaoZhiAgent Agent
         {
             get { return _agent; }
@@ -56,6 +80,9 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
         {
             // 从配置初始化设置
             LoadSettings();
+            
+            // 获取当前版本（可以从应用程序信息中获取）
+            CurrentVersion = AppInfo.VersionString ?? "1.0.0";
             
             XiaoZhiSharp.Global.VadThreshold = VadThreshold;
             XiaoZhiSharp.Global.IsDebug = IsDebugMode;
@@ -188,9 +215,26 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
         private async Task Agent_OnMessageEvent(string type, string message)
         {
             if (type == "question")
+            {
                 QuestionMessae = message;
+                // 添加用户问题到聊天历史
+                ChatHistory.Add(new ChatMessage(message, true));
+            }
             if (type == "answer")
+            {
                 AnswerMessae = message;
+                // 添加AI回答到聊天历史
+                if (ChatHistory.Count > 0 && !ChatHistory.Last().IsUser)
+                {
+                    // 如果最后一条消息是AI的，更新它
+                    ChatHistory.Last().Content = message;
+                }
+                else
+                {
+                    // 否则添加新的AI消息
+                    ChatHistory.Add(new ChatMessage(message, false));
+                }
+            }
             if (type == "emotion")
                 Emotion = message;
             if (type == "answer_stop")
@@ -238,6 +282,10 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
                 {
                     FirmwareVersion = otaResponse.Firmware.Version;
                     FirmwareUrl = otaResponse.Firmware.Url;
+                    LatestVersion = FirmwareVersion;
+                    
+                    // 比较版本
+                    CompareVersions();
                 }
 
                 // 提取服务器时间
@@ -288,6 +336,97 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
         {
             DebugLogs.Clear();
         }
+        
+        /// <summary>
+        /// 清除聊天记录
+        /// </summary>
+        public void ClearChatHistory()
+        {
+            ChatHistory.Clear();
+            QuestionMessae = "";
+            AnswerMessae = "";
+        }
+        
+        /// <summary>
+        /// 获取OTA更新状态信息
+        /// </summary>
+        /// <returns>包含当前版本、最新版本和更新状态的字符串</returns>
+        public string GetUpdateStatusInfo()
+        {
+            if (string.IsNullOrEmpty(LatestVersion))
+            {
+                return $"当前版本: {CurrentVersion}\n尚未检查更新";
+            }
+            
+            if (NeedUpdate)
+            {
+                return $"当前版本: {CurrentVersion}\n最新版本: {LatestVersion}\n状态: 需要更新";
+            }
+            else
+            {
+                return $"当前版本: {CurrentVersion}\n最新版本: {LatestVersion}\n状态: 已是最新";
+            }
+        }
+
+        // 版本比较方法
+        private void CompareVersions()
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(LatestVersion))
+                {
+                    NeedUpdate = false;
+                    UpdateMessage = "无法获取最新版本信息";
+                    return;
+                }
+
+                // 解析版本号
+                var currentParts = CurrentVersion.Split('.');
+                var latestParts = LatestVersion.Split('.');
+
+                // 比较主版本号、次版本号、修订号
+                for (int i = 0; i < Math.Min(currentParts.Length, latestParts.Length); i++)
+                {
+                    if (int.TryParse(currentParts[i], out int current) && 
+                        int.TryParse(latestParts[i], out int latest))
+                    {
+                        if (latest > current)
+                        {
+                            NeedUpdate = true;
+                            UpdateMessage = $"发现新版本！当前版本: {CurrentVersion}，最新版本: {LatestVersion}";
+                            AddDebugLog(UpdateMessage);
+                            return;
+                        }
+                        else if (latest < current)
+                        {
+                            NeedUpdate = false;
+                            UpdateMessage = $"当前版本已是最新（当前: {CurrentVersion}，服务器: {LatestVersion}）";
+                            return;
+                        }
+                    }
+                }
+
+                // 如果版本号位数不同
+                if (latestParts.Length > currentParts.Length)
+                {
+                    NeedUpdate = true;
+                    UpdateMessage = $"发现新版本！当前版本: {CurrentVersion}，最新版本: {LatestVersion}";
+                }
+                else
+                {
+                    NeedUpdate = false;
+                    UpdateMessage = $"当前版本已是最新（{CurrentVersion}）";
+                }
+
+                AddDebugLog(UpdateMessage);
+            }
+            catch (Exception ex)
+            {
+                AddDebugLog($"版本比较失败: {ex.Message}");
+                NeedUpdate = false;
+                UpdateMessage = "版本比较失败";
+            }
+        }
 
         public async Task ManualOtaCheck()
         {
@@ -296,11 +435,28 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
                 OtaStatus = "检查中...";
                 AddDebugLog("开始手动OTA检查");
                 
+                // 确保设置当前版本
+                _agent.CurrentVersion = CurrentVersion;
+                
                 var result = await _agent.CheckOtaUpdate();
                 
                 if (result != null)
                 {
                     AddDebugLog("手动OTA检查成功");
+                    
+                    // 显示版本比较结果
+                    if (NeedUpdate)
+                    {
+                        AddDebugLog($"【版本信息】{UpdateMessage}");
+                        if (!string.IsNullOrEmpty(FirmwareUrl))
+                        {
+                            AddDebugLog($"【更新地址】{FirmwareUrl}");
+                        }
+                    }
+                    else
+                    {
+                        AddDebugLog($"【版本信息】{UpdateMessage}");
+                    }
                 }
                 else
                 {
