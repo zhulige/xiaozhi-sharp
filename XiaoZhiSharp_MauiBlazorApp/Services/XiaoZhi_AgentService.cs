@@ -20,6 +20,12 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
         public string DeviceId { get; set; } = Global.DeivceId;
         public int VadThreshold { get; set; } = 40;
         public bool IsDebugMode { get; set; } = false;
+        
+        // VAD配置（从Unity版本移植）
+        public bool UseVAD { get; set; } = true;
+        public float VadEnergyThreshold { get; set; } = 0.015f;
+        public int VadSilenceFrames { get; set; } = 20;
+        public float TtsCooldownTime { get; set; } = 0.5f;
 
         // OTA 相关信息
         public OtaResponse? LatestOtaResponse { get; private set; }
@@ -65,7 +71,10 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
             // 根据平台注册相应的音频服务
             if (DeviceInfo.Platform == DevicePlatform.Android) 
             { 
-                _agent.AudioService = new Services.AudioService();
+                var audioService = new Services.AudioService();
+                // 配置VAD参数
+                audioService.ConfigureVAD(UseVAD, VadEnergyThreshold, VadSilenceFrames, TtsCooldownTime);
+                _agent.AudioService = audioService;
             }
             else if (DeviceInfo.Platform == DevicePlatform.WinUI)
             {
@@ -84,6 +93,12 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
             DeviceId = Preferences.Get("DeviceId", Global.DeivceId);
             VadThreshold = Preferences.Get("VadThreshold", 40);
             IsDebugMode = Preferences.Get("IsDebugMode", false);
+            
+            // 加载VAD配置
+            UseVAD = Preferences.Get("UseVAD", true);
+            VadEnergyThreshold = Preferences.Get("VadEnergyThreshold", 0.015f);
+            VadSilenceFrames = Preferences.Get("VadSilenceFrames", 20);
+            TtsCooldownTime = Preferences.Get("TtsCooldownTime", 0.5f);
         }
 
         public void SaveSettings()
@@ -94,6 +109,12 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
             Preferences.Set("DeviceId", DeviceId);
             Preferences.Set("VadThreshold", VadThreshold);
             Preferences.Set("IsDebugMode", IsDebugMode);
+            
+            // 保存VAD配置
+            Preferences.Set("UseVAD", UseVAD);
+            Preferences.Set("VadEnergyThreshold", VadEnergyThreshold);
+            Preferences.Set("VadSilenceFrames", VadSilenceFrames);
+            Preferences.Set("TtsCooldownTime", TtsCooldownTime);
         }
 
         public async Task ApplySettings()
@@ -110,6 +131,13 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
             _agent.WsUrl = ServerUrl;
             _agent.OtaUrl = OtaUrl;
             
+            // 更新音频服务的VAD配置
+            if (_agent.AudioService != null && DeviceInfo.Platform == DevicePlatform.Android)
+            {
+                var audioService = _agent.AudioService as Services.AudioService;
+                audioService?.ConfigureVAD(UseVAD, VadEnergyThreshold, VadSilenceFrames, TtsCooldownTime);
+            }
+            
             // 重启连接
             await _agent.Restart();
         }
@@ -122,6 +150,12 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
             DeviceId = Global.DeivceId;
             VadThreshold = 40;
             IsDebugMode = false;
+            
+            // 重置VAD配置为默认值
+            UseVAD = true;
+            VadEnergyThreshold = 0.015f;
+            VadSilenceFrames = 20;
+            TtsCooldownTime = 0.5f;
         }
 
         private async Task Agent_OnAudioPcmEvent(byte[] pcm)
@@ -160,7 +194,21 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
             if (type == "emotion")
                 Emotion = message;
             if (type == "answer_stop")
-                await _agent.StartRecording("auto");
+            {
+                // TTS播放结束，触发音频服务的冷却期
+                if (_agent.AudioService != null && DeviceInfo.Platform == DevicePlatform.Android)
+                {
+                    var audioService = _agent.AudioService as Services.AudioService;
+                    audioService?.StopPlaying(); // 这会触发冷却期
+                }
+                
+                // 延迟后再开始录音，等待冷却期结束
+                _ = Task.Run(async () =>
+                {
+                    await Task.Delay((int)(TtsCooldownTime * 1000));
+                    await _agent.StartRecording("auto");
+                });
+            }
 
             // 添加调试日志
             if (IsDebugMode)
