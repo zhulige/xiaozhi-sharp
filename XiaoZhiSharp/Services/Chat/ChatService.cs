@@ -152,9 +152,7 @@ namespace XiaoZhiSharp.Services.Chat
                     }
                     catch (Exception ex)
                     {
-
                         LogConsole.ErrorLine($"{TAG} {ex.Message}");
-                        break;
                     }
                 }
 
