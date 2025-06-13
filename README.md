@@ -61,22 +61,17 @@ private static Task Agent_OnOtaEvent(OtaResponse? otaResponse)
 
 ## NuGet
 ```
-dotnet add package XiaoZhiSharp --version 1.0.4
+dotnet add package XiaoZhiSharp --version 1.0.6
 ```
 
 ## 相关资源
 https://opus-codec.org/downloads/
 
 ## 贡献与反馈
-
 如果你在使用过程中发现了项目中的问题，或者有任何改进的建议，欢迎随时提交 Issue 或者 Pull Request。你的反馈和贡献将对项目的发展和完善起到重要的作用。
 
 ## 加入社群
-
 欢迎加入我们的社区，分享经验、提出建议或获取帮助！
 
 ## 项目统计
 [![Star History Chart](https://api.star-history.com/svg?repos=zhulige/xiaozhi-sharp&type=Date)](https://www.star-history.com/#zhulige/xiaozhi-sharp&Date)
-
-## 许可证
-[MIT License](LICENSE)
