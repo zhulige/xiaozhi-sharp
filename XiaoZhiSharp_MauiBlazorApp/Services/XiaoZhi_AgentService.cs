@@ -19,9 +19,10 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
         }
     }
     
-    public class XiaoZhi_AgentService
+    public class XiaoZhi_AgentService : IDisposable
     {
         private readonly XiaoZhiAgent _agent;
+        private bool _disposed = false;
 
         public string QuestionMessae = "";
         public string AnswerMessae = "";
@@ -467,6 +468,34 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
             {
                 OtaStatus = "检查异常";
                 AddDebugLog($"OTA检查异常: {ex.Message}");
+            }
+        }
+        
+        /// <summary>
+        /// 释放资源，确保应用程序关闭时能够正确释放所有资源
+        /// </summary>
+        public void Dispose()
+        {
+            if (!_disposed)
+            {
+                _disposed = true;
+                
+                // 移除事件订阅
+                if (_agent != null)
+                {
+                    _agent.OnMessageEvent -= Agent_OnMessageEvent;
+                    _agent.OnAudioPcmEvent -= Agent_OnAudioPcmEvent;
+                    _agent.OnOtaEvent -= Agent_OnOtaEvent;
+                    
+                    // 释放Agent资源
+                    _agent.Dispose();
+                }
+                
+                // 记录日志
+                AddDebugLog("服务已释放资源");
+                
+                // 阻止GC再次调用
+                GC.SuppressFinalize(this);
             }
         }
     }

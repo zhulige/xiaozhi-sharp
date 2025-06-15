@@ -9,7 +9,7 @@ using XiaoZhiSharp.Utils;
 
 namespace XiaoZhiSharp
 {
-    public class XiaoZhiAgent
+    public class XiaoZhiAgent : IDisposable
     {
         private string _otaUrl { get; set; } = "https://api.tenclass.net/xiaozhi/ota/";
         private string _wsUrl { get; set; } = "wss://api.tenclass.net/xiaozhi/v1/";
@@ -23,6 +23,10 @@ namespace XiaoZhiSharp
         private Services.AudioOpusService _audioOpusService = new Services.AudioOpusService();
         private Services.OtaService? _otaService = null;
         private OtaResponse? _latestOtaResponse = null;
+
+        // 添加一个用于跟踪当前任务的变量
+        private Task? _monitoringTask = null;
+        private bool _disposed = false;
 
         #region 属性
         public string WsUrl
@@ -341,6 +345,44 @@ namespace XiaoZhiSharp
             {
                 _audioService.StopRecording();
                 await _chatService.StopRecording();
+            }
+        }
+        
+        /// <summary>
+        /// 释放资源，在应用程序关闭时调用
+        /// </summary>
+        public void Dispose()
+        {
+            if (!_disposed)
+            {
+                _disposed = true;
+                
+                // 停止录音
+                if (_audioService != null && _audioService.IsRecording)
+                {
+                    _audioService.StopRecording();
+                }
+                
+                // 释放音频服务
+                if (_audioService is IDisposable disposableAudioService)
+                {
+                    disposableAudioService.Dispose();
+                }
+                
+                // 释放WebSocket连接
+                _chatService?.Dispose();
+                
+                // 释放OTA服务
+                _otaService?.Dispose();
+                
+                // 释放音频编码服务
+                if (_audioOpusService is IDisposable disposableOpusService)
+                {
+                    disposableOpusService.Dispose();
+                }
+                
+                // GC回收
+                GC.SuppressFinalize(this);
             }
         }
     }
