@@ -17,6 +17,7 @@ using System.Text.Json.Nodes;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using XiaoZhiSharp_MauiBlazorApp.McpTools;
+using System.Net.WebSockets;
 
 namespace XiaoZhiSharp_MauiBlazorApp.Services
 {
@@ -99,6 +100,12 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
             get { return _agent.AudioService?.IsRecording ?? false; }
         }
 
+        private System.Timers.Timer? _connectionMonitorTimer;
+        private DateTime _lastReconnectAttempt = DateTime.MinValue;
+        private int _reconnectAttempts = 0;
+        private const int MaxReconnectAttempts = 5; // 最大重连尝试次数
+        private const int ReconnectInterval = 5000; // 重连间隔(毫秒)
+
         public XiaoZhi_AgentService()
         {
             // 从配置初始化设置
@@ -136,6 +143,9 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
             
             _ = Task.Run(async () => await _agent.Start());
             IsConnected = true; // 假设启动后就连接成功
+            
+            // 启动连接状态监测定时器
+            StartConnectionMonitor();
         }
 
         // 初始化MCP服务
@@ -668,6 +678,85 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
         }
 
         /// <summary>
+        /// 启动连接状态监测定时器
+        /// </summary>
+        private void StartConnectionMonitor()
+        {
+            if (_connectionMonitorTimer != null)
+            {
+                _connectionMonitorTimer.Stop();
+                _connectionMonitorTimer.Dispose();
+            }
+            
+            _connectionMonitorTimer = new System.Timers.Timer(2000); // 每2秒检查一次
+            _connectionMonitorTimer.Elapsed += async (sender, e) => await CheckConnectionStatus();
+            _connectionMonitorTimer.AutoReset = true;
+            _connectionMonitorTimer.Start();
+            
+            AddDebugLog("启动连接状态监测");
+        }
+        
+        /// <summary>
+        /// 检查连接状态并在必要时重连
+        /// </summary>
+        private async Task CheckConnectionStatus()
+        {
+            try
+            {
+                bool wasConnected = IsConnected;
+                IsConnected = _agent.ConnectState == WebSocketState.Open;
+                
+                // 如果连接状态发生变化
+                if (IsConnected != wasConnected)
+                {
+                    await MainThread.InvokeOnMainThreadAsync(() => {
+                        if (IsConnected)
+                        {
+                            AddDebugLog("连接状态: 已连接");
+                            _reconnectAttempts = 0; // 连接成功，重置重连尝试计数
+                        }
+                        else
+                        {
+                            AddDebugLog("连接状态: 已断开");
+                        }
+                    });
+                }
+                
+                // 如果断开连接，尝试重连
+                if (!IsConnected && 
+                    (DateTime.Now - _lastReconnectAttempt).TotalMilliseconds > ReconnectInterval &&
+                    _reconnectAttempts < MaxReconnectAttempts)
+                {
+                    _lastReconnectAttempt = DateTime.Now;
+                    _reconnectAttempts++;
+                    
+                    await MainThread.InvokeOnMainThreadAsync(async () => {
+                        AddDebugLog($"尝试重新连接... (第{_reconnectAttempts}次)");
+                        try 
+                        {
+                            await _agent.Restart();
+                        }
+                        catch (Exception ex)
+                        {
+                            AddDebugLog($"重新连接失败: {ex.Message}");
+                        }
+                    });
+                }
+                
+                // 如果多次尝试重连都失败，暂停一段时间后重试
+                if (!IsConnected && _reconnectAttempts >= MaxReconnectAttempts && 
+                    (DateTime.Now - _lastReconnectAttempt).TotalSeconds > 30)
+                {
+                    _reconnectAttempts = 0; // 重置尝试次数，进入新一轮尝试
+                }
+            }
+            catch (Exception ex)
+            {
+                AddDebugLog($"连接监测异常: {ex.Message}");
+            }
+        }
+
+        /// <summary>
         /// 释放资源，确保应用程序关闭时能够正确释放所有资源
         /// </summary>
         public void Dispose()
@@ -675,6 +764,14 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
             if (!_disposed)
             {
                 _disposed = true;
+                
+                // 释放连接监测定时器
+                if (_connectionMonitorTimer != null)
+                {
+                    _connectionMonitorTimer.Stop();
+                    _connectionMonitorTimer.Dispose();
+                    _connectionMonitorTimer = null;
+                }
                 
                 // 停止MCP服务
                 _host?.StopAsync().Wait();

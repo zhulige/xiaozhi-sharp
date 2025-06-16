@@ -20,6 +20,7 @@ namespace XiaoZhiSharp.Services.Chat
         // 首次连接
         private bool _isFirst = true;
         private ClientWebSocket? _webSocket = null;
+        private bool _disposed = false;
 
         #region 属性
         public WebSocketState ConnectState { get { return _webSocket?.State ?? WebSocketState.None; } }
@@ -57,17 +58,8 @@ namespace XiaoZhiSharp.Services.Chat
             {
                 await ReceiveMessagesAsync();
             });
-
-            //Task.Run(async () =>
-            //{
-            //    while (_webSocket.State == WebSocketState.Open)
-            //    {
-            //        //await SendMessageAsync(XiaoZhi_Protocol.Heartbeat());
-            //        await SendMessageAsync(XiaoZhi_Protocol.Listen_Detect(""));
-            //        await Task.Delay(10000);
-            //    }
-            //});
         }
+        
         private async Task ReceiveMessagesAsync()
         {
             if (_webSocket == null)
@@ -214,7 +206,26 @@ namespace XiaoZhiSharp.Services.Chat
         }
         public void Dispose()
         {
-            _webSocket.Dispose();
+            if (!_disposed)
+            {
+                _disposed = true;
+                
+                // 关闭WebSocket连接
+                try
+                {
+                    if (_webSocket != null && (_webSocket.State == WebSocketState.Open || _webSocket.State == WebSocketState.Connecting))
+                    {
+                        _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Client closing", CancellationToken.None).Wait();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogConsole.ErrorLine($"{TAG} 关闭WebSocket连接时出错: {ex.Message}");
+                }
+                
+                _webSocket?.Dispose();
+                _webSocket = null;
+            }
         }
     }
 }
