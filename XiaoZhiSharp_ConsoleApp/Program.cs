@@ -77,6 +77,12 @@ class Program
         {
             while (true)
             {
+                if (_agent.ConnectState != System.Net.WebSockets.WebSocketState.Open) { 
+                    await _agent.Restart();
+                    LogConsole.InfoLine("服务器重连...");
+                    await Task.Delay(10000);
+                }
+
                 bool isCapsLockOn = Console.CapsLock;
                 //Console.WriteLine($"当前 Caps Lock 状态: {(isCapsLockOn ? "开启" : "关闭")}");
                 if (isCapsLockOn)
