@@ -128,14 +128,23 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
             // 根据平台注册相应的音频服务
             if (DeviceInfo.Platform == DevicePlatform.Android) 
             { 
-                var audioService = new Services.AudioService();
-                // 配置VAD参数
-                //audioService.ConfigureVAD(UseVAD, VadEnergyThreshold, VadSilenceFrames, TtsCooldownTime);
-                _agent.AudioService = audioService;
+                try
+                {
+                    var audioService = new Services.AudioService();
+                    // 配置VAD参数
+                    audioService.ConfigureVAD(UseVAD, VadEnergyThreshold, VadSilenceFrames, TtsCooldownTime);
+                    _agent.AudioService = audioService;
+                    AddDebugLog($"已初始化Android音频服务并配置VAD: 启用={UseVAD}, 阈值={VadEnergyThreshold}, 静音帧数={VadSilenceFrames}, 冷却时间={TtsCooldownTime}秒");
+                }
+                catch (Exception ex)
+                {
+                    AddDebugLog($"音频服务初始化失败: {ex.Message}");
+                }
             }
             else if (DeviceInfo.Platform == DevicePlatform.WinUI)
             {
                //_agent.AudioService = new Services.AudioService();
+               AddDebugLog("Windows平台暂未实现音频服务");
             }
             
             // 初始化MCP服务
@@ -228,6 +237,14 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
             
             // 重启连接
             await _agent.Restart();
+            
+            // 重置VAD配置
+            if (_agent.AudioService != null && DeviceInfo.Platform == DevicePlatform.Android)
+            {
+                var audioService = _agent.AudioService as Services.AudioService;
+                audioService?.ConfigureVAD(UseVAD, VadEnergyThreshold, VadSilenceFrames, TtsCooldownTime);
+                AddDebugLog("连接重启后，已重置VAD参数");
+            }
         }
 
         public void ResetSettings()
@@ -714,10 +731,63 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
                         {
                             AddDebugLog("连接状态: 已连接");
                             _reconnectAttempts = 0; // 连接成功，重置重连尝试计数
+                            
+                            // 重连成功后，彻底重置音频服务和VAD状态
+                            if (_agent.AudioService != null && DeviceInfo.Platform == DevicePlatform.Android)
+                            {
+                                var audioService = _agent.AudioService as Services.AudioService;
+                                if (audioService != null)
+                                {
+                                    // 停止任何可能在进行的录音
+                                    if (audioService.IsRecording)
+                                    {
+                                        audioService.StopRecording();
+                                    }
+                                    
+                                    // 确保不在播放状态
+                                    if (audioService.IsPlaying)
+                                    {
+                                        audioService.StopPlaying();
+                                    }
+                                    
+                                    // 重置VAD参数和状态
+                                    audioService.ConfigureVAD(UseVAD, VadEnergyThreshold, VadSilenceFrames, TtsCooldownTime);
+                                    audioService.ResetTtsState(); // 特别重置TTS状态
+                                    AddDebugLog("重连成功，已重置音频服务和VAD参数");
+                                    
+                                    // 延迟一秒后尝试开始新的录音会话
+                                    _ = Task.Run(async () =>
+                                    {
+                                        await Task.Delay(1000);
+                                        await MainThread.InvokeOnMainThreadAsync(async () =>
+                                        {
+                                            try
+                                            {
+                                                if (!_agent.IsRecording)
+                                                {
+                                                    AddDebugLog("重连后开始新一轮录音");
+                                                    await _agent.StartRecording("auto");
+                                                }
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                AddDebugLog($"重连后开始录音失败: {ex.Message}");
+                                            }
+                                        });
+                                    });
+                                }
+                            }
                         }
                         else
                         {
                             AddDebugLog("连接状态: 已断开");
+                            
+                            // 断线时停止任何录音
+                            if (_agent.IsRecording)
+                            {
+                                _ = _agent.StopRecording();
+                                AddDebugLog("断线检测，已停止录音");
+                            }
                         }
                     });
                 }

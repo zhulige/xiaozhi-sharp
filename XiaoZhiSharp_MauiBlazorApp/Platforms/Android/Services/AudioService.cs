@@ -105,8 +105,14 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
                     return;
                 }
                 
-                // 确保 AudioRecord 已经正确初始化且未在录音中
-                if (_audioRecord != null && _audioRecord.State == State.Initialized && !_isRecording)
+                // 如果已经在录音，先停止
+                if (_isRecording)
+                {
+                    StopRecording();
+                }
+                
+                // 确保 AudioRecord 已经正确初始化
+                if (_audioRecord != null && _audioRecord.State == State.Initialized)
                 {
                     Console.WriteLine("尝试开始录音");
                     _audioRecord.StartRecording();
@@ -196,6 +202,28 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
                     if (_audioRecord == null)
                     {
                         Console.WriteLine("AudioRecord 未初始化，可能是权限问题或资源冲突");
+                        
+                        // 尝试重新初始化AudioRecord
+                        try
+                        {
+                            int minBufferSize = AudioRecord.GetMinBufferSize(SampleRate_WaveIn, ChannelIn.Mono, Android.Media.Encoding.Pcm16bit);
+                            int bufferSize = Math.Max(minBufferSize, BytesPerFrame * 2); // 至少能容纳2帧数据
+                            _audioRecord = new AudioRecord(AudioSource.Mic, SampleRate_WaveIn, ChannelIn.Mono, Android.Media.Encoding.Pcm16bit, bufferSize);
+                            
+                            if (_audioRecord.State == State.Initialized)
+                            {
+                                Console.WriteLine("成功重新初始化AudioRecord，重试录音");
+                                StartRecording();
+                            }
+                            else
+                            {
+                                Console.WriteLine("重新初始化AudioRecord失败");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"重新初始化AudioRecord出错: {ex.Message}");
+                        }
                     }
                     else if (_audioRecord.State != State.Initialized)
                     {
@@ -211,6 +239,7 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
             catch (Exception ex)
             {
                 Console.WriteLine($"启动录音时出错: {ex.Message}");
+                _isRecording = false;
             }
         }
         public void StopRecording()
@@ -232,10 +261,23 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
                     
                     Console.WriteLine("结束录音");
                 }
+                else
+                {
+                    // 即使没有录音在进行，也重置状态
+                    _isRecording = false;
+                    VadCounter = 0;
+                    currentSilenceFrames = 0;
+                    isSpeaking = false;
+                }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"停止录音时出错: {ex.Message}");
+                // 确保状态重置，即使发生异常
+                _isRecording = false;
+                VadCounter = 0;
+                currentSilenceFrames = 0;
+                isSpeaking = false;
             }
         }
         private bool IsAudioMute(byte[] buffer, int bytesRecorded)
@@ -379,7 +421,25 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
             vadSilenceFrames = silenceFrames;
             ttsCooldownTime = cooldownTime;
             
+            // 重置VAD状态
+            currentSilenceFrames = 0;
+            isSpeaking = false;
+            isInCooldown = false;
+            lastTtsEndTime = DateTime.Now.AddSeconds(-10); // 设置为很久以前，确保不在冷却期
+            VadCounter = 0;
+            
             Console.WriteLine($"VAD配置更新: 启用={enabled}, 阈值={threshold}, 静音帧数={silenceFrames}, 冷却时间={cooldownTime}秒");
+            Console.WriteLine("VAD状态已重置");
+        }
+        
+        /// <summary>
+        /// 重置TTS状态，用于断线重连恢复
+        /// </summary>
+        public void ResetTtsState()
+        {
+            isInCooldown = false;
+            lastTtsEndTime = DateTime.Now.AddSeconds(-10);
+            Console.WriteLine("TTS状态已重置");
         }
         
         // 获取当前VAD状态

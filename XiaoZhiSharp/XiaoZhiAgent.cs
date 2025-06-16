@@ -148,9 +148,39 @@ namespace XiaoZhiSharp
         }
         public async Task Restart()
         {
+            // 保存当前的音频服务引用，以便重新设置事件处理
+            var currentAudioService = _audioService;
+            
+            // 如果存在音频服务，先移除事件处理器
+            if (currentAudioService != null)
+            {
+                // 移除事件处理器，避免重复订阅
+                currentAudioService.OnPcmAudioEvent -= AudioService_OnPcmAudioEvent;
+            }
+            
+            // 释放现有资源
             _chatService?.Dispose();
             _otaService?.Dispose();
+            
+            // 重置录音取消令牌
+            _recordingCts?.Cancel();
+            _recordingCts?.Dispose();
+            _recordingCts = null;
+            
+            // 重新启动服务
             await Start();
+            
+            // 如果音频服务实例没有变化，则确保录音状态正确
+            if (currentAudioService != null && _audioService == currentAudioService)
+            {
+                // 确保录音状态正确
+                if (_audioService.IsRecording)
+                {
+                    _audioService.StopRecording();
+                }
+            }
+            
+            LogConsole.InfoLine("重启完成");
         }
 
         /// <summary>
