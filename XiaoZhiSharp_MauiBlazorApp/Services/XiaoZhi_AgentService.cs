@@ -1,6 +1,22 @@
 ﻿using XiaoZhiSharp;
 using XiaoZhiSharp.Protocols;
 using System.Collections.ObjectModel;
+using System.IO.Pipelines;
+using ModelContextProtocol.Client;
+using ModelContextProtocol.Protocol;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using XiaoZhiSharp_MauiBlazorApp.McpTools;
+using ModelContextProtocol.Protocol;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using XiaoZhiSharp_MauiBlazorApp.McpTools;
 
 namespace XiaoZhiSharp_MauiBlazorApp.Services
 {
@@ -23,6 +39,12 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
     {
         private readonly XiaoZhiAgent _agent;
         private bool _disposed = false;
+
+        // MCP相关字段
+        private IMcpClient _mcpClient = null!;
+        private Pipe _clientToServerPipe = new Pipe();
+        private Pipe _serverToClientPipe = new Pipe();
+        private IHost? _host;
 
         public string QuestionMessae = "";
         public string AnswerMessae = "";
@@ -109,8 +131,36 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
                //_agent.AudioService = new Services.AudioService();
             }
             
+            // 初始化MCP服务
+            InitializeMcpService();
+            
             _ = Task.Run(async () => await _agent.Start());
             IsConnected = true; // 假设启动后就连接成功
+        }
+
+        // 初始化MCP服务
+        private void InitializeMcpService()
+        {
+            try
+            {
+                var builder = Host.CreateApplicationBuilder();
+
+                builder.Services
+                    .AddMcpServer()
+                    .WithStreamServerTransport(_clientToServerPipe.Reader.AsStream(), _serverToClientPipe.Writer.AsStream())
+                    .WithTools<IotThings_Tool>()
+                    .WithTools<Chrome_Tool>()
+                    .WithTools<WindowsApp_Tool>();
+
+                _host = builder.Build();
+                _host.StartAsync();
+                
+                AddDebugLog("MCP服务初始化成功");
+            }
+            catch (Exception ex)
+            {
+                AddDebugLog($"MCP服务初始化失败: {ex.Message}");
+            }
         }
 
         private void LoadSettings()
@@ -221,7 +271,7 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
                 // 添加用户问题到聊天历史
                 ChatHistory.Add(new ChatMessage(message, true));
             }
-            if (type == "answer")
+            else if (type == "answer")
             {
                 AnswerMessae = message;
                 // 添加AI回答到聊天历史
@@ -236,9 +286,11 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
                     ChatHistory.Add(new ChatMessage(message, false));
                 }
             }
-            if (type == "emotion")
+            else if (type == "emotion")
+            {
                 Emotion = message;
-            if (type == "answer_stop")
+            }
+            else if (type == "answer_stop")
             {
                 // TTS播放结束，触发音频服务的冷却期
                 if (_agent.AudioService != null && DeviceInfo.Platform == DevicePlatform.Android)
@@ -246,13 +298,11 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
                     var audioService = _agent.AudioService as Services.AudioService;
                     audioService?.StopPlaying(); // 这会触发冷却期
                 }
-                
-                // 延迟后再开始录音，等待冷却期结束
-                _ = Task.Run(async () =>
-                {
-                    await Task.Delay((int)(TtsCooldownTime * 1000));
-                    await _agent.StartRecording("auto");
-                });
+            }
+            // 处理MCP消息
+            else if (type == "mcp")
+            {
+                await HandleMcpMessage(message);
             }
 
             // 添加调试日志
@@ -470,7 +520,126 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
                 AddDebugLog($"OTA检查异常: {ex.Message}");
             }
         }
-        
+
+        // 处理MCP消息
+        private async Task HandleMcpMessage(string message)
+        {
+            try
+            {
+                AddDebugLog($"收到MCP消息: {message}");
+
+                if (_mcpClient == null)
+                {
+                    var clientTransport = new StreamClientTransport(
+                        serverInput: _clientToServerPipe.Writer.AsStream(),
+                        serverOutput: _serverToClientPipe.Reader.AsStream());
+
+                    _mcpClient = await McpClientFactory.CreateAsync(clientTransport);
+                    AddDebugLog("MCP客户端初始化成功");
+                }
+
+                dynamic? mcp = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(message);
+                if (mcp == null)
+                {
+                    AddDebugLog("MCP消息解析失败");
+                    return;
+                }
+
+                if (mcp.method == "initialize")
+                {
+                    // 处理初始化请求
+                    var resultData = new
+                    {
+                        protocolVersion = "2024-11-05",
+                        capabilities = _mcpClient.ServerCapabilities,
+                        serverInfo = new
+                        {
+                            name = "XiaoZhiSharp MAUI",
+                            version = CurrentVersion
+                        }
+                    };
+
+                    JsonNode resultNode = JsonSerializer.SerializeToNode(resultData);
+                    JsonRpcResponse? response = new JsonRpcResponse()
+                    {
+                        Id = new RequestId((long)mcp.id),
+                        JsonRpc = "2.0",
+                        Result = resultNode
+                    };
+
+                    await _agent.McpMessage(JsonSerializer.Serialize(response));
+                    AddDebugLog("已响应MCP初始化请求");
+                }
+                else if (mcp.method == "tools/list")
+                {
+                    // 处理工具列表请求
+                    var tools = await _mcpClient.ListToolsAsync();
+                    List<Tool> toolsList = new List<Tool>();
+                    foreach (var item in tools)
+                    {
+                        toolsList.Add(item.ProtocolTool);
+                    }
+
+                    var resultData = new
+                    {
+                        tools = toolsList
+                    };
+
+                    JsonNode resultNode = JsonSerializer.SerializeToNode(resultData);
+                    JsonRpcResponse? response = new JsonRpcResponse()
+                    {
+                        Id = new RequestId((long)mcp.id),
+                        JsonRpc = "2.0",
+                        Result = resultNode
+                    };
+
+                    var options = new JsonSerializerOptions
+                    {
+                        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                    };
+
+                    await _agent.McpMessage(JsonSerializer.Serialize(response, options));
+                    AddDebugLog("已响应MCP工具列表请求");
+                }
+                else if (mcp.method == "tools/call")
+                {
+                    // 处理工具调用请求
+                    JsonNode? root = JsonNode.Parse(message);
+
+                    string? name = root?["params"]?["name"]?.GetValue<string>();
+                    JsonNode? argumentsNode = root?["params"]?["arguments"];
+
+                    Dictionary<string, object>? arguments = null;
+                    if (argumentsNode != null)
+                    {
+                        arguments = argumentsNode.Deserialize<Dictionary<string, object>>();
+                    }
+
+                    AddDebugLog($"调用工具: {name}, 参数: {argumentsNode}");
+
+                    CallToolResponse? callToolResponse = await _mcpClient.CallToolAsync(name, arguments);
+                    JsonNode jsonNode = JsonSerializer.SerializeToNode(callToolResponse);
+                    JsonRpcResponse? response = new JsonRpcResponse()
+                    {
+                        Id = new RequestId((long)mcp.id),
+                        JsonRpc = "2.0",
+                        Result = jsonNode
+                    };
+
+                    var options = new JsonSerializerOptions
+                    {
+                        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                    };
+                    await _agent.McpMessage(JsonSerializer.Serialize(response, options));
+                    AddDebugLog("已响应MCP工具调用请求");
+                }
+            }
+            catch (Exception ex)
+            {
+                AddDebugLog($"处理MCP消息出错: {ex.Message}");
+            }
+        }
+
         /// <summary>
         /// 释放资源，确保应用程序关闭时能够正确释放所有资源
         /// </summary>
@@ -480,21 +649,14 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
             {
                 _disposed = true;
                 
-                // 移除事件订阅
-                if (_agent != null)
-                {
-                    _agent.OnMessageEvent -= Agent_OnMessageEvent;
-                    _agent.OnAudioPcmEvent -= Agent_OnAudioPcmEvent;
-                    _agent.OnOtaEvent -= Agent_OnOtaEvent;
-                    
-                    // 释放Agent资源
-                    _agent.Dispose();
-                }
+                // 停止MCP服务
+                _host?.StopAsync().Wait();
+                _host?.Dispose();
                 
-                // 记录日志
-                AddDebugLog("服务已释放资源");
+                // 释放其他资源
+                _agent?.Dispose();
                 
-                // 阻止GC再次调用
+                // 标记为已释放
                 GC.SuppressFinalize(this);
             }
         }

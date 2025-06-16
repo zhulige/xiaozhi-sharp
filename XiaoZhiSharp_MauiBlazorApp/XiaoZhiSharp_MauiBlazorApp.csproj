@@ -86,7 +86,10 @@
     <ItemGroup>
         <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
         <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="$(MauiVersion)" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.5" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.5" />
+        <PackageReference Include="ModelContextProtocol" Version="0.2.0-preview.3" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     </ItemGroup>
 
     <ItemGroup>
