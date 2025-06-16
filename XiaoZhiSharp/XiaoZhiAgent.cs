@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using XiaoZhiSharp.Protocols;
 using XiaoZhiSharp.Services;
 using XiaoZhiSharp.Utils;
+using System.Threading;
 
 namespace XiaoZhiSharp
 {
@@ -27,6 +28,7 @@ namespace XiaoZhiSharp
         // 添加一个用于跟踪当前任务的变量
         private Task? _monitoringTask = null;
         private bool _disposed = false;
+        private CancellationTokenSource? _recordingCts = null;
 
         #region 属性
         public string WsUrl
@@ -320,17 +322,37 @@ namespace XiaoZhiSharp
                if (type == "auto")
                 {
                     await _chatService.StartRecordingAuto();
+                    
+                    // 创建新的监听任务
+                    _recordingCts?.Cancel(); // 如果已有任务，先取消
+                    _recordingCts = new CancellationTokenSource();
+                    var token = _recordingCts.Token;
+                    
                     _ = Task.Run(async () =>
                     {
-                        while (true) {
-                            if (_audioService.VadCounter >= Global.VadThreshold)
+                        try 
+                        {
+                            while (!token.IsCancellationRequested) 
                             {
-                                _audioService.StopRecording();
-                                await _chatService.StopRecording();
+                                if (_audioService.VadCounter >= Global.VadThreshold)
+                                {
+                                    LogConsole.InfoLine($"VAD检测到静音，自动结束录音 (计数: {_audioService.VadCounter})");
+                                    _audioService.StopRecording();
+                                    await _chatService.StopRecording();
+                                    break;
+                                }
+                                await Task.Delay(100, token); // 每0.1秒检查一次
                             }
-                            await Task.Delay(100); // 每秒检查一次
                         }
-                    }); 
+                        catch (TaskCanceledException)
+                        {
+                            // 任务被取消，正常退出
+                        }
+                        catch (Exception ex)
+                        {
+                            LogConsole.ErrorLine($"VAD监听任务异常: {ex.Message}");
+                        }
+                    }, token); 
                 }
                 else
                 {
@@ -343,6 +365,11 @@ namespace XiaoZhiSharp
         {
             if (_audioService != null)
             {
+                // 取消VAD监听任务
+                _recordingCts?.Cancel();
+                _recordingCts?.Dispose();
+                _recordingCts = null;
+                
                 _audioService.StopRecording();
                 await _chatService.StopRecording();
             }
@@ -356,6 +383,11 @@ namespace XiaoZhiSharp
             if (!_disposed)
             {
                 _disposed = true;
+                
+                // 停止VAD监听任务
+                _recordingCts?.Cancel();
+                _recordingCts?.Dispose();
+                _recordingCts = null;
                 
                 // 停止录音
                 if (_audioService != null && _audioService.IsRecording)

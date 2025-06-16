@@ -340,7 +340,7 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
                     {
                         await Task.Delay((int)(ttsCooldownTime * 1000));
                         isInCooldown = false;
-                        Console.WriteLine("冷却期结束");
+                        Console.WriteLine("冷却期结束，可以开始新一轮录音");
                     });
                 }
             }

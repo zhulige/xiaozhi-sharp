@@ -268,8 +268,11 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
             if (type == "question")
             {
                 QuestionMessae = message;
-                // 添加用户问题到聊天历史
-                ChatHistory.Add(new ChatMessage(message, true));
+                // 添加用户问题到聊天历史，但首先检查是否已经存在相同内容的用户消息
+                if (ChatHistory.Count == 0 || ChatHistory.Last().Content != message || !ChatHistory.Last().IsUser)
+                {
+                    ChatHistory.Add(new ChatMessage(message, true));
+                }
             }
             else if (type == "answer")
             {
@@ -297,6 +300,30 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
                 {
                     var audioService = _agent.AudioService as Services.AudioService;
                     audioService?.StopPlaying(); // 这会触发冷却期
+                    
+                    // 添加新逻辑：在冷却期结束后，自动启动新一轮录音
+                    _ = Task.Run(async () =>
+                    {
+                        // 等待冷却期结束(ttsCooldownTime+0.1秒额外缓冲)
+                        await Task.Delay(TimeSpan.FromSeconds(TtsCooldownTime + 0.1));
+                        
+                        // 确保不在录音中
+                        if (_agent != null && !_agent.IsRecording)
+                        {
+                            AddDebugLog("冷却期结束，自动开始新一轮录音");
+                            await MainThread.InvokeOnMainThreadAsync(async () =>
+                            {
+                                try
+                                {
+                                    await _agent.StartRecording("auto");
+                                }
+                                catch (Exception ex)
+                                {
+                                    AddDebugLog($"自动开始录音失败: {ex.Message}");
+                                }
+                            });
+                        }
+                    });
                 }
             }
             // 处理MCP消息

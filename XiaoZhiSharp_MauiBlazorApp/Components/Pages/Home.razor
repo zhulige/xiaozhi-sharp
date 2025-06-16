@@ -90,7 +90,7 @@
                     <!-- 当前正在输入的消息（如果有） -->
                     @if (!string.IsNullOrEmpty(XiaoZhiAgent.QuestionMessae) && 
                          (XiaoZhiAgent.ChatHistory.Count == 0 || 
-                          XiaoZhiAgent.ChatHistory.Last().Content != XiaoZhiAgent.QuestionMessae))
+                          !XiaoZhiAgent.ChatHistory.Any(m => m.IsUser && m.Content == XiaoZhiAgent.QuestionMessae)))
                     {
                         <div class="message-time">@DateTime.Now.ToString("HH:mm")</div>
                         <div class="message-bubble user">
@@ -100,7 +100,7 @@
 
                     @if (!string.IsNullOrEmpty(XiaoZhiAgent.AnswerMessae) && 
                          (XiaoZhiAgent.ChatHistory.Count == 0 || 
-                          XiaoZhiAgent.ChatHistory.Last().Content != XiaoZhiAgent.AnswerMessae))
+                          !XiaoZhiAgent.ChatHistory.Any(m => !m.IsUser && m.Content == XiaoZhiAgent.AnswerMessae)))
                     {
                         <div class="message-time">@DateTime.Now.ToString("HH:mm")</div>
                         <div class="message-bubble assistant">
