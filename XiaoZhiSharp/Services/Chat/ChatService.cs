@@ -68,7 +68,7 @@ namespace XiaoZhiSharp.Services.Chat
             var buffer = new byte[1024 * 15];
             while (true)
             {
-                if (_webSocket.State == WebSocketState.Open)
+                if (_webSocket != null && _webSocket.State == WebSocketState.Open)
                 {
                     try
                     {
