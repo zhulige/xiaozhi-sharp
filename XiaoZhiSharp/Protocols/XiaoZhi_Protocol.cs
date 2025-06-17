@@ -12,29 +12,46 @@ namespace XiaoZhiSharp.Protocols
         // Client-Id: <设备UUID>
 
         // 2. 连接成功后,客户端发送hello消息:
-        public static string Hello(string sessionId = "")
+        public static string Hello(bool mcp=false,string sessionId = "")
         {
-            string message = @"{
-                ""type"": ""hello"",
-                ""version"": 1,
-                ""features"": {
-                    ""mcp"": true
-                  },
-                ""transport"": ""websocket"",
-                ""audio_params"": {
-                    ""format"": ""opus"",
-                    ""sample_rate"": 24000,
-                    ""channels"": 1,
-                    ""frame_duration"": 60
-                    },
-                ""session_id"":""<会话ID>""
-            }";
-            message = message.Replace("\n", "").Replace("\r", "").Replace("\r\n", "").Replace(" ", "");
-            if (string.IsNullOrEmpty(sessionId))
-                message = message.Replace(",\"session_id\":\"<会话ID>\"", "");
-            else
-                message = message.Replace("<会话ID>", sessionId);
+            JObject jsonObj = new JObject
+            {
+                ["session_id"] = sessionId,
+                ["type"] = "hello",
+                ["version"] = 1,
+                ["features"] = new JObject {
+                    ["mcp"] = mcp,
+                },
+                ["transport"] = "websocket",
+                ["audio_params"] = new JObject {
+                    ["format"] = "opus",
+                    ["sample_rate"] = 24000,
+                    ["channels"] = 1,
+                    ["frame_duration"] = 60 // 单位: 毫秒
+                }
+            };
+            //string message = @"{
+            //    ""type"": ""hello"",
+            //    ""version"": 1,
+            //    ""features"": {
+            //        ""mcp"": true
+            //      },
+            //    ""transport"": ""websocket"",
+            //    ""audio_params"": {
+            //        ""format"": ""opus"",
+            //        ""sample_rate"": 24000,
+            //        ""channels"": 1,
+            //        ""frame_duration"": 60
+            //        },
+            //    ""session_id"":""<会话ID>""
+            //}";
+            //message = message.Replace("\n", "").Replace("\r", "").Replace("\r\n", "").Replace(" ", "");
+            //if (string.IsNullOrEmpty(sessionId))
+            //    message = message.Replace(",\"session_id\":\"<会话ID>\"", "");
+            //else
+            //    message = message.Replace("<会话ID>", sessionId);
             //Console.WriteLine($"发送的消息: {message}");
+            string message = Newtonsoft.Json.JsonConvert.SerializeObject(jsonObj);
             return message;
         }
 

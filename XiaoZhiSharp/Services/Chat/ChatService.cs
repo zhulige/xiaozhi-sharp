@@ -77,7 +77,7 @@ namespace XiaoZhiSharp.Services.Chat
                         {
                             _isFirst = false;
                             LogConsole.InfoLine($"{TAG} 连接成功");
-                            await SendMessageAsync(XiaoZhi_Protocol.Hello());
+                            await SendMessageAsync(XiaoZhi_Protocol.Hello(Global.IsMcp));
                         }
 
                         var result = await _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
