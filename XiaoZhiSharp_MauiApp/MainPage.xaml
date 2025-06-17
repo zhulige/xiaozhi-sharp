@@ -30,6 +30,12 @@
                 SemanticProperties.Hint="Counts the number of times you click"
                 Clicked="OnCounterClicked"
                 HorizontalOptions="Fill" />
+
+            <ImageButton
+                Source="voice.png"
+                Pressed="ImageButton_Pressed"
+                Released="ImageButton_Released" MaximumHeightRequest="60" MaximumWidthRequest="60" MinimumHeightRequest="60" MinimumWidthRequest="60" />
+            
         </VerticalStackLayout>
     </ScrollView>
 

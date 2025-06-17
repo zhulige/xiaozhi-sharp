@@ -20,5 +20,15 @@
 
             SemanticScreenReader.Announce(CounterBtn.Text);
         }
+
+        private void ImageButton_Pressed(object sender, EventArgs e)
+        {
+            CounterBtn.Text = $"按下";
+        }
+
+        private void ImageButton_Released(object sender, EventArgs e)
+        {
+            CounterBtn.Text = $"松开";
+        }
     }
 }
