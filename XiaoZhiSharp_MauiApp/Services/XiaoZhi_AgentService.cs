@@ -1,5 +1,4 @@
-﻿using Android.DeviceLock;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -41,6 +40,8 @@ namespace XiaoZhiSharp_MauiApp.Services
             }
         }
         #endregion
+
+        #region 构造函数
         public XiaoZhi_AgentService()
         {
             _agent = new XiaoZhiAgent();
@@ -48,10 +49,11 @@ namespace XiaoZhiSharp_MauiApp.Services
             _agent.OnMessageEvent += Agent_OnMessageEvent;
             if (DeviceInfo.Platform == DevicePlatform.Android)
             {
-                //_agent.AudioService = new Services.AudioService();
+                _agent.AudioService = new Services.AudioService();
             }
             _ = _agent.Start();
         }
+        #endregion
 
         private Task Agent_OnMessageEvent(string type, string message)
         {

@@ -15,24 +15,24 @@ namespace XiaoZhiSharp_MauiApp
         private void ImageButton_Pressed(object sender, EventArgs e)
         {
             //按下
-            //_ = Task.Run(async () =>
-            //{
-            //    await _agnetService.Agent.StartRecording();
-            //});
+            _ = Task.Run(async () =>
+            {
+                await _agnetService.Agent.StartRecording();
+            });
         }
 
         private void ImageButton_Released(object sender, EventArgs e)
         {
             //松开
-            //_ = Task.Run(async () =>
-            //{
-            //    await _agnetService.Agent.StopRecording();
-            //});
-
             _ = Task.Run(async () =>
             {
-                await _agnetService.Agent.ChatMessage("你好");
+                await _agnetService.Agent.StopRecording();
             });
+
+            //_ = Task.Run(async () =>
+            //{
+            //    await _agnetService.Agent.ChatMessage("你好");
+            //});
         }
     }
 }
