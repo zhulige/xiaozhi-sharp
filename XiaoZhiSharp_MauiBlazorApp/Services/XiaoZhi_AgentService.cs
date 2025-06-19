@@ -56,7 +56,7 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
         // 设置相关属性
         public string ServerUrl { get; set; } = "wss://api.tenclass.net/xiaozhi/v1/";
         public string OtaUrl { get; set; } = "https://api.tenclass.net/xiaozhi/ota/";
-        public string DeviceId { get; set; } = Global.DeivceId;
+        public string DeviceId { get; set; } = Global.DeviceId;
         public int VadThreshold { get; set; } = 40;
         public bool IsDebugMode { get; set; } = false;
         
@@ -187,7 +187,7 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
             // 从Preferences加载设置
             ServerUrl = Preferences.Get("ServerUrl", "wss://api.tenclass.net/xiaozhi/v1/");
             OtaUrl = Preferences.Get("OtaUrl", "https://api.tenclass.net/xiaozhi/ota/");
-            DeviceId = Preferences.Get("DeviceId", Global.DeivceId);
+            DeviceId = Preferences.Get("DeviceId", Global.DeviceId);
             VadThreshold = Preferences.Get("VadThreshold", 40);
             IsDebugMode = Preferences.Get("IsDebugMode", false);
             
@@ -252,7 +252,7 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
             // 重置为默认值
             ServerUrl = "wss://api.tenclass.net/xiaozhi/v1/";
             OtaUrl = "https://api.tenclass.net/xiaozhi/ota/";
-            DeviceId = Global.DeivceId;
+            DeviceId = Global.DeviceId;
             VadThreshold = 40;
             IsDebugMode = false;
             

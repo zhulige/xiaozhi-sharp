@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using XiaoZhiSharp_MauiApp.Services;
 
 namespace XiaoZhiSharp_MauiApp
 {
@@ -18,7 +19,7 @@ namespace XiaoZhiSharp_MauiApp
 #if DEBUG
     		builder.Logging.AddDebug();
 #endif
-
+            builder.Services.AddSingleton<XiaoZhi_AgentService>();
             return builder.Build();
         }
     }

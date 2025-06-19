@@ -16,7 +16,7 @@ namespace XiaoZhiSharp_MauiBlazorApp
             // 获取 Android ID 并格式化为 MAC 地址格式
             var androidId = Android.Provider.Settings.Secure.GetString(ContentResolver, Android.Provider.Settings.Secure.AndroidId);
             var formattedAndroidId = FormatAndroidIdToMacFormat(androidId);
-            Global.DeivceId = formattedAndroidId;
+            Global.DeviceId = formattedAndroidId;
 
             base.OnCreate(savedInstanceState);
 

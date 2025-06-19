@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace XiaoZhiSharp_MauiBlazorApp
+namespace XiaoZhiSharp_MauiApp
 {
     public class Global
     {
