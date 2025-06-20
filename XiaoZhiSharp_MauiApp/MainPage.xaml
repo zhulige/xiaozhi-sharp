@@ -73,7 +73,7 @@
             </Grid>
 
             <!-- 输入区域 -->
-            <Grid Grid.Row="3" BackgroundColor="White" Padding="10" ColumnDefinitions="*,Auto,Auto,Auto">
+            <Grid Grid.Row="3" BackgroundColor="White" Padding="10" ColumnDefinitions="*,Auto,Auto,Auto,Auto">
                 <Entry x:Name="MessageEntry" Grid.Column="0" Placeholder="输入消息..." 
                        Completed="OnMessageSendClicked" Margin="0,0,10,0"/>
                 
@@ -85,13 +85,18 @@
                         Clicked="OnRecordingButtonClicked"
                         ToolTipProperties.Text="{Binding IsRecording, Converter={StaticResource BoolToStringConverter}, ConverterParameter='停止录音;开始录音'}"/>
                 
+                <!-- 摄像头按钮 -->
+                <Button Grid.Column="2" Text="📷" BackgroundColor="#ff9800" TextColor="White" 
+                        CornerRadius="25" WidthRequest="50" HeightRequest="50" Margin="5,0"
+                        Clicked="OnCameraButtonClicked" ToolTipProperties.Text="拍照识别"/>
+                
                 <!-- 打断按钮 -->
-                <Button Grid.Column="2" Text="⏸" BackgroundColor="#ff6b6b" TextColor="White" 
+                <Button Grid.Column="3" Text="⏸" BackgroundColor="#ff6b6b" TextColor="White" 
                         CornerRadius="25" WidthRequest="50" HeightRequest="50" Margin="5,0"
                         Clicked="OnStopChatClicked" ToolTipProperties.Text="打断对话"/>
                 
                 <!-- 发送按钮 -->
-                <Button Grid.Column="3" Text="➤" BackgroundColor="#51cf66" TextColor="White" 
+                <Button Grid.Column="4" Text="➤" BackgroundColor="#51cf66" TextColor="White" 
                         CornerRadius="25" WidthRequest="50" HeightRequest="50"
                         Clicked="OnMessageSendClicked" 
                         IsEnabled="{Binding Source={x:Reference MessageEntry}, Path=Text.Length, Converter={StaticResource IntToBoolConverter}}"

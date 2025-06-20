@@ -1,0 +1,42 @@
+{
+  "runtimeOptions": {
+    "tfm": "net9.0",
+    "includedFrameworks": [
+      {
+        "name": "Microsoft.NETCore.App",
+        "version": "9.0.6"
+      },
+      {
+        "name": "Microsoft.MacCatalyst",
+        "version": "18.4.9288"
+      }
+    ],
+    "configProperties": {
+      "Microsoft.Extensions.DependencyInjection.VerifyOpenGenericServiceTrimmability": false,
+      "System.AggressiveAttributeTrimming": true,
+      "System.ComponentModel.TypeConverter.EnableUnsafeBinaryFormatterInDesigntimeLicenseContextSerialization": false,
+      "System.ComponentModel.TypeDescriptor.IsComObjectDescriptorSupported": false,
+      "System.Diagnostics.Debugger.IsSupported": false,
+      "System.Diagnostics.Tracing.EventSource.IsSupported": false,
+      "System.Globalization.Invariant": false,
+      "System.Globalization.Hybrid": true,
+      "System.Net.Http.EnableActivityPropagation": false,
+      "System.Net.Http.UseNativeHttpHandler": true,
+      "System.Reflection.Metadata.MetadataUpdater.IsSupported": false,
+      "System.Reflection.NullabilityInfoContext.IsSupported": false,
+      "System.Resources.ResourceManager.AllowCustomResourceTypes": false,
+      "System.Resources.UseSystemResourceKeys": true,
+      "System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported": false,
+      "System.Runtime.InteropServices.BuiltInComInterop.IsSupported": false,
+      "System.Runtime.InteropServices.EnableConsumingManagedCodeFromNativeHosting": false,
+      "System.Runtime.InteropServices.EnableCppCLIHostActivation": false,
+      "System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization": false,
+      "System.StartupHookProvider.IsSupported": false,
+      "System.Text.Encoding.EnableUnsafeUTF7Encoding": false,
+      "System.Text.Json.JsonSerializer.IsReflectionEnabledByDefault": true,
+      "System.Threading.Thread.EnableAutoreleasePool": true,
+      "Microsoft.Maui.RuntimeFeature.IsIVisualAssemblyScanningEnabled": false,
+      "Microsoft.Maui.RuntimeFeature.AreBindingInterceptorsSupported": true
+    }
+  }
+}

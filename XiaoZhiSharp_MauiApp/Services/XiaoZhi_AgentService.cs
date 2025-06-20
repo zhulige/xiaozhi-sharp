@@ -26,6 +26,7 @@ namespace XiaoZhiSharp_MauiApp.Services
         public string Content { get; set; } = "";
         public bool IsUser { get; set; } = false;
         public DateTime Timestamp { get; set; } = DateTime.Now;
+        public string? ImagePath { get; set; } = null; // 图片路径，用于显示拍摄的照片
         
         public ChatMessage(string content, bool isUser)
         {
@@ -213,25 +214,42 @@ namespace XiaoZhiSharp_MauiApp.Services
         private const int MaxReconnectAttempts = 5; // 最大重连尝试次数
         private const int ReconnectInterval = 5000; // 重连间隔(毫秒)
 
-        public XiaoZhi_AgentService()
+        private readonly ICameraService? _cameraService;
+        
+        private System.Timers.Timer? _updateTimer;
+        
+        public XiaoZhi_AgentService(ICameraService? cameraService = null)
         {
-            // 从配置初始化设置
-            LoadSettings();
+            _cameraService = cameraService;
             
-            // 获取当前版本（可以从应用程序信息中获取）
+            // 设置摄像头服务的AI识别URL
+            if (_cameraService != null)
+            {
+                _cameraService.SetExplainUrl("https://api.xiaozhi.me/mcp/vision/explain", "");
+            }
+
+            // 加载用户设置
+            LoadSettings();
+
+            // 获取当前版本（从应用程序信息中获取）
             CurrentVersion = AppInfo.VersionString ?? "1.0.0";
             
+            // 初始化全局配置
             XiaoZhiSharp.Global.VadThreshold = VadThreshold;
             XiaoZhiSharp.Global.IsDebug = IsDebugMode;
             XiaoZhiSharp.Global.IsMcp = true; // 启用MCP协议支持
+
+            // 初始化Agent
             _agent = new XiaoZhiAgent();
             _agent.DeviceId = DeviceId;
             _agent.WsUrl = ServerUrl;
             _agent.OtaUrl = OtaUrl;
-            _agent.OnMessageEvent += Agent_OnMessageEvent;
+            _agent.CurrentVersion = CurrentVersion;
             _agent.OnAudioPcmEvent += Agent_OnAudioPcmEvent;
+            _agent.OnMessageEvent += Agent_OnMessageEvent;
             _agent.OnOtaEvent += Agent_OnOtaEvent;
-            
+            // 注意：XiaoZhiAgent没有OnMcpEvent事件，MCP消息通过OnMessageEvent处理
+
             // 根据平台注册相应的音频服务
 #if ANDROID
             if (DeviceInfo.Platform == DevicePlatform.Android)
@@ -252,14 +270,28 @@ namespace XiaoZhiSharp_MauiApp.Services
 #elif MACCATALYST
             AddDebugLog("MacCatalyst平台暂未实现音频服务");
 #endif
-            
+
+            // 创建定时器
+            _updateTimer = new System.Timers.Timer(200); // 200ms 更新一次
+            _updateTimer.Elapsed += (sender, e) =>
+            {
+                OnPropertyChanged(nameof(IsConnected));
+                OnPropertyChanged(nameof(IsRecording));
+                OnPropertyChanged(nameof(Emotion));
+                OnPropertyChanged(nameof(AudioLevel));
+                OnPropertyChanged(nameof(VadCounter));
+                OnPropertyChanged(nameof(QuestionMessae));
+                OnPropertyChanged(nameof(AnswerMessae));
+            };
+            _updateTimer.Start();
+
             // 初始化MCP服务
             InitializeMcpService();
-            
+
+            // 启动Agent连接
             _ = Task.Run(async () => await _agent.Start());
-            IsConnected = true; // 假设启动后就连接成功
             
-            // 启动连接状态监测定时器
+            // 启动连接监控
             StartConnectionMonitor();
         }
 
@@ -277,10 +309,18 @@ namespace XiaoZhiSharp_MauiApp.Services
                     .WithTools<Chrome_Tool>()
                     .WithTools<WindowsApp_Tool>();
 
+                // 注册摄像头工具实例
+                if (_cameraService != null)
+                {
+                    var cameraVisionTool = new CameraVision_Tool(_cameraService);
+                    builder.Services.AddSingleton(cameraVisionTool);
+                }
+
                 _host = builder.Build();
                 _host.StartAsync();
                 
-                AddDebugLog("MCP服务初始化成功，已注册IoT、Chrome、WindowsApp工具");
+                var toolCount = _cameraService != null ? 4 : 3;
+                AddDebugLog($"MCP服务初始化成功，已注册{toolCount}个工具：IoT、Chrome、WindowsApp" + (_cameraService != null ? "、Camera" : ""));
             }
             catch (Exception ex)
             {

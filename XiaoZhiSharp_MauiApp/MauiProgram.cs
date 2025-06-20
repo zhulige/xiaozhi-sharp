@@ -20,6 +20,14 @@ namespace XiaoZhiSharp_MauiApp
     		builder.Logging.AddDebug();
 #endif
             builder.Services.AddSingleton<XiaoZhi_AgentService>();
+            
+            // 注册摄像头服务
+#if ANDROID
+            builder.Services.AddSingleton<ICameraService, Platforms.Android.Services.CameraService>();
+#elif MACCATALYST
+            builder.Services.AddSingleton<ICameraService, Platforms.MacCatalyst.Services.CameraService>();
+#endif
+            
             return builder.Build();
         }
     }
