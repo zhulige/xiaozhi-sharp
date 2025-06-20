@@ -73,7 +73,7 @@ namespace XiaoZhiSharp_MauiApp.McpTools
                 Console.WriteLine("开始拍照...");
 
                 var imageData = await _cameraService.CapturePhotoAsync();
-                
+
                 if (imageData != null && imageData.Length > 0)
                 {
                     Console.WriteLine($"拍照成功，图片大小: {imageData.Length} bytes");

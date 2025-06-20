@@ -224,6 +224,9 @@ namespace XiaoZhiSharp_MauiApp
                         return;
                     }
 
+                    //XiaoZhiSharp.Services.ImageStorageService imageStorageService = new XiaoZhiSharp.Services.ImageStorageService();
+                    //imageStorageService.PostImage("https://coze.nbee.net/image/v1/stream/1", "", "deviceId", "clientId", imageData);
+
                     // 第二步：保存照片并在聊天记录中显示
                     string imagePath = await SaveImageToLocal(imageData);
                     

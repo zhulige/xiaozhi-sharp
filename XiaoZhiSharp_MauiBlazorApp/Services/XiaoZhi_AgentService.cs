@@ -134,7 +134,7 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
                 {
                     var audioService = new Services.AudioService();
                     // 配置VAD参数
-                    audioService.ConfigureVAD(UseVAD, VadEnergyThreshold, VadSilenceFrames, TtsCooldownTime);
+                    //audioService.ConfigureVAD(UseVAD, VadEnergyThreshold, VadSilenceFrames, TtsCooldownTime);
                     _agent.AudioService = audioService;
                     AddDebugLog($"已初始化Android音频服务并配置VAD: 启用={UseVAD}, 阈值={VadEnergyThreshold}, 静音帧数={VadSilenceFrames}, 冷却时间={TtsCooldownTime}秒");
                 }
@@ -244,7 +244,7 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
             if (_agent.AudioService != null && DeviceInfo.Platform == DevicePlatform.Android)
             {
                 var audioService = _agent.AudioService as Services.AudioService;
-                audioService?.ConfigureVAD(UseVAD, VadEnergyThreshold, VadSilenceFrames, TtsCooldownTime);
+                //audioService?.ConfigureVAD(UseVAD, VadEnergyThreshold, VadSilenceFrames, TtsCooldownTime);
                 AddDebugLog("连接重启后，已重置VAD参数");
             }
         }
@@ -753,8 +753,8 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
                                     }
                                     
                                     // 重置VAD参数和状态
-                                    audioService.ConfigureVAD(UseVAD, VadEnergyThreshold, VadSilenceFrames, TtsCooldownTime);
-                                    audioService.ResetTtsState(); // 特别重置TTS状态
+                                    //audioService.ConfigureVAD(UseVAD, VadEnergyThreshold, VadSilenceFrames, TtsCooldownTime);
+                                    //audioService.ResetTtsState(); // 特别重置TTS状态
                                     AddDebugLog("重连成功，已重置音频服务和VAD参数");
                                     
                                     // 延迟一秒后尝试开始新的录音会话
