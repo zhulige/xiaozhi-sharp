@@ -116,6 +116,7 @@ namespace XiaoZhiSharp_MauiBlazorApp.Services
             
             XiaoZhiSharp.Global.VadThreshold = VadThreshold;
             XiaoZhiSharp.Global.IsDebug = IsDebugMode;
+            XiaoZhiSharp.Global.IsMcp = true; // 启用MCP协议支持
             //XiaoZhiSharp.Global.IsAudio = false;
             _agent = new XiaoZhiAgent();
             _agent.DeviceId = DeviceId;

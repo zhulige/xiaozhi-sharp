@@ -70,10 +70,16 @@
                     <BoxView HeightRequest="1" BackgroundColor="#e0e0e0" Margin="0,5"/>
                     
                     <!-- 状态信息列表 -->
-                    <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" ColumnDefinitions="Auto,*" RowSpacing="8">
+                    <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" ColumnDefinitions="Auto,*" RowSpacing="8">
                         <Label Grid.Row="0" Grid.Column="0" Text="连接状态:" FontAttributes="Bold"/>
-                        <Label Grid.Row="0" Grid.Column="1" Text="{Binding IsConnected, StringFormat='{0}'}" 
-                               TextColor="{Binding IsConnected, Converter={StaticResource BoolToColorConverter}, ConverterParameter='#51cf66;#ff6b6b'}"/>
+                        <Label Grid.Row="0" Grid.Column="1" 
+                               TextColor="{Binding IsConnected, Converter={StaticResource BoolToColorConverter}, ConverterParameter='#51cf66;#ff6b6b'}">
+                            <Label.Text>
+                                <MultiBinding StringFormat="{}{0}">
+                                    <Binding Path="IsConnected" Converter="{StaticResource BoolToStringConverter}" ConverterParameter="✅ 已连接;❌ 未连接"/>
+                                </MultiBinding>
+                            </Label.Text>
+                        </Label>
                         
                         <Label Grid.Row="1" Grid.Column="0" Text="OTA状态:" FontAttributes="Bold"/>
                         <Label Grid.Row="1" Grid.Column="1" Text="{Binding OtaStatus}"/>
@@ -86,14 +92,24 @@
                         <Label Grid.Row="3" Grid.Column="1" Text="{Binding LatestVersion}" 
                                IsVisible="{Binding LatestVersion, Converter={StaticResource StringToBoolConverter}}"/>
                         
-                        <Label Grid.Row="4" Grid.Column="0" Text="激活码:" FontAttributes="Bold" 
-                               IsVisible="{Binding ActivationCode, Converter={StaticResource StringToBoolConverter}}"/>
-                        <Label Grid.Row="4" Grid.Column="1" Text="{Binding ActivationCode}" TextColor="#339af0"
-                               IsVisible="{Binding ActivationCode, Converter={StaticResource StringToBoolConverter}}"/>
+                        <!-- 验证状态 -->
+                        <Label Grid.Row="4" Grid.Column="0" Text="验证状态:" FontAttributes="Bold"/>
+                        <HorizontalStackLayout Grid.Row="4" Grid.Column="1" Spacing="10">
+                            <Label Text="{Binding ActivationStatus}" FontAttributes="Bold"
+                                   TextColor="{Binding IsActivated, Converter={StaticResource BoolToColorConverter}, ConverterParameter='#51cf66;#ff9500'}"/>
+                            <Label Text="{Binding ActivationCode, StringFormat='(验证码: {0})'}" 
+                                   IsVisible="{Binding ShowActivationCode}"
+                                   TextColor="#339af0" FontAttributes="Bold"/>
+                        </HorizontalStackLayout>
                         
-                        <Label Grid.Row="5" Grid.Column="0" Text="最后检查:" FontAttributes="Bold" 
+                        <Label Grid.Row="5" Grid.Column="0" Text="激活消息:" FontAttributes="Bold" 
+                               IsVisible="{Binding ActivationMessage, Converter={StaticResource StringToBoolConverter}}"/>
+                        <Label Grid.Row="5" Grid.Column="1" Text="{Binding ActivationMessage}" FontSize="12"
+                               IsVisible="{Binding ActivationMessage, Converter={StaticResource StringToBoolConverter}}"/>
+                        
+                        <Label Grid.Row="6" Grid.Column="0" Text="最后检查:" FontAttributes="Bold" 
                                IsVisible="{Binding LastOtaCheckTime, Converter={StaticResource NullToBoolConverter}}"/>
-                        <Label Grid.Row="5" Grid.Column="1" Text="{Binding LastOtaCheckTime, StringFormat='{0:yyyy-MM-dd HH:mm:ss}'}" 
+                        <Label Grid.Row="6" Grid.Column="1" Text="{Binding LastOtaCheckTime, StringFormat='{0:yyyy-MM-dd HH:mm:ss}'}" 
                                IsVisible="{Binding LastOtaCheckTime, Converter={StaticResource NullToBoolConverter}}"/>
                     </Grid>
                     
@@ -147,10 +163,12 @@
                     </Grid>
                     
                     <ScrollView HeightRequest="200" BackgroundColor="#f5f5f5">
-                        <CollectionView ItemsSource="{Binding DebugLogs}">
+                        <CollectionView x:Name="DebugLogsCollectionView">
                             <CollectionView.ItemTemplate>
                                 <DataTemplate>
-                                    <Label Text="{Binding}" FontSize="12" Margin="5,2" LineBreakMode="WordWrap"/>
+                                    <Frame BackgroundColor="White" Padding="8,4" Margin="5,2" BorderColor="Transparent" CornerRadius="4">
+                                        <Label Text="{Binding}" FontSize="12" LineBreakMode="WordWrap" TextColor="#333333"/>
+                                    </Frame>
                                 </DataTemplate>
                             </CollectionView.ItemTemplate>
                         </CollectionView>

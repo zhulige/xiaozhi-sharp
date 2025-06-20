@@ -14,6 +14,9 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using ModelContextProtocol.Client;
+using ModelContextProtocol.Protocol;
+using XiaoZhiSharp_MauiApp.McpTools;
 
 namespace XiaoZhiSharp_MauiApp.Services
 {
@@ -37,15 +40,15 @@ namespace XiaoZhiSharp_MauiApp.Services
         private readonly XiaoZhiAgent _agent;
         private bool _disposed = false;
 
-        // MCP相关字段 - 暂时注释掉，因为需要先添加MCP相关依赖
-        // private IMcpClient _mcpClient = null!;
+        // MCP相关字段
+        private IMcpClient _mcpClient = null!;
         private Pipe _clientToServerPipe = new Pipe();
         private Pipe _serverToClientPipe = new Pipe();
         private IHost? _host;
 
         private string _questionMessage = "";
-        public string QuestionMessae 
-        { 
+        public string QuestionMessae
+        {
             get => _questionMessage; 
             set
             {
@@ -58,8 +61,8 @@ namespace XiaoZhiSharp_MauiApp.Services
         }
         
         private string _answerMessage = "";
-        public string AnswerMessae 
-        { 
+        public string AnswerMessae
+        {
             get => _answerMessage;
             set
             {
@@ -118,7 +121,21 @@ namespace XiaoZhiSharp_MauiApp.Services
         public string OtaUrl { get; set; } = "https://api.tenclass.net/xiaozhi/ota/";
         public string DeviceId { get; set; } = Global.DeviceId;
         public int VadThreshold { get; set; } = 40;
-        public bool IsDebugMode { get; set; } = false;
+        private bool _isDebugMode = false;
+        public bool IsDebugMode 
+        { 
+            get => _isDebugMode;
+            set
+            {
+                if (_isDebugMode != value)
+                {
+                    _isDebugMode = value;
+                    XiaoZhiSharp.Global.IsDebug = value;
+                    OnPropertyChanged(nameof(IsDebugMode));
+                    AddDebugLog($"调试模式已{(value ? "开启" : "关闭")}");
+                }
+            }
+        }
         
         // VAD配置（从Unity版本移植）
         public bool UseVAD { get; set; } = true;
@@ -132,6 +149,36 @@ namespace XiaoZhiSharp_MauiApp.Services
         public DateTime? LastOtaCheckTime { get; private set; }
         public string? ActivationCode { get; private set; }
         public string? ActivationMessage { get; private set; }
+        
+        // 验证状态相关属性
+        public bool IsActivated 
+        { 
+            get 
+            { 
+                // 当服务端数据不包含验证码时，就是验证完成状态
+                // 当带验证码时，才是需要验证状态
+                return string.IsNullOrEmpty(ActivationCode);
+            }
+        }
+        
+        public string ActivationStatus
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(ActivationCode))
+                    return "✅ 已完成验证";
+                return "⚠️ 需要验证";
+            }
+        }
+        
+        public bool ShowActivationCode
+        {
+            get
+            {
+                // 只有在有验证码时才显示验证码
+                return !string.IsNullOrEmpty(ActivationCode);
+            }
+        }
         public string? FirmwareVersion { get; private set; }
         public string? FirmwareUrl { get; private set; }
         public DateTime? ServerTime { get; private set; }
@@ -176,6 +223,7 @@ namespace XiaoZhiSharp_MauiApp.Services
             
             XiaoZhiSharp.Global.VadThreshold = VadThreshold;
             XiaoZhiSharp.Global.IsDebug = IsDebugMode;
+            XiaoZhiSharp.Global.IsMcp = true; // 启用MCP协议支持
             _agent = new XiaoZhiAgent();
             _agent.DeviceId = DeviceId;
             _agent.WsUrl = ServerUrl;
@@ -186,7 +234,7 @@ namespace XiaoZhiSharp_MauiApp.Services
             
             // 根据平台注册相应的音频服务
 #if ANDROID
-            if (DeviceInfo.Platform == DevicePlatform.Android) 
+            if (DeviceInfo.Platform == DevicePlatform.Android)
             { 
                 try
                 {
@@ -205,8 +253,8 @@ namespace XiaoZhiSharp_MauiApp.Services
             AddDebugLog("MacCatalyst平台暂未实现音频服务");
 #endif
             
-            // 初始化MCP服务 - 暂时注释掉
-            // InitializeMcpService();
+            // 初始化MCP服务
+            InitializeMcpService();
             
             _ = Task.Run(async () => await _agent.Start());
             IsConnected = true; // 假设启动后就连接成功
@@ -215,13 +263,24 @@ namespace XiaoZhiSharp_MauiApp.Services
             StartConnectionMonitor();
         }
 
-        // 初始化MCP服务 - 暂时注释掉实现
+        // 初始化MCP服务
         private void InitializeMcpService()
         {
             try
             {
-                // TODO: 添加MCP服务实现
-                AddDebugLog("MCP服务初始化暂未实现");
+                var builder = Host.CreateApplicationBuilder();
+
+                builder.Services
+                    .AddMcpServer()
+                    .WithStreamServerTransport(_clientToServerPipe.Reader.AsStream(), _serverToClientPipe.Writer.AsStream())
+                    .WithTools<IotThings_Tool>()
+                    .WithTools<Chrome_Tool>()
+                    .WithTools<WindowsApp_Tool>();
+
+                _host = builder.Build();
+                _host.StartAsync();
+                
+                AddDebugLog("MCP服务初始化成功，已注册IoT、Chrome、WindowsApp工具");
             }
             catch (Exception ex)
             {
@@ -345,7 +404,7 @@ namespace XiaoZhiSharp_MauiApp.Services
         {
             if (type == "question")
             {
-                QuestionMessae = message;
+                    QuestionMessae = message;
                 // 添加用户问题到聊天历史，但首先检查是否已经存在相同内容的用户消息
                 if (ChatHistory.Count == 0 || ChatHistory.Last().Content != message || !ChatHistory.Last().IsUser)
                 {
@@ -354,7 +413,7 @@ namespace XiaoZhiSharp_MauiApp.Services
             }
             else if (type == "answer")
             {
-                AnswerMessae = message;
+                    AnswerMessae = message;
                 // 添加AI回答到聊天历史
                 if (ChatHistory.Count > 0 && !ChatHistory.Last().IsUser)
                 {
@@ -481,13 +540,16 @@ namespace XiaoZhiSharp_MauiApp.Services
             OnPropertyChanged(nameof(LastOtaCheckTime));
             OnPropertyChanged(nameof(ActivationCode));
             OnPropertyChanged(nameof(ActivationMessage));
+            OnPropertyChanged(nameof(IsActivated));
+            OnPropertyChanged(nameof(ActivationStatus));
+            OnPropertyChanged(nameof(ShowActivationCode));
             OnPropertyChanged(nameof(FirmwareVersion));
             OnPropertyChanged(nameof(FirmwareUrl));
             OnPropertyChanged(nameof(ServerTime));
             OnPropertyChanged(nameof(MqttEndpoint));
         }
 
-        private void AddDebugLog(string message)
+        public void AddDebugLog(string message)
         {
             var logMessage = $"[{DateTime.Now:HH:mm:ss}] {message}";
             
@@ -642,13 +704,118 @@ namespace XiaoZhiSharp_MauiApp.Services
             OnPropertyChanged(nameof(OtaStatus));
         }
 
-        // 处理MCP消息 - 暂时简化实现
+        // 处理MCP消息
         private async Task HandleMcpMessage(string message)
         {
             try
             {
                 AddDebugLog($"收到MCP消息: {message}");
-                // TODO: 添加完整的MCP消息处理
+
+                if (_mcpClient == null)
+                {
+                    var clientTransport = new StreamClientTransport(
+                        serverInput: _clientToServerPipe.Writer.AsStream(),
+                        serverOutput: _serverToClientPipe.Reader.AsStream());
+
+                    _mcpClient = await McpClientFactory.CreateAsync(clientTransport);
+                    AddDebugLog("MCP客户端初始化成功");
+                }
+
+                dynamic? mcp = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(message);
+                if (mcp == null)
+                {
+                    AddDebugLog("MCP消息解析失败");
+                    return;
+                }
+
+                if (mcp.method == "initialize")
+                {
+                    // 处理初始化请求
+                    var resultData = new
+                    {
+                        protocolVersion = "2024-11-05",
+                        capabilities = _mcpClient.ServerCapabilities,
+                        serverInfo = new
+                        {
+                            name = "XiaoZhiSharp MAUI",
+                            version = CurrentVersion
+                        }
+                    };
+
+                    JsonNode resultNode = JsonSerializer.SerializeToNode(resultData);
+                    JsonRpcResponse? response = new JsonRpcResponse()
+                    {
+                        Id = new RequestId((long)mcp.id),
+                        JsonRpc = "2.0",
+                        Result = resultNode
+                    };
+
+                    await _agent.McpMessage(JsonSerializer.Serialize(response));
+                    AddDebugLog("已响应MCP初始化请求");
+                }
+                else if (mcp.method == "tools/list")
+                {
+                    // 处理工具列表请求
+                    var tools = await _mcpClient.ListToolsAsync();
+                    List<Tool> toolsList = new List<Tool>();
+                    foreach (var item in tools)
+                    {
+                        toolsList.Add(item.ProtocolTool);
+                    }
+
+                    var resultData = new
+                    {
+                        tools = toolsList
+                    };
+
+                    JsonNode resultNode = JsonSerializer.SerializeToNode(resultData);
+                    JsonRpcResponse? response = new JsonRpcResponse()
+                    {
+                        Id = new RequestId((long)mcp.id),
+                        JsonRpc = "2.0",
+                        Result = resultNode
+                    };
+
+                    var options = new JsonSerializerOptions
+                    {
+                        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                    };
+
+                    await _agent.McpMessage(JsonSerializer.Serialize(response, options));
+                    AddDebugLog($"已响应MCP工具列表请求，可用工具数量: {toolsList.Count}");
+                }
+                else if (mcp.method == "tools/call")
+                {
+                    // 处理工具调用请求
+                    JsonNode? root = JsonNode.Parse(message);
+
+                    string? name = root?["params"]?["name"]?.GetValue<string>();
+                    JsonNode? argumentsNode = root?["params"]?["arguments"];
+
+                    Dictionary<string, object>? arguments = null;
+                    if (argumentsNode != null)
+                    {
+                        arguments = argumentsNode.Deserialize<Dictionary<string, object>>();
+                    }
+
+                    AddDebugLog($"调用MCP工具: {name}, 参数: {argumentsNode}");
+
+                    CallToolResponse? callToolResponse = await _mcpClient.CallToolAsync(name, arguments);
+                    JsonNode jsonNode = JsonSerializer.SerializeToNode(callToolResponse);
+                    JsonRpcResponse? response = new JsonRpcResponse()
+                    {
+                        Id = new RequestId((long)mcp.id),  
+                        JsonRpc = "2.0",
+                        Result = jsonNode
+                    };
+
+                    var options = new JsonSerializerOptions
+                    {
+                        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                    };
+                    await _agent.McpMessage(JsonSerializer.Serialize(response, options));
+                    AddDebugLog($"已响应MCP工具调用请求: {name}");
+                }
             }
             catch (Exception ex)
             {
