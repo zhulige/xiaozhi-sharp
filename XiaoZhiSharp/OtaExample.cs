@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using XiaoZhiSharp.Protocols;
+using XiaoZhiSharp.Models;
 using XiaoZhiSharp.Utils;
 
 namespace XiaoZhiSharp

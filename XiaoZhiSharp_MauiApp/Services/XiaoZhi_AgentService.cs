@@ -17,6 +17,7 @@ using Microsoft.Extensions.Hosting;
 using ModelContextProtocol.Client;
 using ModelContextProtocol.Protocol;
 using XiaoZhiSharp_MauiApp.McpTools;
+using XiaoZhiSharp.Models;
 
 namespace XiaoZhiSharp_MauiApp.Services
 {

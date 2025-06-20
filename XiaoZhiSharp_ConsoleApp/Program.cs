@@ -14,6 +14,7 @@ using XiaoZhiSharp_ConsoleApp.McpTools;
 using XiaoZhiSharp.Protocols;
 using XiaoZhiSharp.Services;
 using XiaoZhiSharp.Utils;
+using XiaoZhiSharp.Models;
 
 class Program
 {
@@ -59,6 +60,7 @@ class Program
         await _host.StartAsync();
 
         XiaoZhiSharp.Global.IsDebug = true;
+        XiaoZhiSharp.Global.IsMcp = true;
         _agent = new XiaoZhiAgent();
         //XiaoZhiSharp.Global.SampleRate_WaveOut = 24000;
         //_agent.WsUrl = "wss://coze.nbee.net/xiaozhi/v1/"; 

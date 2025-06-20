@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using XiaoZhiSharp.Models;
 using XiaoZhiSharp.Protocols;
 using XiaoZhiSharp.Utils;
 

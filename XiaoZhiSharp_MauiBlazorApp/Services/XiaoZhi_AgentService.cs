@@ -18,6 +18,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using XiaoZhiSharp_MauiBlazorApp.McpTools;
 using System.Net.WebSockets;
+using XiaoZhiSharp.Models;
 
 namespace XiaoZhiSharp_MauiBlazorApp.Services
 {

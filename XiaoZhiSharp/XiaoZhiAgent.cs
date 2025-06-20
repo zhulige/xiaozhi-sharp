@@ -7,6 +7,7 @@ using XiaoZhiSharp.Protocols;
 using XiaoZhiSharp.Services;
 using XiaoZhiSharp.Utils;
 using System.Threading;
+using XiaoZhiSharp.Models;
 
 namespace XiaoZhiSharp
 {

@@ -1,8 +1,11 @@
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using Newtonsoft.Json;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace XiaoZhiSharp.Protocols
+namespace XiaoZhiSharp.Models
 {
     /// <summary>
     /// OTA请求模型
@@ -240,4 +243,4 @@ namespace XiaoZhiSharp.Protocols
         [JsonProperty("error")]
         public string Error { get; set; } = "";
     }
-} 
+}
