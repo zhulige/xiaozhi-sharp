@@ -10,5 +10,6 @@
 /XiaoZhiSharp_MauiBlazorApp/bin
 /XiaoZhiSharp_MauiBlazorApp/obj
 /XiaoZhiSharp_MauiApp/obj
-/XiaoZhiSharp_MauiApp/bin/Debug/net9.0-android
-/XiaoZhiSharp_MauiApp/bin/Debug/net9.0-maccatalyst/maccatalyst-x64
+/XiaoZhiSharp_MauiApp/bin
+/XiaoZhiSharp_MauiApp/XiaoZhiSharp_MauiApp.csproj.user
+/XiaoZhiSharp_MauiApp/XiaoZhiSharp_MauiApp.csproj.user
