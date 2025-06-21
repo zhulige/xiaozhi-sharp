@@ -15,6 +15,7 @@ namespace XiaoZhiSharp_MauiApp
     public class MainActivity : MauiAppCompatActivity
     {
         private const int REQUEST_NOTIFICATION_PERMISSION = 1002;
+        private const int REQUEST_IGNORE_BATTERY_OPTIMIZATIONS = 1003;
 
         protected override void OnCreate(Bundle savedInstanceState)
         {
@@ -26,17 +27,17 @@ namespace XiaoZhiSharp_MauiApp
             base.OnCreate(savedInstanceState);
             
             // 检查并请求通知权限（Android 13+）
-            // 暂时完全禁用前台服务，避免崩溃
-            // TODO: 未来需要修复前台服务的问题
-            /*
             Task.Run(async () =>
             {
-                await Task.Delay(2000); // 等待2秒，确保应用完全初始化
+                await Task.Delay(3000); // 等待3秒，确保应用完全初始化
                 
                 MainThread.BeginInvokeOnMainThread(() =>
                 {
                     try
                     {
+                        // 请求忽略电池优化
+                        RequestIgnoreBatteryOptimizations();
+                        
                         if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu)
                         {
                             if (ContextCompat.CheckSelfPermission(this, Android.Manifest.Permission.PostNotifications) != Permission.Granted)
@@ -61,18 +62,15 @@ namespace XiaoZhiSharp_MauiApp
                     }
                 });
             });
-            */
         }
 
         protected override void OnResume()
         {
             base.OnResume();
             // 确保前台服务在应用恢复时运行
-            // 暂时禁用
-            /*
             Task.Run(async () =>
             {
-                await Task.Delay(1000); // 短暂延迟
+                await Task.Delay(1500); // 延迟1.5秒
                 MainThread.BeginInvokeOnMainThread(() =>
                 {
                     try
@@ -85,15 +83,12 @@ namespace XiaoZhiSharp_MauiApp
                     }
                 });
             });
-            */
         }
 
         protected override void OnDestroy()
         {
             base.OnDestroy();
             // 应用销毁时停止前台服务
-            // 暂时禁用
-            /*
             try
             {
                 XiaoZhiForegroundService.StopService(this);
@@ -102,7 +97,6 @@ namespace XiaoZhiSharp_MauiApp
             {
                 System.Diagnostics.Debug.WriteLine($"停止前台服务失败: {ex.Message}");
             }
-            */
         }
 
         private void StartForegroundServiceIfNeeded()
@@ -114,6 +108,27 @@ namespace XiaoZhiSharp_MauiApp
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"启动前台服务失败: {ex.Message}");
+            }
+        }
+
+        private void RequestIgnoreBatteryOptimizations()
+        {
+            try
+            {
+                if (Build.VERSION.SdkInt >= BuildVersionCodes.M)
+                {
+                    var powerManager = (PowerManager?)GetSystemService(PowerService);
+                    if (powerManager != null && !powerManager.IsIgnoringBatteryOptimizations(PackageName))
+                    {
+                        var intent = new Android.Content.Intent(Android.Provider.Settings.ActionRequestIgnoreBatteryOptimizations);
+                        intent.SetData(Android.Net.Uri.Parse($"package:{PackageName}"));
+                        StartActivityForResult(intent, REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"请求忽略电池优化失败: {ex.Message}");
             }
         }
 
