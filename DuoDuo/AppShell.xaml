@@ -7,7 +7,7 @@
     Title="DuoDuo">
 
     <ShellContent
-        Title="Home"
+        Title="DuoDuo"
         ContentTemplate="{DataTemplate local:MainPage}"
         Route="MainPage" />
 

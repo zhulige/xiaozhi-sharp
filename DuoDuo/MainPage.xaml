@@ -3,46 +3,59 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="DuoDuo.MainPage">
 
-    <ScrollView>
-        <VerticalStackLayout
-            Padding="30,0"
-            Spacing="25">
+    <Grid RowDefinitions="*, Auto">
+        <!-- 上方内容区域 -->
+        <ScrollView Grid.Row="0">
+            <VerticalStackLayout 
+                Spacing="25" 
+                Padding="30">
 
-            <Label
-                Text="{Binding StatusMessage}"
-                Style="{StaticResource SubHeadline}"
-                SemanticProperties.HeadingLevel="Level1" />
+                <Label
+                    Text="{Binding StatusMessage}"
+                    FontSize="18" 
+                    FontAttributes="Bold" 
+                    HorizontalOptions="Center" />
 
-            <Label
-                Text="{Binding EmotionText}"
-                Style="{StaticResource SubHeadline}"
-                SemanticProperties.HeadingLevel="Level5" />
+                <Label
+                    Text="{Binding EmotionText}"
+                    FontSize="68" 
+                    HorizontalOptions="Center" />
 
-            <Label
-                Text="{Binding QuestionMessae}"
-                Style="{StaticResource SubHeadline}"
-                SemanticProperties.HeadingLevel="Level2" />
+                <Label
+                    Text="{Binding QuestionMessae}"
+                    FontSize="18" 
+                    HorizontalOptions="Center" />
 
-            <Label
-                Text="{Binding AnswerMessae}"
-                Style="{StaticResource SubHeadline}"
-                SemanticProperties.HeadingLevel="Level2" />
+                <Label
+                    Text="{Binding AnswerMessae}"
+                    FontSize="18" 
+                    HorizontalOptions="Center" />
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- 下方固定按钮区域 - 使用Grid布局实现两端对齐 -->
+        <Grid 
+            Grid.Row="1"
+            ColumnDefinitions="1*,1*,1*"
+            Padding="30, 15">
 
             <ImageButton
+                Grid.Column="1"
                 Source="voice.png"
+                HorizontalOptions="Center"
                 Pressed="ImageButton_Pressed"
                 Released="ImageButton_Released" 
                 MaximumHeightRequest="60" MaximumWidthRequest="60" 
                 MinimumHeightRequest="60" MinimumWidthRequest="60" />
 
             <ImageButton
+                Grid.Column="2"
                 Source="camera.png"
+                HorizontalOptions="End"
                 Pressed="CameraButton_Pressed"
                 Released="CameraButton_Released" 
-                MaximumHeightRequest="60" MaximumWidthRequest="60" 
-                MinimumHeightRequest="60" MinimumWidthRequest="60" />
-
-        </VerticalStackLayout>
-    </ScrollView>
-
+                MaximumHeightRequest="45" MaximumWidthRequest="45" 
+                MinimumHeightRequest="45" MinimumWidthRequest="45" />
+        </Grid>
+    </Grid>
 </ContentPage>
