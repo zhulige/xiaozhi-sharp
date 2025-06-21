@@ -43,6 +43,14 @@ namespace XiaoZhiSharp_MauiApp.Services
         private float ttsCooldownTime = 0.5f;      // TTS结束后的冷却时间(秒)
         private bool isInCooldown = false;         // 是否处于冷却期
         private CancellationTokenSource? _recordingCts;
+        
+        // 新增：自适应VAD相关字段
+        private float noiseLevel = 0.0f;          // 环境噪音水平
+        private float dynamicThreshold = 0.015f;  // 动态阈值
+        private Queue<float> energyHistory = new Queue<float>(100); // 能量历史记录
+        private int noiseCalibrationFrames = 30;  // 噪音校准帧数（约0.5秒）
+        private bool isCalibrating = false;       // 是否正在校准噪音
+        private float speechMultiplier = 2.5f;    // 语音能量倍数（语音能量通常是噪音的2.5倍以上）
         #endregion
         #region 事件
         public event IAudioService.PcmAudioEventHandler? OnPcmAudioEvent;
@@ -122,6 +130,12 @@ namespace XiaoZhiSharp_MauiApp.Services
                     currentSilenceFrames = 0;
                     isSpeaking = false;
                     
+                    // 新增：开始噪音校准
+                    isCalibrating = true;
+                    noiseLevel = 0.0f;
+                    energyHistory.Clear();
+                    Console.WriteLine("开始环境噪音校准...");
+
                     _recordingCts = new CancellationTokenSource();
                     var token = _recordingCts.Token;
 
@@ -147,7 +161,7 @@ namespace XiaoZhiSharp_MauiApp.Services
                                         bool hasVoice = DetectVoiceActivity(buffer, bytesRead);
                                         
                                         if (hasVoice)
-                                    {
+                                        {
                                             currentSilenceFrames = 0;
                                             if (!isSpeaking)
                                             {
@@ -173,6 +187,19 @@ namespace XiaoZhiSharp_MauiApp.Services
                                                 isSpeaking = false;
                                                 VadCounter = currentSilenceFrames;
                                                 Console.WriteLine($"VAD: 检测到语音结束，静音帧数: {currentSilenceFrames}");
+                                            }
+                                        }
+                                        
+                                        // 更新VAD计数器显示（用于UI显示）
+                                        if (!isCalibrating)
+                                        {
+                                            if (isSpeaking)
+                                            {
+                                                VadCounter = 0; // 说话时显示0
+                                            }
+                                            else if (currentSilenceFrames > 0)
+                                            {
+                                                VadCounter = Math.Min(currentSilenceFrames, 99); // 限制最大显示值
                                             }
                                         }
                                     }
@@ -313,30 +340,80 @@ namespace XiaoZhiSharp_MauiApp.Services
             }
             
             energy /= sampleCount;
+            float currentEnergy = (float)energy;
+            
+            // 记录能量历史
+            energyHistory.Enqueue(currentEnergy);
+            if (energyHistory.Count > 100)
+            {
+                energyHistory.Dequeue();
+            }
+            
+            // 噪音校准阶段
+            if (isCalibrating && energyHistory.Count >= noiseCalibrationFrames)
+            {
+                // 计算平均噪音水平（使用前30帧）
+                var calibrationSamples = energyHistory.Take(noiseCalibrationFrames).ToList();
+                noiseLevel = calibrationSamples.Average();
+                
+                // 计算噪音标准差
+                float variance = calibrationSamples.Select(x => (x - noiseLevel) * (x - noiseLevel)).Average();
+                float stdDev = (float)Math.Sqrt(variance);
+                
+                // 设置动态阈值：噪音平均值 + 3倍标准差
+                dynamicThreshold = noiseLevel + (stdDev * 3);
+                
+                // 确保最小阈值
+                dynamicThreshold = Math.Max(dynamicThreshold, 0.005f);
+                
+                isCalibrating = false;
+                Console.WriteLine($"VAD: 噪音校准完成，噪音水平: {noiseLevel:F5}, 动态阈值: {dynamicThreshold:F5}");
+            }
+            
+            // 如果还在校准中，不进行语音检测
+            if (isCalibrating)
+            {
+                return false;
+            }
             
             // 在TTS播放结束后的一段时间内，提高VAD阈值，减少误触发
-            float currentThreshold = vadThreshold;
+            float currentThreshold = dynamicThreshold;
             var timeSinceTts = (DateTime.Now - lastTtsEndTime).TotalSeconds;
             
             if (timeSinceTts < ttsCooldownTime * 2)
             {
                 // 在冷却期后的一段时间内，使用更高的阈值
-                currentThreshold = vadThreshold * 1.5f;
-                
-                // 如果能量值接近阈值但未超过，记录日志但不触发
-                if (energy > vadThreshold && energy <= currentThreshold)
+                currentThreshold = dynamicThreshold * 1.5f;
+            }
+            
+            // 使用更智能的语音检测算法
+            bool hasVoice = false;
+            
+            // 条件1：能量超过动态阈值
+            if (currentEnergy > currentThreshold)
+            {
+                // 条件2：能量显著高于最近的平均水平
+                if (energyHistory.Count >= 10)
                 {
-                    Console.WriteLine($"VAD: 冷却期内检测到低能量声音，能量值: {energy:F5}，当前阈值: {currentThreshold:F5}");
+                    float recentAverage = energyHistory.Skip(Math.Max(0, energyHistory.Count - 10)).Average();
+                    
+                    // 语音能量通常是背景噪音的2倍以上
+                    if (currentEnergy > recentAverage * speechMultiplier)
+                    {
+                        hasVoice = true;
+                    }
+                }
+                else
+                {
+                    // 历史数据不足时，仅依据阈值判断
+                    hasVoice = true;
                 }
             }
             
-            // 判断能量是否超过阈值
-            bool hasVoice = energy > currentThreshold;
-            
             // 调试信息
-            if (hasVoice)
+            if (hasVoice || (currentEnergy > noiseLevel * 1.5f))
             {
-                Console.WriteLine($"VAD: 检测到声音，能量值: {energy:F5}，当前阈值: {currentThreshold:F5}");
+                Console.WriteLine($"VAD: 能量={currentEnergy:F5}, 阈值={currentThreshold:F5}, 噪音={noiseLevel:F5}, 检测结果={hasVoice}");
             }
             
             return hasVoice;

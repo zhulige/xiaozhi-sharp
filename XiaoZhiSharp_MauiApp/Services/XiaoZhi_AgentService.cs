@@ -303,12 +303,34 @@ namespace XiaoZhiSharp_MauiApp.Services
             {
                 var builder = Host.CreateApplicationBuilder();
 
-                builder.Services
+                var mcpBuilder = builder.Services
                     .AddMcpServer()
                     .WithStreamServerTransport(_clientToServerPipe.Reader.AsStream(), _serverToClientPipe.Writer.AsStream())
                     .WithTools<IotThings_Tool>()
-                    .WithTools<Chrome_Tool>()
-                    .WithTools<WindowsApp_Tool>();
+                    .WithTools<Chrome_Tool>();
+
+                // 根据平台注册相应的工具
+#if ANDROID
+                if (DeviceInfo.Platform == DevicePlatform.Android)
+                {
+                    try
+                    {
+                        // Android平台使用Android特定工具
+                        mcpBuilder.WithTools<Platforms.Android.McpTools.AndroidApp_Tool>();
+                        AddDebugLog("成功注册AndroidApp_Tool");
+                    }
+                    catch (Exception ex)
+                    {
+                        AddDebugLog($"注册AndroidApp_Tool失败: {ex.Message}");
+                        // 失败时使用Windows工具作为后备
+                        mcpBuilder.WithTools<WindowsApp_Tool>();
+                    }
+                }
+                else
+#endif
+                {
+                    mcpBuilder.WithTools<WindowsApp_Tool>();
+                }
 
                 // 注册摄像头工具实例
                 if (_cameraService != null)
@@ -321,7 +343,8 @@ namespace XiaoZhiSharp_MauiApp.Services
                 _host.StartAsync();
                 
                 var toolCount = _cameraService != null ? 4 : 3;
-                AddDebugLog($"MCP服务初始化成功，已注册{toolCount}个工具：IoT、Chrome、WindowsApp" + (_cameraService != null ? "、Camera" : ""));
+                var appToolName = DeviceInfo.Platform == DevicePlatform.Android ? "AndroidApp" : "WindowsApp";
+                AddDebugLog($"MCP服务初始化成功，已注册{toolCount}个工具：IoT、Chrome、{appToolName}" + (_cameraService != null ? "、Camera" : ""));
             }
             catch (Exception ex)
             {
