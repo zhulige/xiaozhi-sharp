@@ -15,15 +15,12 @@ using XiaoZhiSharp.Protocols;
 using XiaoZhiSharp.Services;
 using XiaoZhiSharp.Utils;
 using XiaoZhiSharp.Models;
+using XiaoZhiSharp_ConsoleApp.Services;
 
 class Program
 {
-    private static IMcpClient _mcpClient = null!;
-    private static Pipe _clientToServerPipe = new Pipe();
-    private static Pipe _serverToClientPipe = new Pipe();
-    private static IHost? _host;
     private static XiaoZhiAgent _agent;
-    //private static bool _recordStatus = false;
+    private static McpService _mcpService;
     private static string _audioMode = ""; 
     static async Task Main(string[] args)
     {
@@ -49,18 +46,12 @@ class Program
         Console.WriteLine(logoAndCopyright);
         Console.ForegroundColor = ConsoleColor.White;
 
-        builder.Services
-            .AddMcpServer()
-            .WithStreamServerTransport(_clientToServerPipe.Reader.AsStream(), _serverToClientPipe.Writer.AsStream())
-            .WithTools<IotThings_Tool>()
-            .WithTools<Chrome_Tool>()
-            .WithTools<WindowsApp_Tool>();
-
-        _host = builder.Build();
-        await _host.StartAsync();
-
         XiaoZhiSharp.Global.IsDebug = true;
         XiaoZhiSharp.Global.IsMcp = true;
+
+        _mcpService = new McpService();
+
+        
         _agent = new XiaoZhiAgent();
         //XiaoZhiSharp.Global.SampleRate_WaveOut = 24000;
         //_agent.WsUrl = "wss://coze.nbee.net/xiaozhi/v1/"; 
@@ -193,109 +184,114 @@ class Program
             case "answer":
                 LogConsole.WriteLine(MessageType.Recv, $"[{type}] {message}");
                 break;
+            case "mcp":
+                string resultMessage = await _mcpService.McpMessageHandle(message);
+                if(!string.IsNullOrEmpty(resultMessage))
+                    await _agent.McpMessage(resultMessage);
+                break;
             default:
                 LogConsole.InfoLine($"[{type}] {message}");
                 break;
         }
         //LogConsole.InfoLine($"[{type}] {message}");
 
-        if (_mcpClient == null)
-        {
-            var clientTransport = new StreamClientTransport(
-                serverInput: _clientToServerPipe.Writer.AsStream(),
-                serverOutput: _serverToClientPipe.Reader.AsStream());
+        //if (_mcpClient == null)
+        //{
+        //    var clientTransport = new StreamClientTransport(
+        //        serverInput: _clientToServerPipe.Writer.AsStream(),
+        //        serverOutput: _serverToClientPipe.Reader.AsStream());
 
-            _mcpClient = await McpClientFactory.CreateAsync(clientTransport);
-        }
+        //    _mcpClient = await McpClientFactory.CreateAsync(clientTransport);
+        //}
         
-        if (type == "mcp")
-        {
-            dynamic? mcp = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(message);
-            if (mcp.method == "initialize")
-            {
-                // 构造 Result 数据（非匿名类型，需确保属性名匹配）
-                var resultData = new
-                {
-                    protocolVersion = "2024-11-05",
-                    capabilities = _mcpClient.ServerCapabilities, // ServerCapabilities 对象
-                    serverInfo = new
-                    {
-                        name = "RestSharp", // 设备名称 (BOARD_NAME)
-                        version = "112.1.0.0" // 设备固件版本
-                    }
-                };
+        //if (type == "mcp")
+        //{
+        //    dynamic? mcp = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(message);
+        //    if (mcp.method == "initialize")
+        //    {
+        //        // 构造 Result 数据（非匿名类型，需确保属性名匹配）
+        //        var resultData = new
+        //        {
+        //            protocolVersion = "2024-11-05",
+        //            capabilities = _mcpClient.ServerCapabilities, // ServerCapabilities 对象
+        //            serverInfo = new
+        //            {
+        //                name = "RestSharp", // 设备名称 (BOARD_NAME)
+        //                version = "112.1.0.0" // 设备固件版本
+        //            }
+        //        };
 
-                // 直接序列化为 JsonNode（关键步骤）
-                JsonNode resultNode = System.Text.Json.JsonSerializer.SerializeToNode(resultData);
-                ModelContextProtocol.Protocol.JsonRpcResponse? response = new ModelContextProtocol.Protocol.JsonRpcResponse()
-                {
-                    Id = new RequestId((long)mcp.id),
-                    JsonRpc = "2.0",
-                    Result = resultNode
-                };
+        //        // 直接序列化为 JsonNode（关键步骤）
+        //        JsonNode resultNode = System.Text.Json.JsonSerializer.SerializeToNode(resultData);
+        //        ModelContextProtocol.Protocol.JsonRpcResponse? response = new ModelContextProtocol.Protocol.JsonRpcResponse()
+        //        {
+        //            Id = new RequestId((long)mcp.id),
+        //            JsonRpc = "2.0",
+        //            Result = resultNode
+        //        };
 
-                await _agent.McpMessage(System.Text.Json.JsonSerializer.Serialize(response));
-            }
+        //        await _agent.McpMessage(System.Text.Json.JsonSerializer.Serialize(response));
+        //    }
 
-            if (mcp.method == "tools/list")
-            {
-                var tools = await _mcpClient.ListToolsAsync();
-                List<Tool> toolss = new List<Tool>();
-                foreach (var item in tools)
-                {
-                    toolss.Add(item.ProtocolTool);
-                }
-                var resultData = new
-                {
-                    tools = toolss
-                };
+        //    if (mcp.method == "tools/list")
+        //    {
+        //        var tools = await _mcpClient.ListToolsAsync();
+        //        List<Tool> toolss = new List<Tool>();
+        //        foreach (var item in tools)
+        //        {
+        //            toolss.Add(item.ProtocolTool);
+        //        }
+        //        var resultData = new
+        //        {
+        //            tools = toolss
+        //        };
 
-                // 直接序列化为 JsonNode（关键步骤）
-                JsonNode resultNode = System.Text.Json.JsonSerializer.SerializeToNode(resultData);
-                ModelContextProtocol.Protocol.JsonRpcResponse? response = new ModelContextProtocol.Protocol.JsonRpcResponse()
-                {
-                    Id = new RequestId((long)mcp.id),
-                    JsonRpc = "2.0",
-                    Result = resultNode
-                };
-                var options = new JsonSerializerOptions
-                {
-                    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping // 关键配置
-                };
+        //        // 直接序列化为 JsonNode（关键步骤）
+        //        JsonNode resultNode = System.Text.Json.JsonSerializer.SerializeToNode(resultData);
+        //        ModelContextProtocol.Protocol.JsonRpcResponse? response = new ModelContextProtocol.Protocol.JsonRpcResponse()
+        //        {
+        //            Id = new RequestId((long)mcp.id),
+        //            JsonRpc = "2.0",
+        //            Result = resultNode
+        //        };
+        //        var options = new JsonSerializerOptions
+        //        {
+        //            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping // 关键配置
+        //        };
 
-                await _agent.McpMessage(System.Text.Json.JsonSerializer.Serialize(response));
-            }
+        //        await _agent.McpMessage(System.Text.Json.JsonSerializer.Serialize(response));
+        //    }
 
-            if (mcp.method == "tools/call") {
-                // 解析整个 JSON
-                JsonNode? root = JsonNode.Parse(message);
+        //    if (mcp.method == "tools/call") {
+        //        // 解析整个 JSON
+        //        JsonNode? root = JsonNode.Parse(message);
 
-                // 安全提取 name 和 arguments
-                string? name = root?["params"]?["name"]?.GetValue<string>();
-                JsonNode? argumentsNode = root?["params"]?["arguments"];
+        //        // 安全提取 name 和 arguments
+        //        string? name = root?["params"]?["name"]?.GetValue<string>();
+        //        JsonNode? argumentsNode = root?["params"]?["arguments"];
 
-                // 将 arguments 转换为 Dictionary<string, object>
-                Dictionary<string, object>? arguments = null;
-                if (argumentsNode != null)
-                {
-                    arguments = argumentsNode.Deserialize<Dictionary<string, object>>();
-                }
+        //        // 将 arguments 转换为 Dictionary<string, object>
+        //        Dictionary<string, object>? arguments = null;
+        //        if (argumentsNode != null)
+        //        {
+        //            arguments = argumentsNode.Deserialize<Dictionary<string, object>>();
+        //        }
 
-                CallToolResponse? callToolResponse = await _mcpClient.CallToolAsync(name, arguments);
-                JsonNode jsonNode = System.Text.Json.JsonSerializer.SerializeToNode(callToolResponse);
-                ModelContextProtocol.Protocol.JsonRpcResponse? response = new ModelContextProtocol.Protocol.JsonRpcResponse()
-                {
-                    Id = new RequestId((long)mcp.id),
-                    JsonRpc = "2.0",
-                    Result = jsonNode
-                };
+        //        CallToolResponse? callToolResponse = await _mcpClient.CallToolAsync(name, arguments);
+        //        JsonNode jsonNode = System.Text.Json.JsonSerializer.SerializeToNode(callToolResponse);
+        //        ModelContextProtocol.Protocol.JsonRpcResponse? response = new ModelContextProtocol.Protocol.JsonRpcResponse()
+        //        {
+        //            Id = new RequestId((long)mcp.id),
+        //            JsonRpc = "2.0",
+        //            Result = jsonNode
+        //        };
 
-                var options = new JsonSerializerOptions
-                {
-                    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping // 关键配置
-                };
-                await _agent.McpMessage(System.Text.Json.JsonSerializer.Serialize(response));
-            }
-        }
+        //        var options = new JsonSerializerOptions
+        //        {
+        //            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping // 关键配置
+        //        };
+        //        await _agent.McpMessage(System.Text.Json.JsonSerializer.Serialize(response));
+        //    }
+        //}
     }
 }

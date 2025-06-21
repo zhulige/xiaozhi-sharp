@@ -11,16 +11,19 @@ namespace DuoDuo.Services
     public class AgentService
     {
         private readonly XiaoZhiAgent _agent;
+        private readonly McpService _mcpService;
 
         #region 属性
-        public XiaoZhiAgent Agent
-        {
-            get { return _agent; }
-        }
+        public XiaoZhiAgent Agent{ get { return _agent; } }
         public PageModels.MainPageModel MainPageModel { get; set; } = new PageModels.MainPageModel();
         #endregion
 
-        public AgentService() {
+        public AgentService(McpService mcpService)
+        {
+            XiaoZhiSharp.Global.IsMcp = true;
+
+            _mcpService = mcpService;
+
             _agent = new XiaoZhiAgent();
             _agent.DeviceId = Global.DeviceId;
             _agent.OnMessageEvent += Agent_OnMessageEvent;
@@ -39,13 +42,14 @@ namespace DuoDuo.Services
                     {
                         await _agent.Restart();
                         MainPageModel.StatusMessage = $"连接状态: Restart";
+                        await Task.Delay(3000);
                     }
                     await Task.Delay(2000);
                 }
             });
         }
 
-        private Task Agent_OnMessageEvent(string type, string message)
+        private async Task Agent_OnMessageEvent(string type, string message)
         {
             switch (type)
             {
@@ -62,12 +66,15 @@ namespace DuoDuo.Services
                     MainPageModel.EmotionText = message;
                     break;
                 case "answer_stop":
-
+                    break;
+                case "mcp":
+                    string resultMessage = await _mcpService.McpMessageHandle(message);
+                    if(!string.IsNullOrEmpty(resultMessage))
+                        await _agent.McpMessage(resultMessage);
                     break;
                 default:
                     break;
             }
-            return Task.CompletedTask;
         }
     }
 }

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DuoDuo
+namespace XiaoZhiSharp_ConsoleApp
 {
     public class Global
     {

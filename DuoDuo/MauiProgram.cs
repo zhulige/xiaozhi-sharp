@@ -19,8 +19,9 @@ namespace DuoDuo
 #if DEBUG
     		builder.Logging.AddDebug();
 #endif
-            builder.Services.AddSingleton<AgentService>();
+            builder.Services.AddSingleton<McpService>();
             builder.Services.AddSingleton<CameraService>();
+            builder.Services.AddSingleton<AgentService>();
             return builder.Build();
         }
     }
