@@ -36,7 +36,7 @@
                 MinimumHeightRequest="60" MinimumWidthRequest="60" />
 
             <ImageButton
-                Source="voice.png"
+                Source="camera.png"
                 Pressed="CameraButton_Pressed"
                 Released="CameraButton_Released" 
                 MaximumHeightRequest="60" MaximumWidthRequest="60" 

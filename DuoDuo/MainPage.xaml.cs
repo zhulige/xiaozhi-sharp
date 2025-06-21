@@ -49,7 +49,7 @@ namespace DuoDuo
                 if (imageData != null)
                 {
                     XiaoZhiSharp.Services.ImageStorageService imageStorageService = new XiaoZhiSharp.Services.ImageStorageService();
-                    imageStorageService.PostImage("https://coze.nbee.net/image/v1/stream/1", "", "deviceId", "clientId", imageData);
+                    imageStorageService.PostImage("https://coze.nbee.net/image/v1/stream/" + Global.DeviceId, "", Global.DeviceId, Global.ClientId, imageData);
                 }
             });
         }
