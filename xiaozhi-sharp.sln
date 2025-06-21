@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XiaoZhiSharp_MauiBlazorApp"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XiaoZhiSharp_MauiApp", "XiaoZhiSharp_MauiApp\XiaoZhiSharp_MauiApp.csproj", "{061C5C5A-8706-404B-A248-D7B99F78C63F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DuoDuo", "DuoDuo\DuoDuo.csproj", "{C6266B35-0EA4-436E-91C9-E4253BD7EB15}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,6 +38,11 @@ Global
 		{061C5C5A-8706-404B-A248-D7B99F78C63F}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
 		{061C5C5A-8706-404B-A248-D7B99F78C63F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{061C5C5A-8706-404B-A248-D7B99F78C63F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6266B35-0EA4-436E-91C9-E4253BD7EB15}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6266B35-0EA4-436E-91C9-E4253BD7EB15}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6266B35-0EA4-436E-91C9-E4253BD7EB15}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{C6266B35-0EA4-436E-91C9-E4253BD7EB15}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6266B35-0EA4-436E-91C9-E4253BD7EB15}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

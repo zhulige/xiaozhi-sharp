@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="DuoDuo.MainPage">
+
+    <ScrollView>
+        <VerticalStackLayout
+            Padding="30,0"
+            Spacing="25">
+
+            <Label
+                Text="{Binding StatusMessage}"
+                Style="{StaticResource SubHeadline}"
+                SemanticProperties.HeadingLevel="Level1" />
+
+            <Label
+                Text="{Binding EmotionText}"
+                Style="{StaticResource SubHeadline}"
+                SemanticProperties.HeadingLevel="Level5" />
+
+            <Label
+                Text="{Binding QuestionMessae}"
+                Style="{StaticResource SubHeadline}"
+                SemanticProperties.HeadingLevel="Level2" />
+
+            <Label
+                Text="{Binding AnswerMessae}"
+                Style="{StaticResource SubHeadline}"
+                SemanticProperties.HeadingLevel="Level2" />
+
+            <ImageButton
+                Source="voice.png"
+                Pressed="ImageButton_Pressed"
+                Released="ImageButton_Released" 
+                MaximumHeightRequest="60" MaximumWidthRequest="60" 
+                MinimumHeightRequest="60" MinimumWidthRequest="60" />
+
+            <ImageButton
+                Source="voice.png"
+                Pressed="CameraButton_Pressed"
+                Released="CameraButton_Released" 
+                MaximumHeightRequest="60" MaximumWidthRequest="60" 
+                MinimumHeightRequest="60" MinimumWidthRequest="60" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>
