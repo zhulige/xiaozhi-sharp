@@ -36,6 +36,26 @@ namespace DuoDuo
             //});
         }
 
+        private void SettingButton_Pressed(object sender, EventArgs e)
+        {
+            //_ = Task.Run(async () =>
+            //{
+            //    await _agentService.Agent.StartRecording();
+            //});
+        }
+
+        private void SettingButton_Released(object sender, EventArgs e)
+        {
+            _ = Task.Run(async () =>
+            {
+                await _agentService.Agent.ChatAbort();
+            });
+            //_ = Task.Run(async () =>
+            //{
+            //    await _agentService.Agent.ChatMessage("你好");
+            //});
+        }
+
         private void CameraButton_Pressed(object sender, EventArgs e)
         {
 
