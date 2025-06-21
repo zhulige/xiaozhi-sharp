@@ -132,6 +132,51 @@
                 </VerticalStackLayout>
             </Frame>
 
+            <!-- 高级VAD设置 -->
+            <Frame BackgroundColor="White" Padding="15" CornerRadius="10" HasShadow="True">
+                <VerticalStackLayout Spacing="15">
+                    <HorizontalStackLayout Spacing="10">
+                        <Label Text="🎛️" FontSize="24"/>
+                        <VerticalStackLayout>
+                            <Label Text="高级VAD设置" FontAttributes="Bold"/>
+                            <Label Text="自适应语音检测参数" FontSize="12" TextColor="Gray"/>
+                        </VerticalStackLayout>
+                    </HorizontalStackLayout>
+                    
+                    <BoxView HeightRequest="1" BackgroundColor="#e0e0e0" Margin="0,5"/>
+                    
+                    <!-- 启用VAD开关 -->
+                    <Grid ColumnDefinitions="*,Auto">
+                        <HorizontalStackLayout Grid.Column="0" Spacing="10">
+                            <Label Text="启用智能VAD" VerticalOptions="Center" FontSize="14"/>
+                            <Label Text="(自适应噪音检测)" FontSize="12" TextColor="Gray" VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+                        <Switch Grid.Column="1" IsToggled="{Binding UseVAD}" VerticalOptions="Center"/>
+                    </Grid>
+                    
+                    <!-- 能量阈值 -->
+                    <VerticalStackLayout Spacing="5" IsVisible="{Binding UseVAD}">
+                        <Label Text="{Binding VadEnergyThreshold, StringFormat='能量阈值: {0:F3}'}" FontSize="14"/>
+                        <Slider Minimum="0.005" Maximum="0.05" Value="{Binding VadEnergyThreshold}"/>
+                        <Label Text="较低值在安静环境下更灵敏，较高值适合嘈杂环境" FontSize="11" TextColor="Gray"/>
+                    </VerticalStackLayout>
+                    
+                    <!-- 静音帧数 -->
+                    <VerticalStackLayout Spacing="5" IsVisible="{Binding UseVAD}">
+                        <Label Text="{Binding VadSilenceFrames, StringFormat='静音帧数: {0}'}" FontSize="14"/>
+                        <Slider Minimum="10" Maximum="50" Value="{Binding VadSilenceFrames}"/>
+                        <Label Text="检测到多少静音帧后结束录音（每帧60ms）" FontSize="11" TextColor="Gray"/>
+                    </VerticalStackLayout>
+                    
+                    <!-- TTS冷却时间 -->
+                    <VerticalStackLayout Spacing="5" IsVisible="{Binding UseVAD}">
+                        <Label Text="{Binding TtsCooldownTime, StringFormat='TTS冷却时间: {0:F1}秒'}" FontSize="14"/>
+                        <Slider Minimum="0.3" Maximum="2.0" Value="{Binding TtsCooldownTime}"/>
+                        <Label Text="播放结束后的冷却时间，避免回音干扰" FontSize="11" TextColor="Gray"/>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Frame>
+
             <!-- 调试模式设置 -->
             <Frame BackgroundColor="White" Padding="15" CornerRadius="10" HasShadow="True">
                 <Grid ColumnDefinitions="*,Auto">
@@ -196,6 +241,7 @@
             <Converters:BoolToColorConverter x:Key="BoolToColorConverter"/>
             <Converters:StringToBoolConverter x:Key="StringToBoolConverter"/>
             <Converters:NullToBoolConverter x:Key="NullToBoolConverter"/>
+            <Converters:IntToSecondsConverter x:Key="IntToSecondsConverter"/>
         </ResourceDictionary>
     </ContentPage.Resources>
 </ContentPage> 
