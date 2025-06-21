@@ -1,82 +1,86 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"  
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="DuoDuo.MainPage">
+             xmlns:cv="clr-namespace:Camera.MAUI;assembly=Camera.MAUI"
+             x:Class="DuoDuo.MainPage">  
 
-    <Grid RowDefinitions="*, Auto">
-        <!-- 上方内容区域 -->
-        <ScrollView Grid.Row="0">
-            <VerticalStackLayout 
-                Spacing="25" 
-                Padding="30">
+    <Grid RowDefinitions="*, Auto">  
+        <!-- 上方内容区域 -->  
+        <ScrollView Grid.Row="0">  
+            <VerticalStackLayout   
+                Spacing="25"   
+                Padding="30">  
 
-                <Label
-                    Text="{Binding StatusMessage}"
-                    FontSize="18" 
-                    FontAttributes="Bold" 
+                <Label  
+                    Text="{Binding StatusMessage}"  
+                    FontSize="18"   
+                    FontAttributes="Bold"   
+                    HorizontalOptions="Center" />  
+
+                <Label  
+                    Text="{Binding EmotionText}"  
+                    FontSize="68"   
+                    HorizontalOptions="Center" />  
+
+                <Label  
+                    Text="{Binding AnswerMessae}"  
+                    FontSize="18"   
                     HorizontalOptions="Center" />
 
-                <Label
-                    Text="{Binding EmotionText}"
-                    FontSize="68" 
-                    HorizontalOptions="Center" />
+                <cv:CameraView x:Name="cameraView" WidthRequest="320" HeightRequest="240"/>
 
-                <Label
-                    Text="{Binding AnswerMessae}"
-                    FontSize="18" 
-                    HorizontalOptions="Center" />
-            </VerticalStackLayout>
-        </ScrollView>
+            </VerticalStackLayout>  
+        </ScrollView>  
 
-        <!-- 下方固定按钮区域 - 使用Grid布局，添加QuestionMessae -->
-        <Grid 
-            Grid.Row="1"
-            RowDefinitions="Auto, Auto"  
-            ColumnDefinitions="1*,1*,1*"
-            Padding="30, 15">
+        <!-- 下方固定按钮区域 - 使用Grid布局，添加QuestionMessae -->  
+        <Grid   
+            Grid.Row="1"  
+            RowDefinitions="Auto, Auto"    
+            ColumnDefinitions="1*,1*,1*"  
+            Padding="30, 15">  
 
-            <!-- QuestionMessae 标签 - 跨三列，放在voice按钮上方 -->
-            <Label
-                Grid.Row="0"
-                Grid.ColumnSpan="3"  
-                Text="{Binding QuestionMessae}"
-                FontSize="18" 
-                HorizontalOptions="Center"
-                Margin="0,0,0,25" />
-            <!-- 底部边距，与voice按钮隔开 -->
+            <!-- QuestionMessae 标签 - 跨三列，放在voice按钮上方 -->  
+            <Label  
+                Grid.Row="0"  
+                Grid.ColumnSpan="3"    
+                Text="{Binding QuestionMessae}"  
+                FontSize="18"   
+                HorizontalOptions="Center"  
+                Margin="0,0,0,25" />  
+            <!-- 底部边距，与voice按钮隔开 -->  
 
-            <!-- 设置按钮 -->
-            <ImageButton
-                    Grid.Row="1" 
-                    Grid.Column="0"
-                    Source="setting.png"
-                    HorizontalOptions="Start"
-                    Pressed="SettingButton_Pressed"
-                    Released="SettingButton_Released" 
-                    MaximumHeightRequest="45" MaximumWidthRequest="45" 
-                    MinimumHeightRequest="45" MinimumWidthRequest="45" />
+            <!-- 设置按钮 -->  
+            <ImageButton  
+                    Grid.Row="1"   
+                    Grid.Column="0"  
+                    Source="setting.png"  
+                    HorizontalOptions="Start"  
+                    Pressed="SettingButton_Pressed"  
+                    Released="SettingButton_Released"   
+                    MaximumHeightRequest="45" MaximumWidthRequest="45"   
+                    MinimumHeightRequest="45" MinimumWidthRequest="45" />  
 
-            <!-- Voice按钮 -->
-            <ImageButton
-                    Grid.Row="1"  
-                    Grid.Column="1"
-                    Source="voice.png"
-                    HorizontalOptions="Center"
-                    Pressed="ImageButton_Pressed"
-                    Released="ImageButton_Released" 
-                    MaximumHeightRequest="80" MaximumWidthRequest="80" 
-                    MinimumHeightRequest="80" MinimumWidthRequest="80" />
+            <!-- Voice按钮 -->  
+            <ImageButton  
+                    Grid.Row="1"    
+                    Grid.Column="1"  
+                    Source="voice.png"  
+                    HorizontalOptions="Center"  
+                    Pressed="ImageButton_Pressed"  
+                    Released="ImageButton_Released"   
+                    MaximumHeightRequest="80" MaximumWidthRequest="80"   
+                    MinimumHeightRequest="80" MinimumWidthRequest="80" />  
 
-            <!-- Camera按钮 -->
-            <ImageButton
-                Grid.Row="1"  
-                Grid.Column="2"
-                Source="camera.png"
-                HorizontalOptions="End"
-                Pressed="CameraButton_Pressed"
-                Released="CameraButton_Released" 
-                MaximumHeightRequest="45" MaximumWidthRequest="45" 
-                MinimumHeightRequest="45" MinimumWidthRequest="45" />
-        </Grid>
-    </Grid>
+            <!-- Camera按钮 -->  
+            <ImageButton  
+                Grid.Row="1"    
+                Grid.Column="2"  
+                Source="camera.png"  
+                HorizontalOptions="End"  
+                Pressed="CameraButton_Pressed"  
+                Released="CameraButton_Released"   
+                MaximumHeightRequest="45" MaximumWidthRequest="45"   
+                MinimumHeightRequest="45" MinimumWidthRequest="45" />  
+        </Grid>  
+    </Grid>  
 </ContentPage>

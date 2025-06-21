@@ -1,4 +1,5 @@
 ﻿using DuoDuo.Services;
+using Camera.MAUI;
 using Microsoft.Extensions.Logging;
 
 namespace DuoDuo
@@ -10,6 +11,7 @@ namespace DuoDuo
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
+                .UseMauiCameraView()
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
