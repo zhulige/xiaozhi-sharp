@@ -102,6 +102,7 @@ namespace DuoDuo
                     byte[]? imageData = memoryStream.ToArray();
                     XiaoZhiSharp.Services.ImageStorageService imageStorageService = new XiaoZhiSharp.Services.ImageStorageService();
                     imageStorageService.PostImage("https://coze.nbee.net/image/v1/stream/" + Global.DeviceId, "", Global.DeviceId, Global.ClientId, imageData);
+                    _ = imageStorageService.XiaoZhiPostImage(Global.McpVisionUrl, Global.McpVisionToken, Global.DeviceId, Global.ClientId, imageData);
                 }
             });
         }

@@ -45,8 +45,8 @@
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-android|AnyCPU'">
 	  <ApplicationId>com.nbeenet.duoduo</ApplicationId>
 	  <AndroidKeyStore>False</AndroidKeyStore>
-	  <DebugSymbols>False</DebugSymbols>
-	  <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
+	  <DebugSymbols>True</DebugSymbols>
+	  <EmbedAssembliesIntoApk>False</EmbedAssembliesIntoApk>
     <AndroidPackageFormat>apk</AndroidPackageFormat>
 	</PropertyGroup>
 
