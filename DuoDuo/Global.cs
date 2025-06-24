@@ -16,5 +16,6 @@ namespace DuoDuo
         public static Pipe McpServerToClientPipe = new Pipe();
         public static string? McpVisionUrl = "";
         public static string? McpVisionToken = "";
+        public static byte[]? PhotoData = null;
     }
 }

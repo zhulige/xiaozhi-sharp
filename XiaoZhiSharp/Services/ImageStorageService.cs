@@ -1,11 +1,16 @@
 ﻿using RestSharp;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 using static System.Net.WebRequestMethods;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Formats.Jpeg;
 
 namespace XiaoZhiSharp.Services
 {
@@ -33,6 +38,7 @@ namespace XiaoZhiSharp.Services
         {
             try
             {
+                //question = "Please call the tool `image_to_text` to explain the image, then reply to the user";
                 HttpClient httpClient = new HttpClient();
                 // 构造multipart/form-data请求
                 var content = new MultipartFormDataContent();
@@ -59,19 +65,20 @@ namespace XiaoZhiSharp.Services
                 {
                     request.Headers.Add("Authorization", $"Bearer {token}");
                 }
+                //request.Headers.Add("Transfer-Encoding", "chunked");
 
                 var response = await httpClient.SendAsync(request);
 
                 if (response.IsSuccessStatusCode)
                 {
                     var result = await response.Content.ReadAsStringAsync();
-                    System.Diagnostics.Debug.WriteLine($"AI识别结果: {result}");
+                    //System.Diagnostics.Debug.WriteLine($"AI识别结果: {result}");
                     return result;
                 }
                 else
                 {
                     var errorBody = await response.Content.ReadAsStringAsync();
-                    System.Diagnostics.Debug.WriteLine($"AI识别失败，状态码: {response.StatusCode}，响应: {errorBody}");
+                    //System.Diagnostics.Debug.WriteLine($"AI识别失败，状态码: {response.StatusCode}，响应: {errorBody}");
                     return $"{{\"success\": false, \"message\": \"AI识别失败，状态码: {response.StatusCode}\"}}";
                 }
 

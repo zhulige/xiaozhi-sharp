@@ -28,7 +28,7 @@ namespace DuoDuo
                 //cameraView.Camera = cameraView.Cameras[1];
                 MainThread.BeginInvokeOnMainThread(async () =>
                 {
-                    if (await cameraView.StartCameraAsync() == CameraResult.Success)
+                    if (await cameraView.StartCameraAsync(new Size(800,600)) == CameraResult.Success)
                     {
                         //controlButton.Text = "Stop";
                         //playing = true;
@@ -39,6 +39,17 @@ namespace DuoDuo
 
         private void ImageButton_Pressed(object sender, EventArgs e)
         {
+            _ = Task.Run(async () =>
+            {
+                var stream = await cameraView.TakePhotoAsync();
+                if (stream != null)
+                {
+                    using var memoryStream = new MemoryStream();
+                    await stream.CopyToAsync(memoryStream);
+                    byte[]? imageData = memoryStream.ToArray();
+                    Global.PhotoData = imageData;
+                }
+            });
             _ = Task.Run(async () =>
             {
                 await _agentService.Agent.StartRecording();
@@ -86,23 +97,22 @@ namespace DuoDuo
         {
             _ = Task.Run(async () =>
             {
-                //byte[]? imageData = await _cameraService.CapturePhotoAsync();
-                //if (imageData != null)
-                //{
-                //    XiaoZhiSharp.Services.ImageStorageService imageStorageService = new XiaoZhiSharp.Services.ImageStorageService();
-                //    imageStorageService.PostImage("https://coze.nbee.net/image/v1/stream/" + Global.DeviceId, "", Global.DeviceId, Global.ClientId, imageData);
-                //    imageStorageService.PostImage(Global.McpVisionUrl, Global.McpVisionToken, Global.DeviceId, Global.ClientId, imageData);
-                //}
-
                 var stream = await cameraView.TakePhotoAsync();
                 if (stream != null)
                 {
                     using var memoryStream = new MemoryStream();
                     await stream.CopyToAsync(memoryStream);
                     byte[]? imageData = memoryStream.ToArray();
+                    Global.PhotoData = imageData;
                     XiaoZhiSharp.Services.ImageStorageService imageStorageService = new XiaoZhiSharp.Services.ImageStorageService();
                     imageStorageService.PostImage("https://coze.nbee.net/image/v1/stream/" + Global.DeviceId, "", Global.DeviceId, Global.ClientId, imageData);
-                    _ = imageStorageService.XiaoZhiPostImage(Global.McpVisionUrl, Global.McpVisionToken, Global.DeviceId, Global.ClientId, imageData);
+                    await Task.Run(async () =>
+                    {
+                        await _agentService.Agent.ChatMessage("拍张照看看是什么？");
+                    });
+
+                    
+
                 }
             });
         }

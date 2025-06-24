@@ -18,6 +18,7 @@ namespace DuoDuo.Services
             var mcpBuilder = builder.Services
                 .AddMcpServer()
                 .WithStreamServerTransport(Global.McpClientToServerPipe.Reader.AsStream(), Global.McpServerToClientPipe.Writer.AsStream())
+                .WithTools<Image_To_Text_Tool>()
                 .WithTools<IotThings_Tool>();
 
             _host = builder.Build();
