@@ -8,6 +8,6 @@ namespace XiaoZhiSharp.Services
 {
     public interface IImageStorageService
     {
-        string PostImage(string apiUrl, string token, string deviceId, string clientId, byte[] imageData);
+        Task<string> PostImage(string apiUrl, string token, string deviceId, string clientId, byte[] imageData,string question);
     }
 }

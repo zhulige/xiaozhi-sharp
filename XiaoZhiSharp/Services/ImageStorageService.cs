@@ -1,22 +1,11 @@
 ﻿using RestSharp;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
-using static System.Net.Mime.MediaTypeNames;
-using static System.Net.WebRequestMethods;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Processing;
-using SixLabors.ImageSharp.Formats.Jpeg;
 
 namespace XiaoZhiSharp.Services
 {
     public class ImageStorageService : IImageStorageService
     {
-        public string PostImage(string apiUrl, string token, string deviceId, string clientId, byte[] imageData)
+        public async Task<string> PostImage(string apiUrl, string token, string deviceId, string clientId, byte[] imageData, string question = "这个是什么？")
         {
             var client = new RestClient(apiUrl);
             var request = new RestRequest("", Method.Post);
@@ -24,70 +13,35 @@ namespace XiaoZhiSharp.Services
             // 添加请求头和图像数据
             request.AddHeader("Device-Id", deviceId);
             request.AddHeader("Client-Id", clientId);
-            request.AddHeader("Authorization", $"Bearer {token}");
+            if(!string.IsNullOrEmpty(token))
+                request.AddHeader("Authorization", $"Bearer {token}");
             request.AddHeader("Content-Type", "multipart/form-data");
+            request.AddParameter("question", question);
+            //request.AlwaysMultipartFormData = true;
             request.AddFile("file", imageData, "camera.jpg", "image/jpeg");
 
             // 发送请求并获取响应
-            var response = client.ExecuteAsync(request);
+            var response = await client.ExecuteAsync(request);
 
-            return string.Empty;
+            return response.Content;
         }
 
-        public async Task<string> XiaoZhiPostImage(string apiUrl, string token, string deviceId, string clientId, byte[] imageData, string question = "请描述这张图片的内容")
+        public async Task<string> BaiduImage(string deviceId)
         {
-            try
-            {
-                //question = "Please call the tool `image_to_text` to explain the image, then reply to the user";
-                HttpClient httpClient = new HttpClient();
-                // 构造multipart/form-data请求
-                var content = new MultipartFormDataContent();
+            var client = new RestClient("https://coze.nbee.net/image-classify/v1/");
+            var request = new RestRequest("baidu?id="+deviceId, Method.Get);
+            var response = await client.ExecuteAsync(request);
 
-                // 添加问题字段
-                content.Add(new StringContent(question), "question");
+            return response.Content;
+        }
 
-                // 添加图片数据
-                var imageContent = new ByteArrayContent(imageData);
-                imageContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("image/jpeg");
-                content.Add(imageContent, "file", "camera.jpg");
+        public async Task<string> XiaoZhiImage(string deviceId)
+        {
+            var client = new RestClient("https://coze.nbee.net/image-classify/v1/");
+            var request = new RestRequest("xiaozhi?id=" + deviceId, Method.Get);
+            var response = await client.ExecuteAsync(request);
 
-                // 设置请求头
-                var request = new HttpRequestMessage(HttpMethod.Post, apiUrl)
-                {
-                    Content = content
-                };
-
-                // 添加设备标识
-                request.Headers.Add("Device-Id", deviceId);
-                request.Headers.Add("Client-Id", clientId);
-
-                if (!string.IsNullOrEmpty(token))
-                {
-                    request.Headers.Add("Authorization", $"Bearer {token}");
-                }
-                //request.Headers.Add("Transfer-Encoding", "chunked");
-
-                var response = await httpClient.SendAsync(request);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = await response.Content.ReadAsStringAsync();
-                    //System.Diagnostics.Debug.WriteLine($"AI识别结果: {result}");
-                    return result;
-                }
-                else
-                {
-                    var errorBody = await response.Content.ReadAsStringAsync();
-                    //System.Diagnostics.Debug.WriteLine($"AI识别失败，状态码: {response.StatusCode}，响应: {errorBody}");
-                    return $"{{\"success\": false, \"message\": \"AI识别失败，状态码: {response.StatusCode}\"}}";
-                }
-
-            }
-            catch (Exception ex)
-            {
-                string errorMessage = $"XiaoZhiPostImage方法发生异常: {ex.Message}";
-                return $"{{\"success\": false, \"message\": \"AI识别失败\"}}";
-            }
+            return response.Content;
         }
     }
 }
