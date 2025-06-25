@@ -19,7 +19,12 @@ namespace DuoDuo.Services
                 .AddMcpServer()
                 .WithStreamServerTransport(Global.McpClientToServerPipe.Reader.AsStream(), Global.McpServerToClientPipe.Writer.AsStream())
                 .WithTools<Image_To_Text_Tool>()
+#if ANDROID
+            .WithTools<DuoDuo.Platforms.Android.McpTools.AndroidApp_Tool>()
+#endif                
                 .WithTools<IotThings_Tool>();
+
+
 
             _host = builder.Build();
             _host.StartAsync();
