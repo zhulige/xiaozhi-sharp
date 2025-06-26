@@ -21,6 +21,7 @@ namespace XiaoZhiSharp.Services.Chat
         private bool _isFirst = true;
         private ClientWebSocket? _webSocket = null;
         private bool _disposed = false;
+        private System.Timers.Timer _onAudioTimeout;
 
         #region 属性
         public WebSocketState ConnectState { get { return _webSocket?.State ?? WebSocketState.None; } }
@@ -58,8 +59,22 @@ namespace XiaoZhiSharp.Services.Chat
             {
                 await ReceiveMessagesAsync();
             });
+
+            // 语音合成播报超时
+            _onAudioTimeout = new System.Timers.Timer(500);
+            _onAudioTimeout.Elapsed += async (sender, e) => await OnAudioTimeout();
+            _onAudioTimeout.AutoReset = false;
         }
-        
+
+        /// <summary>
+        /// 语音播报完成
+        /// </summary>
+        private async Task OnAudioTimeout()
+        {
+            if (OnMessageEvent != null)
+                await OnMessageEvent("audio_stop", "");
+        }
+
         private async Task ReceiveMessagesAsync()
         {
             if (_webSocket == null)
@@ -107,6 +122,9 @@ namespace XiaoZhiSharp.Services.Chat
                                 {
                                     if (OnMessageEvent != null)
                                         await OnMessageEvent("question", System.Convert.ToString(msg.text));
+
+                                    if (OnMessageEvent != null)
+                                        await OnMessageEvent("audio_start", "");
                                 }
                                 // 答
                                 if (msg.type == "tts")
@@ -137,9 +155,11 @@ namespace XiaoZhiSharp.Services.Chat
 
                         if (result.MessageType == WebSocketMessageType.Binary)
                         {
+                            _onAudioTimeout.Stop();
                             // 触发事件
                             if (OnAudioEvent != null)
                                await OnAudioEvent(messageBytes);
+                            _onAudioTimeout.Start();
                         }
                     }
                     catch (Exception ex)

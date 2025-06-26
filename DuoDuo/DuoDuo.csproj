@@ -46,7 +46,7 @@
 	  <ApplicationId>com.nbeenet.duoduo</ApplicationId>
 	  <AndroidKeyStore>False</AndroidKeyStore>
 	  <DebugSymbols>True</DebugSymbols>
-	  <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
+	  <EmbedAssembliesIntoApk>False</EmbedAssembliesIntoApk>
     <AndroidPackageFormat>apk</AndroidPackageFormat>
     <ApplicationVersion>2</ApplicationVersion>
 	</PropertyGroup>

@@ -67,6 +67,12 @@ namespace DuoDuo.Services
                     break;
                 case "answer_stop":
                     break;
+                case "audio_start":
+                    MainPageModel.StatusAudio = "说话中...";
+                    break;
+                case "audio_stop":
+                    MainPageModel.StatusAudio = "";
+                    break;
                 case "mcp":
                     string resultMessage = await _mcpService.McpMessageHandle(message);
                     if(!string.IsNullOrEmpty(resultMessage))

@@ -23,6 +23,20 @@ namespace DuoDuo.PageModels
             }
         }
 
+        private string _statusAudio = "";
+        public string StatusAudio
+        {
+            get => _statusAudio;
+            set
+            {
+                if (_statusAudio != value)
+                {
+                    _statusAudio = value;
+                    OnPropertyChanged(nameof(StatusAudio));
+                }
+            }
+        }
+
         private string _questionMessage = "";
         public string QuestionMessae
         {

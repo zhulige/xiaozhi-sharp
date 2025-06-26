@@ -15,7 +15,13 @@
                     Text="{Binding StatusMessage}"  
                     FontSize="18"   
                     FontAttributes="Bold"   
-                    HorizontalOptions="Center" />  
+                    HorizontalOptions="Center" />
+                
+                <Label  
+                    Text="{Binding StatusAudio}"  
+                    FontSize="18"   
+                    FontAttributes="Bold"   
+                    HorizontalOptions="Center" />
 
                 <Label  
                     Text="{Binding EmotionText}"  
