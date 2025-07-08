@@ -11,6 +11,6 @@
 /XiaoZhiSharp_MauiBlazorApp/obj
 /XiaoZhiSharp_MauiApp/obj
 /XiaoZhiSharp_MauiApp/bin
-/XiaoZhiSharp_MauiApp/XiaoZhiSharp_MauiApp.csproj.user
 /DuoDuo/obj
 /DuoDuo/bin
+*.user
